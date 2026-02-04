@@ -1,0 +1,41 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "azd",
+    "copilot",
+    "coverprofile",
+    "errcheck",
+    "gofmt",
+    "golangci",
+    "gopls",
+    "gosec",
+    "govet",
+    "ineffassign",
+    "magefile",
+    "nilness",
+    "prereq",
+    "pwsh",
+    "securego",
+    "staticcheck",
+    "testall",
+    "testcoverage",
+    "typecheck",
+    "unusedparams",
+    "unusedwrite",
+    "useany"
+  ],
+  "ignorePaths": [
+    "node_modules",
+    "bin",
+    "coverage",
+    "dist",
+    "*.exe",
+    "*.dll",
+    "*.so",
+    "*.dylib",
+    "go.sum",
+    "package-lock.json",
+    "pnpm-lock.yaml"
+  ]
+}

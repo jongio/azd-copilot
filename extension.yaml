@@ -1,0 +1,17 @@
+id: jongio.azd.copilot
+namespace: copilot
+displayName: Copilot Extension
+description: GitHub Copilot integration for Azure Developer CLI
+usage: azd copilot <command> [options]
+version: 0.1.0
+language: go
+capabilities:
+  - custom-commands
+examples:
+  - name: version
+    description: Show version information
+    usage: azd copilot version
+tags:
+  - copilot
+  - ai
+  - developer

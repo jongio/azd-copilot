@@ -1,0 +1,7 @@
+# Commands excluded from documentation validation
+# Add one command name per line
+# Lines starting with # are comments
+
+# Internal commands
+listen
+completion

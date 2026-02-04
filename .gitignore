@@ -1,0 +1,87 @@
+# azd-copilot - Ignore files
+
+# Binaries
+bin/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binaries
+*.test
+
+# Mage generated files
+mage_output_file.go
+
+# Coverage
+*.out
+*.coverage
+coverage
+coverage-*
+*-coverage
+*-cov
+*_cover
+*_coverage
+*_coverage.html
+*_coverage.out
+coverdata/
+testcov
+testcov.txt
+COVERAGE_IMPROVEMENT_SUMMARY.md
+COVERAGE_REPORT.md
+
+# Go workspace files
+go.work
+go.work.sum
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist/
+*.tar.gz
+*.zip
+
+# Dependencies
+vendor/
+
+# Node.js
+node_modules/
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+.npm
+.yarn
+.astro
+
+# Website - preserve lockfile for reproducible builds
+!web/pnpm-lock.yaml
+
+# Astro
+.astro/
+
+# Website build output
+web/dist/
+
+# Generated CLI reference pages (regenerated at build time)
+web/src/pages/reference/cli/
+
+# Local configuration
+*.local
+.env
+.env.local
+
+# Runtime state files
+ports.json
+services.json
+
+# Backup files
+*.backup.*

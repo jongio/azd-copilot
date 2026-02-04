@@ -1,0 +1,239 @@
+name: Website Deploy
+
+on:
+  workflow_dispatch:
+  workflow_call:
+  push:
+    branches:
+      - main
+    paths:
+      - 'web/**'
+      - '.github/workflows/website.yml'
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  build:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: 'web/pnpm-lock.yaml'
+
+      - name: Install dependencies
+        working-directory: web
+        run: pnpm install --frozen-lockfile
+
+      - name: Build website (Production)
+        if: github.event_name != 'pull_request'
+        working-directory: web
+        run: pnpm build
+
+      - name: Build website (PR Preview)
+        if: github.event_name == 'pull_request'
+        working-directory: web
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          sed -i "s|site: 'https://jongio.github.io/azd-copilot/'|site: 'https://jongio.github.io/azd-copilot/pr/${{ env.PR_NUMBER }}/'|g" astro.config.mjs
+          sed -i "s|base: '/azd-copilot/'|base: '/azd-copilot/pr/${{ env.PR_NUMBER }}/'|g" astro.config.mjs
+          pnpm build
+
+      - name: Upload production artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-build
+          path: web/dist
+          retention-days: 1
+
+      - name: Upload PR preview artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-preview-${{ github.event.pull_request.number }}
+          path: web/dist
+          retention-days: 7
+
+  deploy-production:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 0
+
+      - name: Download production artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: production-build
+          path: _new_build
+
+      - name: Deploy to GitHub Pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          find . -maxdepth 1 ! -name '.' ! -name '.git' ! -name 'pr' ! -name '_new_build' -exec rm -rf {} +
+          
+          mv _new_build/* .
+          rm -rf _new_build
+          
+          touch .nojekyll
+          
+          git add -A
+          git commit -m "Deploy production website" --allow-empty
+          git push origin gh-pages
+
+  deploy-preview:
+    if: github.event_name == 'pull_request' && github.event.action != 'closed'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 0
+
+      - name: Download PR preview artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pr-preview-${{ github.event.pull_request.number }}
+          path: pr/${{ github.event.pull_request.number }}
+
+      - name: Deploy PR preview
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          touch .nojekyll
+          git add .nojekyll pr/${{ env.PR_NUMBER }}
+          
+          git commit -m "Deploy PR #${{ env.PR_NUMBER }} preview" --allow-empty
+          git push origin gh-pages
+
+      - name: Comment PR with preview URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const previewUrl = `https://jongio.github.io/azd-copilot/pr/${prNumber}/`;
+            
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('🚀 **Website Preview**')
+            );
+            
+            const body = `🚀 **Website Preview**
+            
+            Your PR preview is ready!
+            
+            📎 **Preview URL:** ${previewUrl}
+            
+            _This preview will be automatically cleaned up when the PR is closed._`;
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body
+              });
+            }
+
+  cleanup-preview:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 0
+
+      - name: Remove PR preview
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          if [ -d "pr/${{ env.PR_NUMBER }}" ]; then
+            git rm -rf pr/${{ env.PR_NUMBER }}
+            git commit -m "Cleanup PR #${{ env.PR_NUMBER }} preview"
+            git push origin gh-pages
+            echo "Cleaned up preview for PR #${{ env.PR_NUMBER }}"
+          else
+            echo "No preview found for PR #${{ env.PR_NUMBER }}"
+          fi
+
+      - name: Update PR comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('🚀 **Website Preview**')
+            );
+            
+            if (botComment) {
+              const body = `🚀 **Website Preview**
+              
+              ~~Your PR preview was available here.~~
+              
+              _Preview has been cleaned up as the PR was closed._`;
+              
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body
+              });
+            }

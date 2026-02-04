@@ -1,0 +1,84 @@
+---
+import Layout from '../components/Layout.astro';
+---
+
+<Layout title="Getting Started">
+  <div class="content">
+    <h1>Getting Started</h1>
+    
+    <section class="section">
+      <h2>Prerequisites</h2>
+      <ul>
+        <li><a href="https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd">Azure Developer CLI (azd)</a></li>
+        <li>GitHub Copilot subscription (optional, for AI features)</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>Installation</h2>
+      <p>Install the extension using the Azure Developer CLI:</p>
+      <pre><code>azd extension install jongio.azd.copilot</code></pre>
+    </section>
+
+    <section class="section">
+      <h2>Verify Installation</h2>
+      <p>Check that the extension is installed correctly:</p>
+      <pre><code>azd copilot version</code></pre>
+    </section>
+
+    <section class="section">
+      <h2>Usage</h2>
+      <p>Once installed, you can use the extension with:</p>
+      <pre><code>azd copilot --help</code></pre>
+    </section>
+
+    <section class="section">
+      <h2>Next Steps</h2>
+      <p>
+        Check out the <a href="https://github.com/jongio/azd-copilot">GitHub repository</a> 
+        for more documentation and examples.
+      </p>
+    </section>
+  </div>
+</Layout>
+
+<style>
+  .content {
+    max-width: 48rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+  }
+
+  h1 {
+    margin-bottom: 2rem;
+  }
+
+  .section {
+    margin-bottom: 3rem;
+  }
+
+  .section h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--color-border-default);
+  }
+
+  .section ul {
+    padding-left: 1.5rem;
+    margin: 0;
+  }
+
+  .section li {
+    margin-bottom: 0.5rem;
+  }
+
+  .section p {
+    color: var(--color-text-secondary);
+    margin-bottom: 1rem;
+  }
+
+  .section pre {
+    margin: 0;
+  }
+</style>

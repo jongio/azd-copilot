@@ -1,0 +1,468 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+env:
+  GO_VERSION: '1.25.6'
+
+jobs:
+  preflight:
+    name: Preflight Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go (bootstrap)
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+          cache: false
+
+      - name: Install Go ${{ env.GO_VERSION }}
+        run: |
+          go install golang.org/dl/go${{ env.GO_VERSION }}@latest
+          go${{ env.GO_VERSION }} download
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+          ln -sf $(which go${{ env.GO_VERSION }}) $(go env GOPATH)/bin/go
+
+      - name: Verify Go version
+        run: go version
+
+      - name: Install golangci-lint
+        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+      - name: Install staticcheck
+        run: go install honnef.co/go/tools/cmd/staticcheck@latest
+
+      - name: Install gosec
+        run: go install github.com/securego/gosec/v2/cmd/gosec@latest
+
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+
+      - name: Install azd
+        run: curl -fsSL https://aka.ms/install-azd.sh | bash
+
+      - name: Install azd extensions
+        run: |
+          azd extension source add azd --location https://aka.ms/azd/extensions/registry --type url 2>/dev/null || true
+          azd extension install microsoft.azd.extensions --source azd
+
+      - name: Format check
+        run: |
+          if [ -n "$(gofmt -l ./src/...)" ]; then
+            echo "Go files need formatting:"
+            gofmt -l ./src/...
+            exit 1
+          fi
+
+      - name: Lint
+        run: golangci-lint run --timeout=5m ./src/...
+
+      - name: Security scan
+        run: gosec -quiet ./src/...
+
+      - name: Vulnerability check
+        run: govulncheck ./src/...
+
+  test:
+    name: Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go (bootstrap)
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+          cache: false
+
+      - name: Install Go ${{ env.GO_VERSION }} (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          go install golang.org/dl/go${{ env.GO_VERSION }}@latest
+          go${{ env.GO_VERSION }} download
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+          ln -sf $(which go${{ env.GO_VERSION }}) $(go env GOPATH)/bin/go
+
+      - name: Install Go ${{ env.GO_VERSION }} (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          go install golang.org/dl/go${{ env.GO_VERSION }}@latest
+          & go${{ env.GO_VERSION }} download
+          $gopath = go env GOPATH
+          "$gopath\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          Copy-Item "$gopath\bin\go${{ env.GO_VERSION }}.exe" "$gopath\bin\go.exe" -Force
+
+      - name: Verify Go version
+        run: go version
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run tests
+        shell: bash
+        run: |
+          mkdir -p coverage
+          if [ "${{ matrix.os }}" = "macos-latest" ]; then
+            go test -short -v -coverprofile=coverage/coverage.out ./src/...
+          else
+            go test -short -v -race -coverprofile=coverage/coverage.out ./src/...
+          fi
+
+      - name: Upload coverage to Codecov
+        if: github.repository == 'jongio/azd-copilot'
+        uses: codecov/codecov-action@v4
+        with:
+          file: coverage/coverage.out
+          flags: unittests
+          name: codecov-${{ matrix.os }}-go-${{ env.GO_VERSION }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+          verbose: true
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go (bootstrap)
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+          cache: false
+
+      - name: Install Go ${{ env.GO_VERSION }}
+        run: |
+          go install golang.org/dl/go${{ env.GO_VERSION }}@latest
+          go${{ env.GO_VERSION }} download
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+          ln -sf $(which go${{ env.GO_VERSION }}) $(go env GOPATH)/bin/go
+
+      - name: Verify Go version
+        run: go version
+
+      - name: Install golangci-lint
+        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+      - name: Run golangci-lint
+        run: golangci-lint run --timeout=5m
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [preflight, test, lint]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go (bootstrap)
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+          cache: false
+
+      - name: Install Go ${{ env.GO_VERSION }}
+        run: |
+          go install golang.org/dl/go${{ env.GO_VERSION }}@latest
+          go${{ env.GO_VERSION }} download
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+          ln -sf $(which go${{ env.GO_VERSION }}) $(go env GOPATH)/bin/go
+
+      - name: Verify Go version
+        run: go version
+
+      - name: Build for multiple platforms
+        run: |
+          GOOS=windows GOARCH=amd64 go build -o bin/windows-amd64/copilot.exe ./src/cmd/copilot
+          GOOS=linux GOARCH=amd64 go build -o bin/linux-amd64/copilot ./src/cmd/copilot
+          GOOS=darwin GOARCH=amd64 go build -o bin/darwin-amd64/copilot ./src/cmd/copilot
+          GOOS=darwin GOARCH=arm64 go build -o bin/darwin-arm64/copilot ./src/cmd/copilot
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries
+          path: bin/
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: [preflight, test, lint, build]
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go (bootstrap)
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+          cache: false
+
+      - name: Install Go ${{ env.GO_VERSION }}
+        run: |
+          go install golang.org/dl/go${{ env.GO_VERSION }}@latest
+          go${{ env.GO_VERSION }} download
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+          ln -sf $(which go${{ env.GO_VERSION }}) $(go env GOPATH)/bin/go
+
+      - name: Verify Go version
+        run: go version
+
+      - name: Calculate next version
+        id: version
+        run: |
+          CURRENT=$(grep '^version:' extension.yaml | awk '{print $2}')
+          IFS='.' read -r major minor patch <<< "$CURRENT"
+          
+          case "${{ inputs.bump }}" in
+            major)
+              major=$((major + 1))
+              minor=0
+              patch=0
+              ;;
+            minor)
+              minor=$((minor + 1))
+              patch=0
+              ;;
+            patch)
+              patch=$((patch + 1))
+              ;;
+          esac
+          
+          NEXT="$major.$minor.$patch"
+          echo "current=$CURRENT" >> $GITHUB_OUTPUT
+          echo "next=$NEXT" >> $GITHUB_OUTPUT
+          echo "Bumping from $CURRENT to $NEXT"
+
+      - name: Update version files and create PR
+        id: version_pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.next }}"
+          BRANCH="release/v${VERSION}"
+          
+          git push origin --delete "$BRANCH" 2>/dev/null || true
+          git branch -D "$BRANCH" 2>/dev/null || true
+          
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          
+          sed -i "s/^version: .*/version: $VERSION/" extension.yaml
+          
+          PREV="${{ steps.version.outputs.current }}"
+          
+          if git rev-parse "v${PREV}" >/dev/null 2>&1; then
+            COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges v${PREV}..HEAD)
+          else
+            LAST_VERSION_COMMIT=$(git log --grep="^chore: bump version to" --format="%H" -n 1)
+            if [ -n "$LAST_VERSION_COMMIT" ]; then
+              COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges ${LAST_VERSION_COMMIT}..HEAD)
+            else
+              COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges)
+            fi
+          fi
+          
+          DATE=$(date +%Y-%m-%d)
+          
+          {
+            echo "## [$VERSION] - $DATE"
+            echo ""
+            echo "$COMMITS"
+            echo ""
+            cat CHANGELOG.md
+          } > CHANGELOG.new.md
+          mv CHANGELOG.new.md CHANGELOG.md
+          
+          git add extension.yaml CHANGELOG.md
+          git commit -m "chore: bump version to $VERSION"
+          git push origin "$BRANCH"
+          
+          PR_URL=$(gh pr create \
+            --title "chore: Release v${VERSION}" \
+            --body "Automated version bump to ${VERSION} for release." \
+            --base main \
+            --head "$BRANCH")
+          
+          echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+          
+          PR_NUMBER=$(echo "$PR_URL" | grep -oP '\d+$')
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+
+      - name: Enable auto-merge and wait for merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER="${{ steps.version_pr.outputs.pr_number }}"
+          
+          echo "Waiting for CI checks to be queued..."
+          sleep 10
+          
+          MAX_RETRIES=3
+          RETRY=0
+          while [ $RETRY -lt $MAX_RETRIES ]; do
+            if gh pr merge "$PR_NUMBER" --auto --squash 2>&1; then
+              echo "Auto-merge enabled successfully!"
+              break
+            else
+              RETRY=$((RETRY + 1))
+              if [ $RETRY -lt $MAX_RETRIES ]; then
+                echo "Retrying in 10 seconds... (attempt $RETRY/$MAX_RETRIES)"
+                sleep 10
+              else
+                echo "Failed to enable auto-merge after $MAX_RETRIES attempts"
+                exit 1
+              fi
+            fi
+          done
+          
+          echo "Waiting for PR to be merged..."
+          
+          TIMEOUT=600
+          ELAPSED=0
+          INTERVAL=15
+          
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            PR_DATA=$(gh pr view "$PR_NUMBER" --json state,mergeable,statusCheckRollup)
+            STATE=$(echo "$PR_DATA" | jq -r '.state')
+            MERGEABLE=$(echo "$PR_DATA" | jq -r '.mergeable')
+            
+            echo "PR state: $STATE, Mergeable: $MERGEABLE"
+            
+            if [ "$STATE" = "MERGED" ]; then
+              echo "PR merged successfully!"
+              break
+            fi
+            
+            PENDING_CHECKS=$(echo "$PR_DATA" | jq '[.statusCheckRollup[] | select(.status == "IN_PROGRESS" or .status == "QUEUED" or .status == "PENDING")] | length')
+            TOTAL_CHECKS=$(echo "$PR_DATA" | jq '.statusCheckRollup | length')
+            
+            echo "Checks: $((TOTAL_CHECKS - PENDING_CHECKS))/$TOTAL_CHECKS complete"
+            
+            if [ "$PENDING_CHECKS" -eq 0 ] && [ "$TOTAL_CHECKS" -gt 0 ]; then
+              FAILED_CHECKS=$(echo "$PR_DATA" | jq -r '.statusCheckRollup[] | select(.conclusion == "FAILURE" or .conclusion == "CANCELLED") | .name')
+              if [ -n "$FAILED_CHECKS" ]; then
+                echo "ERROR: Some checks failed:"
+                echo "$FAILED_CHECKS"
+                exit 1
+              fi
+            fi
+            
+            sleep $INTERVAL
+            ELAPSED=$((ELAPSED + INTERVAL))
+          done
+          
+          if [ "$STATE" != "MERGED" ]; then
+            echo "ERROR: PR did not merge within timeout"
+            exit 1
+          fi
+
+      - name: Checkout main and create tag
+        run: |
+          VERSION="${{ steps.version.outputs.next }}"
+          
+          git checkout main
+          git pull origin main
+          
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${VERSION}" -m "Release version ${VERSION}"
+          git push origin "v${VERSION}"
+
+      - name: Install azd
+        run: curl -fsSL https://aka.ms/install-azd.sh | bash
+
+      - name: Install azd extensions
+        run: |
+          azd extension source add azd --location https://aka.ms/azd/extensions/registry --type url 2>/dev/null || true
+          azd extension install microsoft.azd.extensions --source azd
+
+      - name: Build binaries
+        run: |
+          export EXTENSION_ID="jongio.azd.copilot"
+          export EXTENSION_VERSION="${{ steps.version.outputs.next }}"
+          azd x build --all
+
+      - name: Package
+        run: azd x pack
+
+      - name: Extract release notes
+        id: release_notes
+        run: |
+          VERSION="${{ steps.version.outputs.next }}"
+          
+          awk '
+            BEGIN { in_section = 0 }
+            /^## \['"$VERSION"'\]/ { in_section = 1; next }
+            /^## \[/ { in_section = 0 }
+            in_section && NF > 0 { print }
+          ' CHANGELOG.md > /tmp/release-notes.md
+          
+          echo "Release notes for v$VERSION:"
+          cat /tmp/release-notes.md
+
+      - name: Release
+        run: |
+          azd x release \
+            --repo "${{ github.repository }}" \
+            --version "${{ steps.version.outputs.next }}" \
+            --notes-file /tmp/release-notes.md \
+            --confirm
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update registry
+        run: |
+          azd x publish \
+            --registry registry.json \
+            --version "${{ steps.version.outputs.next }}" \
+            --repo "${{ github.repository }}"
+          
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add registry.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update registry for v${{ steps.version.outputs.next }}"
+            git push
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-website:
+    name: Deploy Website
+    needs: [release]
+    uses: ./.github/workflows/website.yml
+    permissions:
+      contents: write
+      pull-requests: write

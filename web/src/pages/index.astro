@@ -1,0 +1,189 @@
+---
+import Layout from '../components/Layout.astro';
+---
+
+<Layout title="Home">
+  <section class="hero">
+    <div class="hero-container">
+      <h1 class="hero-title">
+        GitHub Copilot for<br />Azure Developer CLI
+      </h1>
+      <p class="hero-description">
+        azd-copilot extends Azure Developer CLI with GitHub Copilot integration, 
+        bringing AI-powered assistance to your Azure development workflow.
+      </p>
+      <div class="hero-actions">
+        <a href="/azd-copilot/getting-started/" class="btn-primary">
+          Get Started
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </a>
+        <a href="https://github.com/jongio/azd-copilot" class="btn-secondary" target="_blank" rel="noopener">
+          View on GitHub
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.164 6.839 9.49.5.09.682-.218.682-.484 0-.237-.009-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.268 2.75 1.026A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.026 2.747-1.026.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .269.18.579.688.481C19.138 20.161 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="features">
+    <div class="features-container">
+      <h2 class="features-title">Features</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🤖</div>
+          <h3 class="feature-title">AI-Powered Assistance</h3>
+          <p class="feature-description">
+            Get intelligent suggestions and help with your Azure development tasks.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3 class="feature-title">Seamless Integration</h3>
+          <p class="feature-description">
+            Works directly with Azure Developer CLI for a smooth developer experience.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔧</div>
+          <h3 class="feature-title">Easy Setup</h3>
+          <p class="feature-description">
+            Install as an azd extension and start using immediately.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="install">
+    <div class="install-container">
+      <h2 class="install-title">Quick Install</h2>
+      <div class="install-code">
+        <code>azd extension install jongio.azd.copilot</code>
+      </div>
+      <p class="install-note">
+        Requires <a href="https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd">Azure Developer CLI</a> to be installed.
+      </p>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .hero {
+    padding: 6rem 1.5rem;
+    background: linear-gradient(to bottom, var(--color-bg-accent), var(--color-bg-primary));
+    text-align: center;
+  }
+
+  .hero-container {
+    max-width: 48rem;
+    margin: 0 auto;
+  }
+
+  .hero-title {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+  }
+
+  @media (max-width: 768px) {
+    .hero-title {
+      font-size: 2rem;
+    }
+  }
+
+  .hero-description {
+    font-size: 1.25rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 2rem;
+    line-height: 1.6;
+  }
+
+  .hero-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .features {
+    padding: 5rem 1.5rem;
+  }
+
+  .features-container {
+    max-width: 64rem;
+    margin: 0 auto;
+  }
+
+  .features-title {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+  }
+
+  .feature-card {
+    padding: 2rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-default);
+    border-radius: 0.75rem;
+    text-align: center;
+  }
+
+  .feature-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .feature-title {
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .feature-description {
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  .install {
+    padding: 5rem 1.5rem;
+    background: var(--color-bg-secondary);
+    text-align: center;
+  }
+
+  .install-container {
+    max-width: 40rem;
+    margin: 0 auto;
+  }
+
+  .install-title {
+    margin-bottom: 2rem;
+  }
+
+  .install-code {
+    display: inline-block;
+    padding: 1rem 2rem;
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border-default);
+    border-radius: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .install-note {
+    font-size: 0.875rem;
+    color: var(--color-text-tertiary);
+    margin: 0;
+  }
+</style>

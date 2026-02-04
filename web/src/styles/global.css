@@ -1,0 +1,169 @@
+@import "tailwindcss";
+
+@theme {
+  --color-azure-500: #3b82f6;
+  --color-azure-600: #2563eb;
+  --color-azure-700: #1d4ed8;
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+:root {
+  color-scheme: light;
+
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f9fafb;
+  --color-bg-tertiary: #f3f4f6;
+  --color-bg-accent: #eff6ff;
+
+  --color-text-primary: #111827;
+  --color-text-secondary: #4b5563;
+  --color-text-tertiary: #6b7280;
+
+  --color-border-default: #e5e7eb;
+  --color-border-strong: #d1d5db;
+  --color-border-focus: #3b82f6;
+
+  --color-interactive-default: #2563eb;
+  --color-interactive-hover: #1d4ed8;
+
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-bg-primary: #0f172a;
+  --color-bg-secondary: #1e293b;
+  --color-bg-tertiary: #334155;
+  --color-bg-accent: #1e3a5f;
+
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #cbd5e1;
+  --color-text-tertiary: #94a3b8;
+
+  --color-border-default: #334155;
+  --color-border-strong: #475569;
+  --color-border-focus: #60a5fa;
+
+  --color-interactive-default: #3b82f6;
+  --color-interactive-hover: #60a5fa;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+
+    --color-bg-primary: #0f172a;
+    --color-bg-secondary: #1e293b;
+    --color-bg-tertiary: #334155;
+    --color-bg-accent: #1e3a5f;
+
+    --color-text-primary: #f1f5f9;
+    --color-text-secondary: #cbd5e1;
+    --color-text-tertiary: #94a3b8;
+
+    --color-border-default: #334155;
+    --color-border-strong: #475569;
+    --color-border-focus: #60a5fa;
+
+    --color-interactive-default: #3b82f6;
+    --color-interactive-hover: #60a5fa;
+  }
+}
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+    font-family: var(--font-sans);
+  }
+  
+  body {
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    @apply antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: 2px;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--color-text-primary);
+    @apply font-bold leading-tight;
+  }
+
+  h1 { @apply text-4xl; }
+  h2 { @apply text-3xl; }
+  h3 { @apply text-2xl; }
+  h4 { @apply text-xl; }
+
+  a {
+    color: var(--color-interactive-default);
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--color-interactive-hover);
+    text-decoration: underline;
+  }
+
+  code {
+    font-family: var(--font-mono);
+    @apply text-sm;
+    background-color: var(--color-bg-tertiary);
+    @apply px-1 py-0.5 rounded-sm;
+  }
+
+  pre {
+    font-family: var(--font-mono);
+    background-color: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-default);
+    @apply rounded-lg p-4 overflow-x-auto;
+  }
+
+  pre code {
+    background: none;
+    padding: 0;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-6 py-3 text-base font-semibold rounded-lg transition-colors;
+    background-color: var(--color-interactive-default);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background-color: var(--color-interactive-hover);
+    text-decoration: none;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 px-6 py-3 text-base font-semibold rounded-lg transition-colors;
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border-strong);
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--color-bg-secondary);
+    text-decoration: none;
+  }
+
+  .container {
+    @apply w-full max-w-5xl mx-auto px-6;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

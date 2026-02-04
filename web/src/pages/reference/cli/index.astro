@@ -1,0 +1,134 @@
+---
+import Layout from '../../../components/Layout.astro';
+---
+
+<Layout title="CLI Reference">
+  <div class="content">
+    <h1>CLI Reference</h1>
+    <p class="intro">
+      Complete reference for all <code>azd copilot</code> commands and flags.
+    </p>
+
+    <section>
+      <h2>Global Flags</h2>
+      <p>These flags are available for all commands:</p>
+      <div class="overflow-x-auto">
+        <table class="flags-table">
+          <thead>
+            <tr>
+              <th>Flag</th>
+              <th>Short</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>--output</code></td><td><code>-o</code></td><td>Output format (default, json)</td></tr>
+            <tr><td><code>--debug</code></td><td>-</td><td>Enable debug logging</td></tr>
+            <tr><td><code>--structured-logs</code></td><td>-</td><td>Enable structured JSON logging to stderr</td></tr>
+            <tr><td><code>--cwd</code></td><td><code>-C</code></td><td>Sets the current working directory</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h2>Commands</h2>
+      <div class="commands-grid">
+        
+    <a href="/azd-copilot/reference/cli/version/" class="command-card">
+      <code class="command-name">azd copilot version</code>
+      <p class="command-desc">Show version information</p>
+      <span class="command-meta">1 flags</span>
+    </a>
+  
+      </div>
+    </section>
+  </div>
+</Layout>
+
+<style>
+  .content {
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+  }
+
+  h1 {
+    margin-bottom: 1rem;
+  }
+
+  .intro {
+    font-size: 1.25rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 3rem;
+  }
+
+  section {
+    margin-bottom: 3rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .flags-table {
+    width: 100%;
+    font-size: 0.875rem;
+    border: 1px solid var(--color-border-default);
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+
+  .flags-table th {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    background: var(--color-bg-tertiary);
+    font-weight: 600;
+  }
+
+  .flags-table td {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--color-border-default);
+  }
+
+  .commands-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+
+  .command-card {
+    display: block;
+    padding: 1.5rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-default);
+    border-radius: 0.5rem;
+    text-decoration: none;
+    transition: border-color 0.15s ease;
+  }
+
+  .command-card:hover {
+    border-color: var(--color-interactive-default);
+    text-decoration: none;
+  }
+
+  .command-name {
+    display: block;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-interactive-default);
+    margin-bottom: 0.5rem;
+  }
+
+  .command-desc {
+    color: var(--color-text-secondary);
+    margin: 0 0 0.75rem 0;
+    font-size: 0.875rem;
+  }
+
+  .command-meta {
+    font-size: 0.75rem;
+    color: var(--color-text-tertiary);
+  }
+</style>

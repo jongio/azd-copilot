@@ -1,0 +1,88 @@
+---
+import Layout from '../../../components/Layout.astro';
+---
+
+<Layout title="version - CLI Reference">
+  <div class="content">
+    <nav class="breadcrumb">
+      <a href="/azd-copilot/">Home</a> /
+      <a href="/azd-copilot/reference/cli/">CLI Reference</a> /
+      <span>version</span>
+    </nav>
+
+    <h1>azd copilot version</h1>
+    <p class="description">Show version information</p>
+
+    <h2>Usage</h2>
+    <pre><code>azd copilot version [flags]</code></pre>
+
+    
+<h2>Flags</h2>
+<div class="overflow-x-auto my-4">
+  <table class="min-w-full text-sm">
+    <thead>
+      <tr class="bg-[var(--color-bg-tertiary)]">
+        <th class="text-left py-3 px-4 font-semibold">Flag</th>
+        <th class="text-left py-3 px-4 font-semibold">Short</th>
+        <th class="text-left py-3 px-4 font-semibold">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="border-t border-[var(--color-border-default)]">
+      <td class="py-3 px-4"><code>--help</code></td>
+      <td class="py-3 px-4"><code>-h</code></td>
+      <td class="py-3 px-4">help for version</td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+
+    <div class="back-link">
+      <a href="/azd-copilot/reference/cli/">← Back to CLI Reference</a>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .content {
+    max-width: 48rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+  }
+
+  .breadcrumb {
+    font-size: 0.875rem;
+    color: var(--color-text-tertiary);
+    margin-bottom: 2rem;
+  }
+
+  .breadcrumb a {
+    color: var(--color-text-tertiary);
+  }
+
+  .breadcrumb a:hover {
+    color: var(--color-interactive-default);
+  }
+
+  h1 {
+    margin-bottom: 1rem;
+  }
+
+  .description {
+    font-size: 1.125rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 2rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .back-link {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-border-default);
+  }
+</style>

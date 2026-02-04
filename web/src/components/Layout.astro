@@ -1,0 +1,132 @@
+---
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="GitHub Copilot integration for Azure Developer CLI" />
+    <link rel="icon" type="image/svg+xml" href="/azd-copilot/favicon.svg" />
+    <title>{title} | azd-copilot</title>
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-container">
+        <a href="/azd-copilot/" class="logo">
+          <span class="logo-icon">🤖</span>
+          <span class="logo-text">azd-copilot</span>
+        </a>
+        <nav class="nav">
+          <a href="/azd-copilot/" class="nav-link">Home</a>
+          <a href="/azd-copilot/getting-started/" class="nav-link">Getting Started</a>
+          <a href="https://github.com/jongio/azd-copilot" class="nav-link" target="_blank" rel="noopener">
+            GitHub
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="footer">
+      <div class="footer-container">
+        <p>&copy; 2026 azd-copilot. Open source under MIT License.</p>
+      </div>
+    </footer>
+  </body>
+</html>
+
+<style is:global>
+  @import "../styles/global.css";
+</style>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background-color: var(--color-bg-primary);
+    border-bottom: 1px solid var(--color-border-default);
+    padding: 1rem 0;
+  }
+
+  .header-container {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    text-decoration: none;
+  }
+
+  .logo:hover {
+    text-decoration: none;
+  }
+
+  .logo-icon {
+    font-size: 1.5rem;
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+  }
+
+  .nav-link:hover {
+    color: var(--color-interactive-default);
+    text-decoration: none;
+  }
+
+  .footer {
+    border-top: 1px solid var(--color-border-default);
+    padding: 2rem 0;
+    margin-top: 4rem;
+  }
+
+  .footer-container {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    text-align: center;
+  }
+
+  .footer p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--color-text-tertiary);
+  }
+</style>

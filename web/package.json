@@ -1,0 +1,24 @@
+{
+  "name": "azd-copilot-website",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "generate:cli": "tsx scripts/generate-cli-reference.ts",
+    "prebuild": "pnpm generate:cli",
+    "build": "astro build",
+    "preview": "astro preview --host 127.0.0.1 --port 4321",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^4.3.13",
+    "@tailwindcss/vite": "^4.1.18",
+    "astro": "^5.16.8",
+    "tailwindcss": "^4.1.18"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.5",
+    "tsx": "^4.21.0"
+  }
+}

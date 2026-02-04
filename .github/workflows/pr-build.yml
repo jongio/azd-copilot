@@ -1,0 +1,362 @@
+name: PR Build
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+  pull_request_target:
+    branches: [ main ]
+    types: [labeled, closed]
+  push:
+    branches: [ prbuild ]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to build'
+        required: false
+        type: number
+
+env:
+  GO_VERSION: '1.25.6'
+
+jobs:
+  check-permission:
+    name: Check Build Permission
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' || 
+      github.event_name == 'pull_request_target' ||
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    outputs:
+      allowed: ${{ steps.check.outputs.allowed }}
+      pr_number: ${{ steps.check.outputs.pr_number }}
+      pr_sha: ${{ steps.check.outputs.pr_sha }}
+    
+    steps:
+      - name: Check if build is allowed
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            let allowed = false;
+            let prNumber = null;
+            let prSha = null;
+            
+            if (context.eventName === 'workflow_dispatch') {
+              allowed = true;
+              prNumber = context.payload.inputs.pr_number;
+              if (prNumber) {
+                const pr = await github.rest.pulls.get({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: prNumber
+                });
+                prSha = pr.data.head.sha;
+              }
+              core.setOutput('allowed', 'true');
+              core.setOutput('pr_number', prNumber || '');
+              core.setOutput('pr_sha', prSha || '');
+              return;
+            }
+            
+            if (context.eventName === 'push') {
+              allowed = true;
+              const { data: prs } = await github.rest.pulls.list({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                head: `${context.repo.owner}:${context.ref.replace('refs/heads/', '')}`
+              });
+              
+              if (prs.length > 0) {
+                prNumber = prs[0].number;
+                prSha = prs[0].head.sha;
+              }
+              core.setOutput('allowed', 'true');
+              core.setOutput('pr_number', prNumber || '');
+              core.setOutput('pr_sha', prSha || '');
+              return;
+            }
+            
+            if (context.eventName === 'workflow_run') {
+              const { data: prs } = await github.rest.pulls.list({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                head: `${context.repo.owner}:${context.payload.workflow_run.head_branch}`
+              });
+              
+              if (prs.length > 0) {
+                const pr = prs[0];
+                const association = pr.author_association;
+                const trustedAssociations = ['OWNER', 'MEMBER', 'COLLABORATOR', 'CONTRIBUTOR'];
+                if (trustedAssociations.includes(association)) {
+                  allowed = true;
+                  prNumber = pr.number;
+                  prSha = pr.head.sha;
+                } else {
+                  const hasLabel = pr.labels.some(label => label.name === 'safe-to-build');
+                  if (hasLabel) {
+                    allowed = true;
+                    prNumber = pr.number;
+                    prSha = pr.head.sha;
+                  }
+                }
+              }
+            }
+            
+            if (context.eventName === 'pull_request_target') {
+              const hasLabel = context.payload.pull_request.labels.some(
+                label => label.name === 'safe-to-build'
+              );
+              if (hasLabel) {
+                allowed = true;
+                prNumber = context.payload.pull_request.number;
+                prSha = context.payload.pull_request.head.sha;
+              }
+            }
+            
+            core.setOutput('allowed', allowed ? 'true' : 'false');
+            core.setOutput('pr_number', prNumber || '');
+            core.setOutput('pr_sha', prSha || '');
+            
+            if (!allowed) {
+              core.notice('Build skipped - requires maintainer approval. Add "safe-to-build" label to proceed.');
+            }
+
+  build-pr:
+    name: Build PR Preview
+    runs-on: ubuntu-latest
+    needs: check-permission
+    if: needs.check-permission.outputs.allowed == 'true'
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Get PR details
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            let prNumber = '${{ needs.check-permission.outputs.pr_number }}';
+            
+            if (!prNumber) {
+              const ref = context.ref.replace('refs/heads/', '');
+              const { data: prs } = await github.rest.pulls.list({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                head: `${context.repo.owner}:${ref}`
+              });
+              
+              if (prs.length > 0) {
+                prNumber = prs[0].number;
+              } else {
+                core.setFailed('No PR found for this branch.');
+                return;
+              }
+            }
+            
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+            
+            core.setOutput('number', prNumber);
+            core.setOutput('sha', pr.data.head.sha);
+            core.setOutput('ref', pr.data.head.ref);
+            core.setOutput('title', pr.data.title);
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.pr.outputs.sha }}
+
+      - name: Set up Go (bootstrap)
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+          cache: false
+
+      - name: Install Go ${{ env.GO_VERSION }}
+        run: |
+          go install golang.org/dl/go${{ env.GO_VERSION }}@latest
+          go${{ env.GO_VERSION }} download
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+          ln -sf $(which go${{ env.GO_VERSION }}) $(go env GOPATH)/bin/go
+
+      - name: Verify Go version
+        run: go version
+
+      - name: Calculate PR version
+        id: version
+        run: |
+          BASE_VERSION=$(grep '^version:' extension.yaml | awk '{print $2}')
+          PR_NUMBER="${{ steps.pr.outputs.number }}"
+          PR_VERSION="${BASE_VERSION}-pr${PR_NUMBER}"
+          STANDARD_TAG="azd-ext-jongio-azd-copilot_${PR_VERSION}"
+          echo "version=$PR_VERSION" >> $GITHUB_OUTPUT
+          echo "base_version=$BASE_VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$STANDARD_TAG" >> $GITHUB_OUTPUT
+          echo "Building version: $PR_VERSION with tag: $STANDARD_TAG"
+
+      - name: Install azd
+        run: curl -fsSL https://aka.ms/install-azd.sh | bash
+
+      - name: Install azd extensions
+        run: |
+          azd extension source add azd --location https://aka.ms/azd/extensions/registry --type url 2>/dev/null || true
+          azd extension install microsoft.azd.extensions --source azd
+
+      - name: Update extension.yaml with PR version
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          sed -i "s/^version: .*/version: ${VERSION}/" extension.yaml
+
+      - name: Build binaries
+        run: |
+          export EXTENSION_ID="jongio.azd.copilot"
+          export EXTENSION_VERSION="${{ steps.version.outputs.version }}"
+          azd x build --all
+
+      - name: Package
+        run: azd x pack
+
+      - name: Create PR pre-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          TAG="azd-ext-jongio-azd-copilot_${VERSION}"
+          PR_NUM="${{ steps.pr.outputs.number }}"
+          
+          gh release delete "$TAG" --repo "${{ github.repository }}" --yes --cleanup-tag 2>/dev/null || true
+          git push --delete origin "$TAG" 2>/dev/null || true
+          sleep 2
+          
+          gh release create "$TAG" \
+            --repo "${{ github.repository }}" \
+            --title "PR #${PR_NUM} Preview (v${VERSION})" \
+            --notes "PR #${PR_NUM} preview build. Test using the one-line installer from the PR comment." \
+            --prerelease \
+            ~/.azd/registry/jongio.azd.copilot/${VERSION}/*
+
+      - name: Update registry
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          echo '{"extensions":[]}' > /tmp/pr-registry.json
+          azd x publish \
+            --registry /tmp/pr-registry.json \
+            --version "$VERSION" \
+            --repo "${{ github.repository }}"
+          TAG="azd-ext-jongio-azd-copilot_${VERSION}"
+          gh release upload "$TAG" --repo "${{ github.repository }}" /tmp/pr-registry.json --clobber
+
+      - name: Generate installation instructions
+        id: instructions
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          PR_NUM="${{ steps.pr.outputs.number }}"
+          TAG="${{ steps.version.outputs.tag }}"
+          REPO="${{ github.repository }}"
+          COMMIT="${{ steps.pr.outputs.sha }}"
+          SHORT_COMMIT=$(echo $COMMIT | cut -c1-7)
+          BRANCH="${{ github.ref_name }}"
+          
+          cat > instructions.md <<EOF
+          ## 🚀 Test This PR
+          
+          A preview build (\`$VERSION\`) is ready for testing!
+          
+          ### One-Line Install (Recommended)
+          
+          **PowerShell (Windows):**
+          \`\`\`powershell
+          iex "& { \$(irm https://raw.githubusercontent.com/$REPO/$BRANCH/scripts/install-pr.ps1) } -PrNumber $PR_NUM -Version $VERSION"
+          \`\`\`
+          
+          **Bash (macOS/Linux):**
+          \`\`\`bash
+          curl -fsSL https://raw.githubusercontent.com/$REPO/$BRANCH/scripts/install-pr.sh | bash -s $PR_NUM $VERSION
+          \`\`\`
+          
+          ### Uninstall
+          
+          **PowerShell (Windows):**
+          \`\`\`powershell
+          iex "& { \$(irm https://raw.githubusercontent.com/$REPO/$BRANCH/scripts/uninstall-pr.ps1) } -PrNumber $PR_NUM"
+          \`\`\`
+          
+          **Bash (macOS/Linux):**
+          \`\`\`bash
+          curl -fsSL https://raw.githubusercontent.com/$REPO/$BRANCH/scripts/uninstall-pr.sh | bash -s $PR_NUM
+          \`\`\`
+          
+          ---
+          
+          **Build Info:**
+          - **Version:** \`$VERSION\`
+          - **Commit:** \`$SHORT_COMMIT\`
+          - **Release:** [View pre-release](https://github.com/$REPO/releases/tag/$TAG)
+          EOF
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const instructions = fs.readFileSync('instructions.md', 'utf8');
+            const prNumber = '${{ steps.pr.outputs.number }}';
+            
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            
+            const botComment = comments.data.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('🚀 Test This PR')
+            );
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: instructions
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: instructions
+              });
+            }
+
+  cleanup:
+    name: Cleanup PR Registry
+    runs-on: ubuntu-latest
+    if: github.event.action == 'closed' && github.event_name == 'pull_request_target'
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Delete PR registry release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_NUM=${{ github.event.pull_request.number }}
+          gh release list --repo ${{ github.repository }} --json tagName,name --limit 100 | \
+            jq -r ".[] | select(.tagName | contains(\"-pr${PR_NUM}\")) | .tagName" | \
+            while read tag; do
+              echo "Deleting release: $tag"
+              gh release delete "$tag" --repo ${{ github.repository }} --yes || true
+              git push --delete origin "$tag" 2>/dev/null || true
+            done
