@@ -15,7 +15,7 @@ Write-Host ""
 
 # Kill any running extension processes
 Write-Host "🛑 Stopping any running extension processes..." -ForegroundColor Gray
-$processNames = @("jongio-azd-copilot-windows-amd64", "jongio-azd-copilot-windows-arm64", "copilot")
+$processNames = @("jongio-azd-copilot-windows-amd64", "jongio-azd-copilot-windows-arm64")
 foreach ($name in $processNames) {
     Get-Process -Name $name -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 }

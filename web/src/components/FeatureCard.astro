@@ -1,0 +1,156 @@
+---
+/**
+ * FeatureCard Component
+ * 
+ * Card for displaying features with icon, title, and description.
+ * Has hover glow effects matching azd-extensions style.
+ */
+interface Props {
+  icon: string;
+  title: string;
+  description: string;
+  href?: string;
+  glowColor?: 'cyan' | 'violet' | 'emerald';
+}
+
+const { icon, title, description, href, glowColor = 'cyan' } = Astro.props;
+
+const glowColorMap = {
+  cyan: 'var(--color-glow-cyan)',
+  violet: 'var(--color-glow-violet)',
+  emerald: 'var(--color-glow-emerald)',
+};
+
+const color = glowColorMap[glowColor];
+const Tag = href ? 'a' : 'div';
+---
+
+<Tag 
+  class="feature-card"
+  href={href}
+  style={`--glow-color: ${color}`}
+>
+  <div class="feature-glow" aria-hidden="true"></div>
+  <div class="feature-content">
+    <div class="feature-icon-wrapper">
+      <span class="feature-icon" aria-hidden="true">{icon}</span>
+    </div>
+    <h3 class="feature-title">{title}</h3>
+    <p class="feature-description">{description}</p>
+    {href && (
+      <span class="feature-link">
+        Learn more
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </span>
+    )}
+  </div>
+</Tag>
+
+<style>
+  .feature-card {
+    position: relative;
+    display: block;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    background: var(--color-card);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--color-border);
+    text-decoration: none;
+    color: inherit;
+    overflow: hidden;
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .feature-card:hover {
+    transform: translateY(-4px) scale(1.01);
+    border-color: rgba(148, 163, 184, 0.2);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    text-decoration: none;
+  }
+
+  .feature-glow {
+    position: absolute;
+    top: -5rem;
+    right: -5rem;
+    width: 10rem;
+    height: 10rem;
+    background: var(--glow-color);
+    border-radius: 50%;
+    opacity: 0;
+    filter: blur(60px);
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+  }
+
+  .feature-card:hover .feature-glow {
+    opacity: 0.2;
+  }
+
+  .feature-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .feature-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 1rem;
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(139, 92, 246, 0.1));
+    transition: transform 0.3s ease;
+  }
+
+  .feature-card:hover .feature-icon-wrapper {
+    transform: scale(1.1);
+  }
+
+  .feature-icon {
+    font-size: 1.5rem;
+  }
+
+  .feature-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--color-foreground);
+  }
+
+  .feature-description {
+    font-size: 0.875rem;
+    color: var(--color-muted-foreground);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .feature-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-primary);
+    transition: gap 0.2s ease;
+  }
+
+  .feature-card:hover .feature-link {
+    gap: 0.5rem;
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .feature-card:hover {
+      transform: none;
+    }
+
+    .feature-card:hover .feature-icon-wrapper {
+      transform: none;
+    }
+  }
+</style>

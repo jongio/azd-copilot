@@ -1,0 +1,212 @@
+---
+interface Props {
+  id: string;
+  emoji: string;
+  name: string;
+  role: string;
+  description: string;
+  skills: string[];
+  color: string;
+  index: number;
+}
+
+const { id, emoji, name, role, description, skills, color, index } = Astro.props;
+
+const colorMap: Record<string, string> = {
+  azure: 'var(--color-glow-cyan)',
+  purple: 'var(--color-glow-violet)',
+  indigo: 'var(--color-glow-violet)',
+  blue: 'var(--color-glow-cyan)',
+  red: '#ef4444',
+  sky: 'var(--color-glow-cyan)',
+  orange: '#f97316',
+  amber: '#f59e0b',
+  neutral: 'var(--color-muted-foreground)',
+  gold: '#eab308',
+  stone: '#78716c',
+  teal: 'var(--color-glow-emerald)',
+  fuchsia: '#d946ef',
+  cyan: 'var(--color-glow-cyan)',
+  pink: '#ec4899',
+  emerald: 'var(--color-glow-emerald)',
+};
+
+const accentColor = colorMap[color] || 'var(--color-glow-cyan)';
+---
+
+<button
+  class="agent-card glass"
+  data-agent-id={id}
+  data-agent-index={index}
+  style={`--accent: ${accentColor}; animation-delay: ${index * 0.05}s`}
+  aria-label={`View ${name}'s profile`}
+>
+  <div class="agent-avatar">
+    <video
+      class="agent-video"
+      src={`/azd-copilot/agents/videos/${id}.mp4`}
+      muted
+      loop
+      playsinline
+      preload="none"
+    ></video>
+    <img
+      src={`/azd-copilot/agents/${id}.png`}
+      alt={`${name} - ${role}`}
+      class="agent-photo"
+      loading="lazy"
+      onerror="this.style.display='none'; this.parentElement.querySelector('.agent-emoji-fallback').style.display='flex';"
+    />
+    <div class="agent-emoji-fallback">{emoji}</div>
+    <span class="agent-emoji-badge">{emoji}</span>
+  </div>
+  <div class="agent-info">
+    <h3 class="agent-name">{name}</h3>
+    <p class="agent-role">{role}</p>
+    <p class="agent-desc">{description}</p>
+    <div class="agent-skills">
+      {skills.slice(0, 3).map((skill) => (
+        <span class="skill-pill">{skill}</span>
+      ))}
+    </div>
+  </div>
+</button>
+
+<style>
+  .agent-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1.5rem;
+    border-radius: 1.25rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    animation: fade-up 0.6s ease-out forwards;
+    opacity: 0;
+    border-color: transparent;
+    background: var(--color-card);
+  }
+
+  .agent-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    border-color: var(--accent);
+    box-shadow: 0 8px 40px color-mix(in srgb, var(--accent) 25%, transparent);
+  }
+
+  .agent-avatar {
+    position: relative;
+    width: 6rem;
+    height: 6rem;
+    margin-bottom: 1rem;
+    flex-shrink: 0;
+    border-radius: 50%;
+    overflow: hidden;
+  }
+
+  .agent-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 2;
+    border: 2px solid var(--accent);
+  }
+
+  .agent-card:hover .agent-video {
+    opacity: 1;
+  }
+
+  .agent-photo {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 30%, transparent);
+    position: relative;
+    z-index: 1;
+  }
+
+  .agent-emoji-fallback {
+    display: none;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    background: var(--color-secondary);
+    border: 2px solid var(--accent);
+  }
+
+  .agent-emoji-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 1.75rem;
+    height: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    background: var(--color-background);
+    border: 2px solid var(--color-border);
+    border-radius: 50%;
+  }
+
+  .agent-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .agent-name {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--color-foreground);
+  }
+
+  .agent-role {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--accent);
+    margin: 0 0 0.375rem;
+  }
+
+  .agent-desc {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--color-muted-foreground);
+    margin: 0 0 0.75rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .agent-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    justify-content: center;
+    margin-top: auto;
+  }
+
+  .skill-pill {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    padding: 0.1875rem 0.5rem;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    color: var(--accent);
+    border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+    white-space: nowrap;
+  }
+</style>

@@ -11,16 +11,19 @@ $EXTENSION_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location -Path $EXTENSION_DIR
 
 # Helper function to kill extension processes
+# Only kills the azd extension binaries, NOT the generic "copilot" process
+# which would kill GitHub Copilot CLI sessions.
 function Stop-ExtensionProcesses {
-    $binaryName = "copilot"
     $extensionId = "jongio.azd.copilot"
     $extensionBinaryPrefix = $extensionId -replace '\.', '-'
 
-    # Kill processes by name silently
-    taskkill /F /IM "$binaryName.exe" 2>$null | Out-Null
+    # Kill extension binaries by their distinctive name
     foreach ($arch in @("windows-amd64", "windows-arm64")) {
-        $procName = "$extensionBinaryPrefix-$arch.exe"
-        taskkill /F /IM $procName 2>$null | Out-Null
+        $procName = "$extensionBinaryPrefix-$arch"
+        Get-Process -Name $procName -ErrorAction SilentlyContinue | ForEach-Object {
+            Write-Host "  Stopping process: $($_.Name) (PID: $($_.Id))" -ForegroundColor Gray
+            Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue
+        }
     }
     
     # Kill any processes running from the installed extension directory

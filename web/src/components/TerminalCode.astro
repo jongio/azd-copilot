@@ -1,0 +1,146 @@
+---
+/**
+ * TerminalCode Component
+ * 
+ * Terminal-styled code block with copy functionality.
+ * Matching the style from azd-extensions.
+ */
+interface Props {
+  code: string;
+  showPrompt?: boolean;
+  class?: string;
+}
+
+const { code, showPrompt = true, class: className = '' } = Astro.props;
+const uniqueId = `terminal-${Math.random().toString(36).substring(2, 9)}`;
+---
+
+<div class:list={['terminal-code', className]} data-terminal-id={uniqueId}>
+  {showPrompt && (
+    <svg class="terminal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 19h8" />
+      <path d="m4 17 6-6-6-6" />
+    </svg>
+  )}
+  <code class="terminal-text">{code}</code>
+  <button 
+    class="copy-btn" 
+    data-code={code}
+    aria-label="Copy to clipboard"
+    title="Copy to clipboard"
+  >
+    <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+      <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+    </svg>
+    <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  </button>
+</div>
+
+<style>
+  .terminal-code {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--color-border);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .terminal-code:hover {
+    border-color: rgba(148, 163, 184, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .terminal-icon {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+    color: var(--color-glow-cyan);
+  }
+
+  .terminal-text {
+    flex: 1;
+    overflow-x: auto;
+    color: var(--color-foreground);
+    background: none;
+    padding: 0;
+    white-space: nowrap;
+  }
+
+  .copy-btn {
+    flex-shrink: 0;
+    padding: 0.25rem;
+    background: transparent;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+  }
+
+  .terminal-code:hover .copy-btn {
+    opacity: 1;
+  }
+
+  .copy-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .copy-btn:focus-visible {
+    opacity: 1;
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+
+  .copy-icon,
+  .check-icon {
+    width: 1rem;
+    height: 1rem;
+    color: var(--color-muted-foreground);
+    transition: color 0.2s ease;
+  }
+
+  .copy-btn:hover .copy-icon {
+    color: var(--color-foreground);
+  }
+
+  .check-icon {
+    display: none;
+    color: var(--color-glow-emerald);
+  }
+
+  .copy-btn.copied .copy-icon {
+    display: none;
+  }
+
+  .copy-btn.copied .check-icon {
+    display: block;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.copy-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const code = btn.getAttribute('data-code');
+        if (!code) return;
+
+        try {
+          await navigator.clipboard.writeText(code);
+          btn.classList.add('copied');
+          setTimeout(() => btn.classList.remove('copied'), 2000);
+        } catch {
+          console.warn('Failed to copy to clipboard');
+        }
+      });
+    });
+  });
+</script>

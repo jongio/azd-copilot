@@ -19,7 +19,6 @@ echo ""
 # Kill any running extension processes
 echo "🛑 Stopping any running extension processes..."
 pkill -f "jongio-azd-copilot" 2>/dev/null || true
-pkill -f "copilot" 2>/dev/null || true
 sleep 0.5
 echo "   ✓"
 

@@ -11,12 +11,12 @@ EXTENSION_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$EXTENSION_DIR" || exit
 
 # Helper function to kill extension processes
+# Only kills the azd extension binaries, NOT the generic "copilot" process
+# which would kill GitHub Copilot CLI sessions.
 stop_extension_processes() {
-    BINARY_NAME="copilot"
     EXTENSION_ID_FOR_KILL="jongio.azd.copilot"
     EXTENSION_BINARY_PREFIX="${EXTENSION_ID_FOR_KILL//./-}"
 
-    pkill -f "$BINARY_NAME" 2>/dev/null || true
     pkill -f "$EXTENSION_BINARY_PREFIX" 2>/dev/null || true
     
     INSTALLED_EXT_DIR="$HOME/.azd/extensions/$EXTENSION_ID_FOR_KILL"

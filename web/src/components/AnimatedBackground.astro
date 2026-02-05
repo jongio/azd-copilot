@@ -1,0 +1,129 @@
+---
+/**
+ * AnimatedBackground Component
+ * 
+ * Floating, glowing orbs that create a modern startup aesthetic.
+ * Matching the style from azd-extensions.
+ */
+---
+
+<div class="animated-bg" aria-hidden="true">
+  <div class="orb orb-cyan"></div>
+  <div class="orb orb-violet"></div>
+  <div class="orb orb-emerald"></div>
+  <div class="floating-dot dot-1"></div>
+  <div class="floating-dot dot-2"></div>
+  <div class="floating-dot dot-3"></div>
+</div>
+
+<style>
+  .animated-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+  }
+
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    animation: pulse-glow 4s ease-in-out infinite;
+  }
+
+  .orb-cyan {
+    top: -10rem;
+    left: -10rem;
+    width: 20rem;
+    height: 20rem;
+    background: var(--color-glow-cyan);
+    opacity: 0.2;
+  }
+
+  .orb-violet {
+    top: 33%;
+    right: -10rem;
+    width: 24rem;
+    height: 24rem;
+    background: var(--color-glow-violet);
+    opacity: 0.15;
+    animation-delay: 2s;
+    filter: blur(120px);
+  }
+
+  .orb-emerald {
+    bottom: -10rem;
+    left: 33%;
+    width: 18rem;
+    height: 18rem;
+    background: var(--color-glow-emerald);
+    opacity: 0.1;
+    animation-delay: 4s;
+  }
+
+  .floating-dot {
+    position: absolute;
+    border-radius: 50%;
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .dot-1 {
+    top: 5rem;
+    left: 2.5rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    background: var(--color-glow-cyan);
+    opacity: 0.6;
+  }
+
+  .dot-2 {
+    top: 10rem;
+    right: 5rem;
+    width: 0.75rem;
+    height: 0.75rem;
+    background: var(--color-glow-violet);
+    opacity: 0.5;
+    animation-delay: 2s;
+    animation-duration: 8s;
+  }
+
+  .dot-3 {
+    bottom: 20%;
+    left: 15%;
+    width: 0.5rem;
+    height: 0.5rem;
+    background: var(--color-glow-emerald);
+    opacity: 0.4;
+    animation-delay: 1s;
+    animation-duration: 7s;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      opacity: var(--base-opacity, 0.2);
+      transform: scale(1);
+    }
+    50% {
+      opacity: calc(var(--base-opacity, 0.2) * 2);
+      transform: scale(1.05);
+    }
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-20px) rotate(5deg);
+    }
+  }
+
+  /* Reduce motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    .orb,
+    .floating-dot {
+      animation: none;
+    }
+  }
+</style>

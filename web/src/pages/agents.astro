@@ -1,0 +1,677 @@
+---
+import Layout from '../components/Layout.astro';
+import AgentCard from '../components/AgentCard.astro';
+import { agents } from '../data/agents';
+---
+
+<Layout title="Meet the Agents" description="Meet the 16 specialized AI agents that power azd-copilot">
+  <!-- Hero Section -->
+  <section class="agents-hero" aria-labelledby="agents-heading">
+    <div class="agents-hero-container">
+      <h1 id="agents-heading" class="agents-hero-title animate-fade-up">
+        Meet the <span class="text-gradient-animated">Agents</span>
+      </h1>
+      <p class="agents-hero-description animate-fade-up" style="animation-delay: 0.1s">
+        <strong>16 specialized AI agents</strong> work together to help you build, secure, and deploy Azure applications.
+        Each agent brings deep domain expertise — click any agent to learn more.
+      </p>
+    </div>
+  </section>
+
+  <!-- Agent Grid -->
+  <section class="agents-grid-section" aria-label="Agent profiles">
+    <div class="agents-grid-container">
+      <div class="agents-grid">
+        {agents.map((agent, i) => (
+          <AgentCard
+            id={agent.id}
+            emoji={agent.emoji}
+            name={agent.name}
+            role={agent.role}
+            description={agent.description}
+            skills={agent.skills}
+            color={agent.color}
+            index={i}
+          />
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="agents-cta" aria-label="Get started">
+    <div class="agents-cta-container">
+      <div class="agents-cta-card glass glow-cyan">
+        <h2 class="agents-cta-title">
+          Ready to put the team to <span class="text-gradient">work</span>?
+        </h2>
+        <p class="agents-cta-description">
+          Install azd-copilot and let these agents build your next Azure application.
+        </p>
+        <div class="agents-cta-actions">
+          <a href="/azd-copilot/getting-started/" class="btn-primary">
+            Get Started
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Agent Modal (hidden by default) -->
+  <div id="agent-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-agent-name" hidden>
+    <div class="modal-backdrop"></div>
+    <div class="modal-content glass">
+      <button class="modal-close" aria-label="Close">&times;</button>
+      
+      <div class="modal-body">
+        <div class="modal-avatar-section">
+          <div class="modal-media">
+            <video
+              id="modal-video"
+              class="modal-video"
+              muted
+              loop
+              playsinline
+            ></video>
+            <div class="modal-video-controls">
+              <button id="modal-play-btn" class="modal-ctrl-btn" aria-label="Play/Pause">
+                <svg class="play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                <svg class="pause-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+              </button>
+              <button id="modal-mute-btn" class="modal-ctrl-btn" aria-label="Mute/Unmute">
+                <svg class="muted-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+                <svg class="unmuted-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+              </button>
+            </div>
+            <div class="modal-avatar">
+              <img id="modal-photo" src="" alt="" class="modal-photo" />
+              <div id="modal-emoji-fallback" class="modal-emoji-fallback"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-details">
+          <div class="modal-header">
+            <span id="modal-emoji" class="modal-emoji-inline"></span>
+            <h2 id="modal-agent-name" class="modal-name"></h2>
+          </div>
+          <p id="modal-role" class="modal-role"></p>
+          <p id="modal-description" class="modal-description"></p>
+          
+          <div class="modal-section">
+            <h3 class="modal-section-title">Primary Focus</h3>
+            <p id="modal-focus" class="modal-focus-text"></p>
+          </div>
+          
+          <div class="modal-section">
+            <h3 class="modal-section-title">Core Skills</h3>
+            <div id="modal-skills" class="modal-skills"></div>
+          </div>
+          
+          <div class="modal-section">
+            <h3 class="modal-section-title">Personality</h3>
+            <p id="modal-personality" class="modal-personality-text"></p>
+          </div>
+
+          <div class="modal-section">
+            <h3 class="modal-section-title">Fun Fact</h3>
+            <p id="modal-funfact" class="modal-funfact-text"></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-nav">
+        <button class="modal-nav-btn" id="modal-prev" aria-label="Previous agent">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          <span class="modal-nav-label" id="modal-prev-name"></span>
+        </button>
+        <button class="modal-nav-btn" id="modal-next" aria-label="Next agent">
+          <span class="modal-nav-label" id="modal-next-name"></span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<!-- Embed agent data for client-side modal -->
+<script define:vars={{ agents }}>
+  window.__AGENTS__ = agents;
+</script>
+
+<script>
+  const agents = (window as any).__AGENTS__;
+  const modal = document.getElementById('agent-modal')!;
+  const backdrop = modal.querySelector('.modal-backdrop')!;
+  const closeBtn = modal.querySelector('.modal-close')!;
+  const prevBtn = document.getElementById('modal-prev')!;
+  const nextBtn = document.getElementById('modal-next')!;
+  const modalVideo = document.getElementById('modal-video') as HTMLVideoElement;
+  const playBtn = document.getElementById('modal-play-btn')!;
+  const muteBtn = document.getElementById('modal-mute-btn')!;
+
+  let currentIndex = 0;
+
+  const colorMap: Record<string, string> = {
+    azure: 'var(--color-glow-cyan)',
+    purple: 'var(--color-glow-violet)',
+    indigo: 'var(--color-glow-violet)',
+    blue: 'var(--color-glow-cyan)',
+    red: '#ef4444',
+    sky: 'var(--color-glow-cyan)',
+    orange: '#f97316',
+    amber: '#f59e0b',
+    neutral: 'var(--color-muted-foreground)',
+    gold: '#eab308',
+    stone: '#78716c',
+    teal: 'var(--color-glow-emerald)',
+    fuchsia: '#d946ef',
+    cyan: 'var(--color-glow-cyan)',
+    pink: '#ec4899',
+    emerald: 'var(--color-glow-emerald)',
+  };
+
+  function updatePlayPauseIcon(playing: boolean) {
+    playBtn.querySelector('.play-icon')!.setAttribute('style', playing ? 'display:none' : '');
+    playBtn.querySelector('.pause-icon')!.setAttribute('style', playing ? '' : 'display:none');
+  }
+
+  function updateMuteIcon(muted: boolean) {
+    muteBtn.querySelector('.muted-icon')!.setAttribute('style', muted ? '' : 'display:none');
+    muteBtn.querySelector('.unmuted-icon')!.setAttribute('style', muted ? 'display:none' : '');
+  }
+
+  function showAgent(index: number) {
+    currentIndex = index;
+    const agent = agents[index];
+    const accent = colorMap[agent.color] || 'var(--color-glow-cyan)';
+
+    modal.style.setProperty('--modal-accent', accent);
+
+    // Video
+    const videoSrc = `/azd-copilot/agents/videos/${agent.id}.mp4`;
+    modalVideo.src = videoSrc;
+    modalVideo.load();
+    modalVideo.play().then(() => {
+      modalVideo.style.display = '';
+      (modal.querySelector('.modal-avatar') as HTMLElement).style.display = 'none';
+      updatePlayPauseIcon(true);
+    }).catch(() => {
+      modalVideo.style.display = 'none';
+      (modal.querySelector('.modal-avatar') as HTMLElement).style.display = '';
+    });
+
+    // Photo fallback
+    const photo = document.getElementById('modal-photo') as HTMLImageElement;
+    const fallback = document.getElementById('modal-emoji-fallback')!;
+    photo.src = `/azd-copilot/agents/${agent.id}.png`;
+    photo.alt = `${agent.name} - ${agent.role}`;
+    photo.style.display = '';
+    fallback.style.display = 'none';
+    fallback.textContent = agent.emoji;
+    photo.onerror = () => { photo.style.display = 'none'; fallback.style.display = 'flex'; };
+
+    document.getElementById('modal-emoji')!.textContent = agent.emoji;
+    document.getElementById('modal-agent-name')!.textContent = agent.name;
+    document.getElementById('modal-role')!.textContent = agent.role;
+    document.getElementById('modal-description')!.textContent = agent.description;
+    document.getElementById('modal-focus')!.textContent = agent.focus;
+    document.getElementById('modal-personality')!.textContent = agent.personality;
+    document.getElementById('modal-funfact')!.textContent = agent.funFact;
+
+    const skillsContainer = document.getElementById('modal-skills')!;
+    skillsContainer.innerHTML = agent.skills.map((s: string) =>
+      `<span class="modal-skill-pill" style="--accent: ${accent}">${s}</span>`
+    ).join('');
+
+    const prevIndex = (index - 1 + agents.length) % agents.length;
+    const nextIndex = (index + 1) % agents.length;
+    document.getElementById('modal-prev-name')!.textContent = agents[prevIndex].name;
+    document.getElementById('modal-next-name')!.textContent = agents[nextIndex].name;
+
+    modal.hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    modal.hidden = true;
+    document.body.style.overflow = '';
+    modalVideo.pause();
+    modalVideo.src = '';
+  }
+
+  // Play/Pause
+  playBtn.addEventListener('click', () => {
+    if (modalVideo.paused) {
+      modalVideo.play();
+      updatePlayPauseIcon(true);
+    } else {
+      modalVideo.pause();
+      updatePlayPauseIcon(false);
+    }
+  });
+
+  // Mute/Unmute
+  muteBtn.addEventListener('click', () => {
+    modalVideo.muted = !modalVideo.muted;
+    updateMuteIcon(modalVideo.muted);
+  });
+
+  // Card click handlers
+  document.querySelectorAll('.agent-card').forEach((card) => {
+    card.addEventListener('click', () => {
+      const index = parseInt((card as HTMLElement).dataset.agentIndex || '0');
+      showAgent(index);
+    });
+  });
+
+  // Video hover on cards
+  document.querySelectorAll('.agent-card').forEach((card) => {
+    const video = card.querySelector('.agent-video') as HTMLVideoElement | null;
+    if (!video) return;
+    card.addEventListener('mouseenter', () => {
+      video.play().catch(() => {});
+    });
+    card.addEventListener('mouseleave', () => {
+      video.pause();
+      video.currentTime = 0;
+    });
+  });
+
+  closeBtn.addEventListener('click', closeModal);
+  backdrop.addEventListener('click', closeModal);
+  prevBtn.addEventListener('click', () => showAgent((currentIndex - 1 + agents.length) % agents.length));
+  nextBtn.addEventListener('click', () => showAgent((currentIndex + 1) % agents.length));
+
+  document.addEventListener('keydown', (e) => {
+    if (modal.hidden) return;
+    if (e.key === 'Escape') closeModal();
+    if (e.key === 'ArrowLeft') showAgent((currentIndex - 1 + agents.length) % agents.length);
+    if (e.key === 'ArrowRight') showAgent((currentIndex + 1) % agents.length);
+  });
+</script>
+
+<style>
+  /* Hero */
+  .agents-hero {
+    padding: 4rem 1.5rem 2rem;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(6, 182, 212, 0.15), transparent),
+      radial-gradient(ellipse 60% 40% at 80% 50%, rgba(139, 92, 246, 0.1), transparent);
+  }
+
+  @media (min-width: 768px) {
+    .agents-hero { padding: 6rem 2rem 3rem; }
+  }
+
+  .agents-hero-container {
+    max-width: 56rem;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .agents-hero-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (min-width: 640px) { .agents-hero-title { font-size: 3.5rem; } }
+  @media (min-width: 1024px) { .agents-hero-title { font-size: 4rem; } }
+
+  .agents-hero-description {
+    max-width: 36rem;
+    margin: 0 auto;
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: var(--color-muted-foreground);
+  }
+
+  .agents-hero-description strong {
+    color: var(--color-foreground);
+  }
+
+  /* Grid */
+  .agents-grid-section {
+    padding: 3rem 1.5rem 5rem;
+  }
+
+  @media (min-width: 768px) {
+    .agents-grid-section { padding: 3rem 2rem 6rem; }
+  }
+
+  .agents-grid-container {
+    max-width: 80rem;
+    margin: 0 auto;
+  }
+
+  .agents-grid {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 768px) {
+    .agents-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  @media (min-width: 1280px) {
+    .agents-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+
+  /* CTA */
+  .agents-cta {
+    padding: 0 1.5rem 5rem;
+  }
+
+  .agents-cta-container {
+    max-width: 56rem;
+    margin: 0 auto;
+  }
+
+  .agents-cta-card {
+    text-align: center;
+    padding: 3rem 2rem;
+    border-radius: 1.5rem;
+    border-color: rgba(6, 182, 212, 0.2);
+  }
+
+  .agents-cta-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+  }
+
+  .agents-cta-description {
+    color: var(--color-muted-foreground);
+    margin-bottom: 1.5rem;
+  }
+
+  .agents-cta-actions {
+    display: flex;
+    justify-content: center;
+  }
+
+  /* ============================================
+     Modal
+     ============================================ */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .modal-overlay[hidden] {
+    display: none;
+  }
+
+  .modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-content {
+    position: relative;
+    max-width: 48rem;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 1.5rem;
+    padding: 2rem;
+    border-color: color-mix(in srgb, var(--modal-accent, var(--color-glow-cyan)) 30%, transparent);
+    animation: fade-up 0.3s ease-out;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: var(--color-muted-foreground);
+    font-size: 1.75rem;
+    cursor: pointer;
+    width: 2.25rem;
+    height: 2.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    transition: color 0.2s;
+    z-index: 1;
+  }
+
+  .modal-close:hover {
+    color: var(--color-foreground);
+  }
+
+  .modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .modal-body {
+      flex-direction: row;
+      gap: 2rem;
+    }
+  }
+
+  .modal-avatar-section {
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .modal-media {
+    position: relative;
+    width: 8rem;
+    height: 8rem;
+  }
+
+  @media (min-width: 640px) {
+    .modal-media {
+      width: 12rem;
+      height: 12rem;
+    }
+  }
+
+  .modal-video {
+    width: 100%;
+    height: 100%;
+    border-radius: 1rem;
+    object-fit: cover;
+    border: 2px solid var(--modal-accent, var(--color-glow-cyan));
+    box-shadow: 0 0 30px color-mix(in srgb, var(--modal-accent, var(--color-glow-cyan)) 30%, transparent);
+  }
+
+  .modal-video-controls {
+    position: absolute;
+    bottom: 0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.25rem;
+    z-index: 3;
+  }
+
+  .modal-ctrl-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .modal-ctrl-btn:hover {
+    background: rgba(0, 0, 0, 0.8);
+  }
+
+  .modal-avatar {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    inset: 0;
+  }
+
+  .modal-photo {
+    width: 100%;
+    height: 100%;
+    border-radius: 1rem;
+    object-fit: cover;
+    border: 2px solid var(--modal-accent, var(--color-glow-cyan));
+    box-shadow: 0 0 30px color-mix(in srgb, var(--modal-accent, var(--color-glow-cyan)) 30%, transparent);
+  }
+
+  .modal-emoji-fallback {
+    display: none;
+    width: 100%;
+    height: 100%;
+    border-radius: 1rem;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    background: var(--color-secondary);
+    border: 2px solid var(--modal-accent, var(--color-glow-cyan));
+  }
+
+  .modal-details {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.125rem;
+  }
+
+  .modal-emoji-inline {
+    font-size: 1.5rem;
+  }
+
+  .modal-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .modal-role {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--modal-accent, var(--color-glow-cyan));
+    margin: 0 0 0.75rem;
+  }
+
+  .modal-description {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--color-muted-foreground);
+    margin: 0 0 1rem;
+  }
+
+  .modal-section {
+    margin-bottom: 1rem;
+  }
+
+  .modal-section-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-muted-foreground);
+    margin: 0 0 0.375rem;
+  }
+
+  .modal-focus-text {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--color-foreground);
+    margin: 0;
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    background: color-mix(in srgb, var(--modal-accent, var(--color-glow-cyan)) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--modal-accent, var(--color-glow-cyan)) 15%, transparent);
+  }
+
+  .modal-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+
+  :global(.modal-skill-pill) {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    color: var(--accent);
+    border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+  }
+
+  .modal-personality-text,
+  .modal-funfact-text {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--color-card-foreground);
+    margin: 0;
+    font-style: italic;
+  }
+
+  .modal-nav {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .modal-nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: none;
+    color: var(--color-muted-foreground);
+    font-size: 0.875rem;
+    cursor: pointer;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+  }
+
+  .modal-nav-btn:hover {
+    color: var(--color-foreground);
+    background: var(--color-secondary);
+  }
+
+  .modal-nav-label {
+    display: none;
+  }
+
+  @media (min-width: 640px) {
+    .modal-nav-label { display: inline; }
+  }
+</style>
