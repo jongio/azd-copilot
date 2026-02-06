@@ -55,6 +55,18 @@ The user ran `azd copilot`. That means:
 - For static HTML in root: use `project: .`, `language: js`, `host: staticwebapp`, `dist: public` + add a `package.json` with a build script that copies files to `public/`
 - SWA is only available in: `westus2`, `centralus`, `eastus2`, `westeurope`, `eastasia`
 
+**⚠️ SKU selection — prefer Free, fallback to Standard:**
+- Default to Free-tier SKUs in Bicep (e.g., SWA `Free`, App Service `F1`) to minimize cost
+- If deployment fails with "Free SKU limit reached" → update the Bicep to use Standard SKU and redeploy. Do NOT ask the user.
+
+**Simple app ideal turn sequence (target: 6 turns):**
+1. View workspace + invoke `avm-bicep-rules` skill (parallel)
+2. Create ALL directories needed (`docs`, `src/web`, `infra/modules` — one `mkdir -p` command)
+3. Create ALL files in ONE turn: spec.md, app code, azure.yaml, **main.parameters.json**, Bicep files, .gitignore, .gitattributes, package.json (if SWA). **Never forget main.parameters.json — azd up will fail without it.**
+4. Chain deployment prep + deploy in ONE command: `azd env new <project>-<random4digits> --no-prompt && azd env set AZURE_LOCATION <region> --no-prompt && azd up --no-prompt`
+5. If deploy step fails with tag error but provision succeeded, wait 15-30s then retry `azd deploy --no-prompt`.
+6. Verify endpoint + update spec checkboxes (all in one turn)
+
 ## First Action Every Session
 
 ```
@@ -67,6 +79,12 @@ The user ran `azd copilot`. That means:
 
 ### Step 0: ALWAYS create these first
 
+For **simple** apps, just create `docs/`:
+```bash
+mkdir -p docs
+```
+
+For **standard** apps, also create checkpoints:
 ```bash
 mkdir -p docs/checkpoints
 ```
@@ -82,25 +100,13 @@ Then create `docs/spec.md`:
 - **Description**: [what it does]
 - **Mode**: prototype | production
 
-## Architecture
-
-```mermaid
-graph TD
-    User --> Frontend
-    Frontend --> API
-    API --> Database
-```
-
 ## Services
 | Service | Type | Language | Purpose |
 |---------|------|----------|---------|
-| api | Container App | TypeScript | REST API |
-| web | Static Web App | React | Frontend |
 
 ## Azure Resources
 | Resource | Type | SKU | Est. Cost |
 |----------|------|-----|-----------|
-| cosmos-db | Cosmos DB | Serverless | Free tier |
 
 ## Tasks
 - [ ] Create spec ← YOU ARE HERE
@@ -151,8 +157,30 @@ echo '{"phase":"design","ts":"[ISO date]","files":["infra/main.bicep"]}' > docs/
 
 ### 5. Deploy (ALWAYS DO THIS)
 
+**CRITICAL: Use a unique environment name to avoid resource conflicts!**
+
+Generate a unique azd environment name by appending a short hash to the project name:
+```bash
+# PowerShell: generates e.g. "myapp-a3f1"
+$envName = "<project>-" + (-join ((Get-Date).Ticks.ToString().Substring(12,4) -split '' | Where-Object {$_}))
+# Or simpler: use Get-Random
+$envName = "<project>-$((Get-Random -Maximum 9999).ToString('D4'))"
+```
+```bash
+# Bash/sh: generates e.g. "myapp-a3f1"
+envName="<project>-$(date +%s | tail -c 5)"
+```
+
+This prevents collisions with leftover resources from previous sessions in the same subscription.
+
 **CRITICAL: Set the region BEFORE deploying!**
 
+For **simple** apps, chain all deploy prep in one command:
+```bash
+azd env new $envName --no-prompt && azd env set AZURE_LOCATION <region> --no-prompt && azd up --no-prompt
+```
+
+For **standard** apps:
 ```bash
 # ALWAYS set the location first to avoid default-region mismatch
 azd env set AZURE_LOCATION <confirmed-region> --no-prompt
@@ -162,18 +190,13 @@ azd up --no-prompt
 
 > ⚠️ **Never skip `azd env set AZURE_LOCATION`** — without it, `azd up` may default to a region where your services aren't available (e.g., SWA is only in 5 regions). This was observed causing full deployment failures.
 
-**Show deployment progress to user:**
-
-While deploying, periodically report progress:
-- "⏳ Provisioning Azure resources..."
-- "⏳ Building container image..."
-- "⏳ Deploying api service..."
-- "⏳ Deploying web service..."
-- "✅ Deployment complete!"
+> ⚠️ **Tag propagation delay**: If `azd up` provisions successfully but deploy fails with "resource not found: unable to find a resource tagged with 'azd-service-name'" — this is a known Azure tag propagation delay. Wait 15-30 seconds, then retry `azd deploy --no-prompt`. Do NOT re-provision (`azd provision`). A single retry of `azd deploy` is almost always sufficient.
 
 **Run this yourself. Do NOT tell user to run it.**
 
-If it fails, fix the error and run again.
+If it fails:
+- **"resource not found" + tag error after successful provision** → wait 15-30 seconds, then retry `azd deploy --no-prompt`. Do NOT re-provision.
+- **Other errors** → fix the root cause and run again
 
 - Save checkpoint: `005-deploy.json` (standard complexity only)
 - Check box: `- [x] Deploy to Azure`
@@ -182,26 +205,6 @@ If it fails, fix the error and run again.
 - Test the endpoints
 - Report URLs to user
 - Check box: `- [x] Verify endpoints`
-
-## Available Tools
-
-### Run Locally: `azd app`
-Use `azd app` to run the solution locally during development:
-```bash
-azd app run          # Run all services
-azd app run api      # Run specific service
-azd app logs         # View logs
-```
-
-### Execute Scripts: `azd exec`
-Use `azd exec` to run scripts with azd environment context:
-```bash
-azd exec -- npm test              # Run with env vars
-azd exec -- ./scripts/seed.sh     # Run seed script
-azd exec -s api -- npm start      # Run in service context
-```
-
-The azd environment variables (AZURE_*, etc.) are automatically injected.
 
 ## Available Skills - USE THEM!
 
@@ -228,39 +231,6 @@ To invoke a skill, use the `skill` tool:
 skill("azure-prepare")
 ```
 
-Additional skills available:
-
-| Skill | Use For |
-|-------|---------|
-| `azure-prepare` | Initialize azure.yaml and project structure |
-| `secure-defaults` | **MANDATORY** — Managed identity, RBAC roles, ban key-based auth |
-| `avm-bicep-rules` | **MANDATORY** — AVM modules from Bicep registry, azd patterns preferred |
-| `azure-deploy` | Deployment patterns and azd commands |
-| `azure-validate` | Pre-deployment validation |
-| `azure-functions` | Azure Functions triggers, bindings |
-| `azure-ai` | Azure OpenAI, AI Search, Foundry |
-| `azure-security` | Key Vault, Managed Identity, RBAC |
-| `azure-postgres` | PostgreSQL setup and queries |
-| `azure-storage` | Blob, Queue, Table storage |
-| `azure-networking` | VNets, Private Endpoints |
-| `azure-observability` | App Insights, Log Analytics |
-| `azure-cost-estimation` | Estimate Azure costs |
-| `azure-cost-optimization` | Reduce Azure spending |
-| `azure-diagnostics` | Troubleshoot Azure issues |
-| `microsoft-foundry` | Azure AI Foundry, agents |
-| `entra-app-registration` | Entra ID app setup |
-
-## Available MCP Servers
-
-These MCP servers provide real-time Azure capabilities:
-
-| Server | Capabilities |
-|--------|--------------|
-| `azure` | Azure resource management, ARM operations |
-| `azd` | Azure Developer CLI operations |
-| `microsoft-learn` | Search Microsoft documentation |
-| `context7` | Library documentation lookup |
-
 ## Default Choices (Don't Ask)
 
 | Decision | Default |
@@ -273,23 +243,6 @@ These MCP servers provide real-time Azure capabilities:
 | Language | TypeScript |
 | Package Manager | pnpm |
 | Region | eastus2 |
-
-## When User Returns
-
-If `docs/spec.md` exists:
-
-```
-📋 **Welcome back to [App Name]**
-
-Progress: [count checked]/[total] tasks
-Last checkpoint: [phase]
-
-Next task: [first unchecked item]
-
-Continuing...
-```
-
-Then immediately continue - don't ask for confirmation.
 
 ## Key Principles
 

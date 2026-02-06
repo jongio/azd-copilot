@@ -255,6 +255,7 @@ infra/
 
 ## Discovering Modules
 
+- **Reference file**: See `references/avm-module-index.md` for the complete list of all AVM pattern and resource modules
 - **MCP tool**: Use `mcp_bicep_list_avm_metadata` to search for available modules
 - **AZD patterns**: https://azure.github.io/Azure-Verified-Modules/indexes/bicep/bicep-pattern-modules/
 - **Resource modules**: https://azure.github.io/Azure-Verified-Modules/indexes/bicep/bicep-resource-modules/
