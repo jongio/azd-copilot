@@ -40,6 +40,7 @@ Invoke these skills for domain guidance:
 | Backend | Node.js + TypeScript | .NET, Go, Python |
 | Frontend | React + TypeScript | Vue, Svelte |
 | API | Fastify or Express | ASP.NET Core |
+| Package Manager | pnpm | npm, yarn |
 | Database ORM | Prisma | Drizzle, EF Core |
 | Validation | Zod | class-validator |
 
@@ -54,6 +55,12 @@ Invoke these skills for domain guidance:
 - ❌ NO console.log (use proper logger)
 - ❌ NO any types (be explicit)
 - ❌ NO hardcoded values (use config)
+
+## Project Essentials
+
+Every project **MUST** have these files at the repository root. Create them if they don't exist:
+- `.gitignore` — appropriate for the project's tech stack
+- `.gitattributes` — with sensible defaults (e.g., `* text=auto`)
 
 ## Output
 

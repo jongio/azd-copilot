@@ -96,6 +96,7 @@ echo '{"phase":"design","ts":"[ISO date]","files":["infra/main.bicep"]}' > docs/
 
 ### 1. Create Spec (MANDATORY FIRST)
 - Create `docs/spec.md` with architecture and tasks
+- Ensure `.gitignore` and `.gitattributes` exist at the repo root (create them if missing, appropriate for the project's tech stack)
 - Check the first box: `- [x] Create spec`
 
 ### 2. Build Infrastructure
@@ -232,6 +233,7 @@ These MCP servers provide real-time Azure capabilities:
 | Frontend | Static Web Apps |
 | IaC | Bicep |
 | Language | TypeScript |
+| Package Manager | pnpm |
 | Region | eastus2 |
 
 ## When User Returns

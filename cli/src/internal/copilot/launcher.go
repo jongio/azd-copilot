@@ -5,6 +5,7 @@ package copilot
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -135,38 +136,48 @@ func Launch(ctx context.Context, opts Options) error {
 	return cmd.Run()
 }
 
-// launchViaConsole bypasses azd's stdio capture by opening the console/tty directly
+// launchViaConsole bypasses azd's stdio capture for interactive TUI apps.
+// On macOS/Linux it opens /dev/tty directly.
+// On Windows it uses SetStdHandle to redirect the process's standard handles
+// to CONIN$/CONOUT$ before spawning the child, so Node.js detects a real TTY
+// (isTTY=true, columns/rows populated). Simply passing CONOUT$ file handles
+// as cmd.Stdout does NOT work — Node.js only recognises a TTY when the
+// underlying Windows handle was the process's standard output at spawn time.
 func launchViaConsole(ctx context.Context, copilotPath *CopilotPath, args []string, opts Options) error {
 	if opts.Debug {
 		fmt.Printf("DEBUG: Opening console/tty directly for interactive mode\n")
 	}
 
-	var stdin, stdout, stderr *os.File
-	var cleanupFuncs []func()
+	var cmd *exec.Cmd
+
+	if copilotPath.IsNode {
+		nodeArgs := append([]string{copilotPath.Path}, args...)
+		cmd = exec.CommandContext(ctx, "node", nodeArgs...)
+	} else if runtime.GOOS == "windows" && (strings.HasSuffix(copilotPath.Path, ".bat") || strings.HasSuffix(copilotPath.Path, ".cmd")) {
+		cmdArgs := append([]string{"/c", copilotPath.Path}, args...)
+		cmd = exec.CommandContext(ctx, "cmd.exe", cmdArgs...)
+	} else {
+		cmd = exec.CommandContext(ctx, copilotPath.Path, args...)
+	}
 
 	if runtime.GOOS == "windows" {
-		// On Windows, open CONIN$/CONOUT$ to bypass pipe redirection
-		conin, err := os.OpenFile("CONIN$", os.O_RDWR, 0)
+		// On Windows, use SetStdHandle to point our process's standard handles
+		// at the console (CONIN$/CONOUT$). The child process then inherits real
+		// console handles that Node.js recognises as a TTY.
+		consoleH, err := attachConsole()
 		if err != nil {
 			if opts.Debug {
-				fmt.Printf("DEBUG: Failed to open CONIN$: %v, falling back\n", err)
+				fmt.Printf("DEBUG: Failed to attach console: %v, falling back\n", err)
 			}
-			conin = os.Stdin
+			cmd.Stdin = os.Stdin
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
 		} else {
-			cleanupFuncs = append(cleanupFuncs, func() { _ = conin.Close() })
+			defer consoleH.restore()
+			cmd.Stdin = consoleH.conin
+			cmd.Stdout = consoleH.conout
+			cmd.Stderr = consoleH.conout
 		}
-
-		conout, err := os.OpenFile("CONOUT$", os.O_RDWR, 0)
-		if err != nil {
-			if opts.Debug {
-				fmt.Printf("DEBUG: Failed to open CONOUT$: %v, falling back\n", err)
-			}
-			conout = os.Stdout
-		} else {
-			cleanupFuncs = append(cleanupFuncs, func() { _ = conout.Close() })
-		}
-
-		stdin, stdout, stderr = conin, conout, conout
 	} else {
 		// On macOS/Linux, open /dev/tty to bypass pipe redirection
 		tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
@@ -174,72 +185,28 @@ func launchViaConsole(ctx context.Context, copilotPath *CopilotPath, args []stri
 			if opts.Debug {
 				fmt.Printf("DEBUG: Failed to open /dev/tty: %v, falling back\n", err)
 			}
-			stdin, stdout, stderr = os.Stdin, os.Stdout, os.Stderr
+			cmd.Stdin = os.Stdin
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
 		} else {
-			cleanupFuncs = append(cleanupFuncs, func() { _ = tty.Close() })
-			stdin, stdout, stderr = tty, tty, tty
+			cmd.Stdin = tty
+			cmd.Stdout = tty
+			cmd.Stderr = tty
+			defer tty.Close()
 		}
-	}
-
-	// Defer cleanup
-	defer func() {
-		for _, cleanup := range cleanupFuncs {
-			cleanup()
-		}
-	}()
-
-	// Determine executable and args
-	var execPath string
-	var allArgs []string
-
-	if copilotPath.IsNode {
-		// Run via node
-		nodePath, err := exec.LookPath("node")
-		if err != nil {
-			return fmt.Errorf("node not found: %w", err)
-		}
-		execPath = nodePath
-		allArgs = append([]string{"node", copilotPath.Path}, args...)
-	} else if runtime.GOOS == "windows" && (strings.HasSuffix(copilotPath.Path, ".bat") || strings.HasSuffix(copilotPath.Path, ".cmd")) {
-		// Windows batch files need cmd.exe
-		execPath = "C:\\Windows\\System32\\cmd.exe"
-		allArgs = append([]string{"cmd.exe", "/c", copilotPath.Path}, args...)
-	} else {
-		execPath = copilotPath.Path
-		allArgs = append([]string{filepath.Base(copilotPath.Path)}, args...)
 	}
 
 	// Build environment
 	env := append(os.Environ(), buildEnv(opts)...)
 	env = append(env, "FORCE_COLOR=1")
 	env = append(env, "CI=false")
+	cmd.Env = env
 
 	if opts.Debug {
-		fmt.Printf("DEBUG: execPath=%s, args=%v\n", execPath, allArgs)
+		fmt.Printf("DEBUG: execPath=%s, args=%v\n", cmd.Path, cmd.Args)
 	}
 
-	procAttr := &os.ProcAttr{
-		Dir:   "",
-		Env:   env,
-		Files: []*os.File{stdin, stdout, stderr},
-	}
-
-	proc, err := os.StartProcess(execPath, allArgs, procAttr)
-	if err != nil {
-		return fmt.Errorf("failed to start copilot: %w", err)
-	}
-
-	// Wait for the process to complete
-	state, err := proc.Wait()
-	if err != nil {
-		return fmt.Errorf("copilot process failed: %w", err)
-	}
-
-	if !state.Success() {
-		return fmt.Errorf("copilot exited with: %v", state)
-	}
-
-	return nil
+	return cmd.Run()
 }
 
 // CopilotPath contains information about how to run copilot
@@ -251,7 +218,7 @@ type CopilotPath struct {
 // FindCopilotCLI locates the GitHub Copilot CLI executable
 func FindCopilotCLI() (*CopilotPath, error) {
 	// Platform-specific locations - check these FIRST before PATH
-	// to avoid finding npm shims
+	// to avoid finding npm shims or .ps1 launchers (which cause file lock issues)
 	if runtime.GOOS == "windows" {
 		home := os.Getenv("USERPROFILE")
 		appData := os.Getenv("APPDATA")
@@ -260,28 +227,38 @@ func FindCopilotCLI() (*CopilotPath, error) {
 		// This avoids issues with .bat/.cmd/.ps1 bootstrap scripts
 		npmGlobalPath := os.Getenv("npm_config_prefix")
 		if npmGlobalPath == "" {
-			// Try common npm global locations
-			nvmRoot := os.Getenv("NVM_HOME")
-			if nvmRoot != "" {
-				// NVM for Windows - check current version
-				currentVersion := os.Getenv("NVM_SYMLINK")
-				if currentVersion != "" {
-					npmLoader := filepath.Join(currentVersion, "node_modules", "@github", "copilot", "npm-loader.js")
-					if _, err := os.Stat(npmLoader); err == nil {
-						return &CopilotPath{Path: npmLoader, IsNode: true}, nil
-					}
+			// Query npm for its global prefix (handles custom configurations)
+			if out, err := exec.Command("npm", "config", "get", "prefix").Output(); err == nil {
+				npmGlobalPath = strings.TrimSpace(string(out))
+			}
+		}
+		if npmGlobalPath != "" {
+			npmLoader := filepath.Join(npmGlobalPath, "node_modules", "@github", "copilot", "npm-loader.js")
+			if _, err := os.Stat(npmLoader); err == nil {
+				return &CopilotPath{Path: npmLoader, IsNode: true}, nil
+			}
+		}
+
+		// NVM for Windows
+		nvmRoot := os.Getenv("NVM_HOME")
+		if nvmRoot != "" {
+			currentVersion := os.Getenv("NVM_SYMLINK")
+			if currentVersion != "" {
+				npmLoader := filepath.Join(currentVersion, "node_modules", "@github", "copilot", "npm-loader.js")
+				if _, err := os.Stat(npmLoader); err == nil {
+					return &CopilotPath{Path: npmLoader, IsNode: true}, nil
 				}
 			}
-			// Check appdata nvm location
-			nvmPatterns := []string{
-				filepath.Join(appData, "nvm", "*", "node_modules", "@github", "copilot", "npm-loader.js"),
-			}
-			for _, pattern := range nvmPatterns {
-				matches, _ := filepath.Glob(pattern)
-				if len(matches) > 0 {
-					// Use the newest version (last in sorted order)
-					return &CopilotPath{Path: matches[len(matches)-1], IsNode: true}, nil
-				}
+		}
+		// Check appdata nvm location
+		nvmPatterns := []string{
+			filepath.Join(appData, "nvm", "*", "node_modules", "@github", "copilot", "npm-loader.js"),
+		}
+		for _, pattern := range nvmPatterns {
+			matches, _ := filepath.Glob(pattern)
+			if len(matches) > 0 {
+				// Use the newest version (last in sorted order)
+				return &CopilotPath{Path: matches[len(matches)-1], IsNode: true}, nil
 			}
 		}
 
@@ -365,8 +342,11 @@ func FindCopilotCLI() (*CopilotPath, error) {
 	}
 
 	// Fall back to PATH lookup (may find .cmd/.bat but that's last resort)
+	// Skip .ps1 files - they cause file lock issues on Windows and aren't cross-platform
 	if path, err := exec.LookPath("copilot"); err == nil {
-		return &CopilotPath{Path: path, IsNode: false}, nil
+		if !strings.HasSuffix(strings.ToLower(path), ".ps1") {
+			return &CopilotPath{Path: path, IsNode: false}, nil
+		}
 	}
 
 	installHint := "npm install -g @github/copilot"
@@ -537,6 +517,12 @@ func ConfigureMCPServer() error {
       "args": ["-y", "@upstash/context7-mcp@latest"],
       "tools": ["*"]
     }`,
+		"azd-app": `{
+      "type": "local",
+      "command": "azd",
+      "args": ["copilot", "mcp", "serve"],
+      "tools": ["*"]
+    }`,
 	}
 
 	// Read existing config
@@ -582,6 +568,12 @@ func ConfigureMCPServer() error {
       "command": "npx",
       "args": ["-y", "@upstash/context7-mcp@latest"],
       "tools": ["*"]
+    },
+    "azd-app": {
+      "type": "local",
+      "command": "azd",
+      "args": ["copilot", "mcp", "serve"],
+      "tools": ["*"]
     }
   }
 }
@@ -592,10 +584,34 @@ func ConfigureMCPServer() error {
 		return nil
 	}
 
-	// Existing config exists - we won't modify it to avoid breaking user's custom setup
-	// Just report what's missing
-	if len(missingServers) > 0 {
+	// Existing config exists - merge in missing servers
+	var config map[string]interface{}
+	if err := json.Unmarshal(existingConfig, &config); err != nil {
 		fmt.Printf("   Note: Add these MCP servers to ~/.copilot/mcp-config.json: %s\n", strings.Join(missingServers, ", "))
+		return nil
+	}
+
+	servers, ok := config["mcpServers"].(map[string]interface{})
+	if !ok {
+		servers = make(map[string]interface{})
+		config["mcpServers"] = servers
+	}
+
+	for _, name := range missingServers {
+		var serverConfig interface{}
+		if err := json.Unmarshal([]byte(requiredServers[name]), &serverConfig); err != nil {
+			continue
+		}
+		servers[name] = serverConfig
+	}
+
+	updated, err := json.MarshalIndent(config, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal mcp-config.json: %w", err)
+	}
+
+	if err := fileutil.AtomicWriteFile(configPath, append(updated, '\n'), 0644); err != nil {
+		return fmt.Errorf("failed to write mcp-config.json: %w", err)
 	}
 
 	return nil

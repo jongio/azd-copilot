@@ -198,6 +198,7 @@ func printBanner() {
 	fmt.Printf("%s%s%s", cliout.Cyan, banner.String(), cliout.Reset)
 	cliout.Newline()
 	fmt.Printf("%sAI-powered Azure development assistant%s\n", cliout.Bold, cliout.Reset)
+	fmt.Printf("Built on Copilot SDK • Azure MCP • Azure Developer CLI • Azure Agents & Skills\n")
 	agentCount := 0
 	if agents, err := assets.ListAgents(); err == nil {
 		agentCount = len(agents)
