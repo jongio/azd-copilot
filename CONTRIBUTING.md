@@ -27,12 +27,12 @@ azd version         # Should be latest
 
 2. **Install Go dependencies**:
    ```bash
-   go mod download
+   cd cli && go mod download
    ```
 
 3. **Build the extension**:
    ```bash
-   go build -o bin/copilot.exe ./src/cmd/copilot
+   go build -o bin/copilot.exe ./cli/src/cmd/copilot
    ```
 
 4. **Install locally for testing**:
@@ -63,7 +63,7 @@ git checkout -b feature/your-feature-name
 ### 3. Test Your Changes
 ```bash
 # Build
-go build -o bin/copilot.exe ./src/cmd/copilot
+go build -o bin/copilot.exe ./cli/src/cmd/copilot
 
 # Run tests
 go test ./...
@@ -116,14 +116,21 @@ Then create a Pull Request on GitHub.
 ## Project Structure
 
 ```
-src/
-├── cmd/copilot/       # Command implementations
-│   └── commands/      # Individual commands
-└── internal/          # Internal packages
-    └── logging/       # Logging utilities
+cli/
+├── src/
+│   ├── cmd/copilot/       # Command implementations
+│   │   └── commands/      # Individual commands
+│   └── internal/          # Internal packages
+│       └── logging/       # Logging utilities
+├── go.mod                 # Go module definition
+├── magefile.go            # Build system (mage)
+├── build.ps1              # Windows build script
+├── build.sh               # Unix build script
+├── extension.yaml         # azd extension manifest
+└── package.json           # Node.js dev dependencies
 
-web/                   # Documentation website
-scripts/               # PR install/uninstall scripts
+web/                       # Documentation website
+scripts/                   # PR install/uninstall scripts
 ```
 
 ## Quality Gates

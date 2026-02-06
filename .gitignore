@@ -30,9 +30,9 @@ testcov.txt
 COVERAGE_IMPROVEMENT_SUMMARY.md
 COVERAGE_REPORT.md
 
-# Go workspace files
-go.work
-go.work.sum
+# Go workspace files are committed (needed for module resolution)
+# go.work
+# go.work.sum
 
 # IDE
 .vscode/
@@ -56,6 +56,9 @@ vendor/
 # Node.js
 node_modules/
 package-lock.json
+
+# Preserve cli lockfile
+!cli/package-lock.json
 pnpm-lock.yaml
 yarn.lock
 .npm

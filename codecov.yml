@@ -28,12 +28,12 @@ comment:
   hide_project_coverage: false
 
 ignore:
-  - "src/cmd/copilot/main.go"
+  - "cli/src/cmd/copilot/main.go"
   - "**/generated/**"
   - "**/*_test.go"
 
 flags:
   unittests:
     paths:
-      - src/
+      - cli/src/
     carryforward: true
