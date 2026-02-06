@@ -28,6 +28,102 @@ Invoke these skills for domain guidance:
 | @azure-quick-review | Code review checklist |
 | @quality | General quality patterns |
 
+## E2E Testing with Playwright (Mandatory for Frontends)
+
+**If the project has a frontend component (SPA, SSR web app, Static Web App), you MUST create Playwright E2E tests.**
+
+Use the **Playwright MCP server** (auto-configured) to interact with the browser for test development and debugging.
+
+### When to Write Playwright Tests
+
+| Frontend Type | Write Playwright Tests? |
+|---------------|------------------------|
+| React / Vue / Svelte SPA | ✅ Yes |
+| Static Web App (SWA) | ✅ Yes |
+| SSR Web App (Next.js, Nuxt) | ✅ Yes |
+| API-only (no UI) | ❌ No |
+
+### Setup
+
+```bash
+# Install Playwright
+npm init playwright@latest
+
+# Or add to existing project
+npm install -D @playwright/test
+npx playwright install
+```
+
+### Test Structure
+
+```
+tests/
+├── unit/           # Unit tests (Vitest/Jest)
+├── integration/    # API integration tests
+└── e2e/            # Playwright E2E tests
+    ├── home.spec.ts
+    ├── auth.spec.ts
+    └── fixtures/
+        └── test-data.ts
+```
+
+### Example Playwright Test
+
+```typescript
+// tests/e2e/home.spec.ts
+import { test, expect } from '@playwright/test';
+
+test.describe('Home Page', () => {
+  test('should load and display heading', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  });
+
+  test('should navigate to about page', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('link', { name: /about/i }).click();
+    await expect(page).toHaveURL(/.*about/);
+  });
+});
+```
+
+### Playwright Config
+
+```typescript
+// playwright.config.ts
+import { defineConfig } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './tests/e2e',
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  use: {
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000',
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+  },
+  projects: [
+    { name: 'chromium', use: { browserName: 'chromium' } },
+  ],
+  webServer: {
+    command: 'npm run dev',
+    port: 3000,
+    reuseExistingServer: !process.env.CI,
+  },
+});
+```
+
+### What to Test
+
+| Category | Examples |
+|----------|---------|
+| **Navigation** | Page loads, routing works, links resolve |
+| **Core Flows** | Sign up, login, create/edit/delete operations |
+| **Forms** | Validation messages, submit success, error states |
+| **Responsive** | Mobile viewport, tablet viewport |
+| **Accessibility** | Keyboard navigation, ARIA labels |
+
 ## Testing Standards
 
 - ✅ 80%+ code coverage minimum
@@ -54,6 +150,7 @@ Always verify:
 | Language | Framework | Runner |
 |----------|-----------|--------|
 | TypeScript/Node | Vitest or Jest | vitest, jest |
+| **E2E (all frontends)** | **Playwright** | **npx playwright test** |
 | .NET | xUnit or NUnit | dotnet test |
 | Go | testing + testify | go test |
 | Python | pytest | pytest |

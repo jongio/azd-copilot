@@ -51,6 +51,7 @@ func newMCPConfigureCommand() *cobra.Command {
 			fmt.Println("  • azd           - Azure Developer CLI operations")
 			fmt.Println("  • microsoft-learn - Microsoft Learn documentation")
 			fmt.Println("  • context7      - Context7 memory")
+			fmt.Println("  • playwright    - Playwright browser automation and E2E testing")
 			fmt.Println()
 			fmt.Println("These servers are automatically started by Copilot CLI.")
 

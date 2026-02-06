@@ -52,6 +52,7 @@ Invoke these skills for domain guidance:
 - ✅ Structured logging (correlation IDs)
 - ✅ Environment-based configuration
 - ✅ Meaningful variable and function names
+- ✅ **Playwright E2E tests for any frontend** — use `@playwright/test` for UI testing
 - ❌ NO console.log (use proper logger)
 - ❌ NO any types (be explicit)
 - ❌ NO hardcoded values (use config)

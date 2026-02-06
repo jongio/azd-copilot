@@ -9,11 +9,12 @@ For upstream Azure skills (synced from [GitHub-Copilot-for-Azure](https://github
 | Skill | Description |
 |-------|-------------|
 | `analytics` | Analytics and observability for Azure monitoring |
+| `avm-bicep-rules` | **Mandatory** AVM module rules for Bicep — enforces Azure Verified Modules from registry, azd patterns preferred |
 | `azure-functions` | Azure Functions development (HTTP, timer, queue triggers) |
 | `copilot-docs-updater` | Update Copilot CLI & SDK documentation |
 | `marketing` | Product positioning and marketplace listings |
 | `product` | Requirements, user stories, acceptance criteria |
-| `quality` | Code review and refactoring patterns |
+| `quality` | Code review, refactoring patterns, and Playwright E2E testing |
 | `secure-defaults` | **Mandatory** security rules enforcing managed identity and RBAC for all generated infrastructure |
 | `support` | Troubleshooting, FAQs, error messages |
 

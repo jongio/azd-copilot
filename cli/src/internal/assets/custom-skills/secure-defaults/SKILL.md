@@ -23,6 +23,17 @@ Apply these rules **every time** you:
 - Configure environment variables for Azure service access
 - Create Dockerfiles or container configurations
 
+## Azure Verified Modules (AVM)
+
+When generating Bicep, **always use AVM modules** from the Bicep public registry. The security patterns in this document apply ON TOP of AVM modules. Priority order:
+
+1. **`avm/ptn/azd/*`** — AZD pattern modules (preferred, secure-by-default)
+2. **`avm/ptn/*`** — Other pattern modules
+3. **`avm/res/*`** — Resource modules
+4. **Raw `resource`** — Last resort only
+
+AVM modules include many security best practices by default, but you MUST still verify the banned patterns below are not present.
+
 ## Banned Patterns
 
 > ⛔ **NEVER generate any of the following. These are security violations.**

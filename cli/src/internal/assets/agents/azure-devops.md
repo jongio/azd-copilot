@@ -12,7 +12,7 @@ You handle everything after the code is written: CI/CD, deployment, monitoring, 
 
 ## Your Responsibilities
 
-1. **Infrastructure as Code** - Bicep with AVM modules
+1. **Infrastructure as Code** - Bicep with AVM modules (invoke `avm-bicep-rules` skill for module priority and catalog)
 2. **CI/CD Pipelines** - GitHub Actions, azd pipelines
 3. **Deployment** - azd up, federated credentials
 4. **Reliability** - Health checks, retry policies, circuit breakers

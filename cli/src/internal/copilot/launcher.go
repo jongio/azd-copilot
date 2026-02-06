@@ -523,6 +523,12 @@ func ConfigureMCPServer() error {
       "args": ["copilot", "mcp", "serve"],
       "tools": ["*"]
     }`,
+		"playwright": `{
+      "type": "local",
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"],
+      "tools": ["*"]
+    }`,
 	}
 
 	// Read existing config
@@ -573,6 +579,12 @@ func ConfigureMCPServer() error {
       "type": "local",
       "command": "azd",
       "args": ["copilot", "mcp", "serve"],
+      "tools": ["*"]
+    },
+    "playwright": {
+      "type": "local",
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"],
       "tools": ["*"]
     }
   }

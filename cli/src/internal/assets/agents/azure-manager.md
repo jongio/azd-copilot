@@ -101,7 +101,8 @@ echo '{"phase":"design","ts":"[ISO date]","files":["infra/main.bicep"]}' > docs/
 
 ### 2. Build Infrastructure
 - **Invoke `secure-defaults` skill FIRST** — read its banned patterns and required patterns
-- Create `infra/main.bicep` and modules following secure-defaults rules
+- **Invoke `avm-bicep-rules` skill** — use AVM modules from Bicep registry; prefer `avm/ptn/azd/*` pattern modules first, then `avm/res/*` resource modules; only use raw `resource` declarations when no AVM module exists
+- Create `infra/main.bicep` and modules following secure-defaults and avm-bicep-rules
 - Ensure ALL compute has `identity: { type: 'SystemAssigned' }`
 - Ensure ALL data access uses RBAC role assignments (NO `listKeys()`, NO `listCredentials()`)
 - Create `azure.yaml`
@@ -116,6 +117,7 @@ echo '{"phase":"design","ts":"[ISO date]","files":["infra/main.bicep"]}' > docs/
 
 ### 4. Build Frontend (if needed)
 - Create frontend in `src/web/`
+- **Create Playwright E2E tests** in `tests/e2e/` — run `npm init playwright@latest` and write tests for core user flows
 - Save checkpoint: `004-frontend.json`
 - Check box: `- [x] Implement frontend`
 
@@ -177,6 +179,7 @@ Before generating Bicep/code, invoke the relevant skill:
 |-------------|-----------------|
 | Starting ANY new project | `azure-prepare` (REQUIRED FIRST) |
 | Generating ANY Bicep or app code | `secure-defaults` (REQUIRED — enforces managed identity, bans key-based auth) |
+| Generating ANY Bicep infrastructure | `avm-bicep-rules` (REQUIRED — enforces AVM modules, bans raw resource declarations) |
 | Before running `azd up` | `azure-validate` |
 | Need Azure Functions | `azure-functions` |
 | Need AI/OpenAI/Search | `azure-ai` |
@@ -197,6 +200,7 @@ Additional skills available:
 |-------|---------|
 | `azure-prepare` | Initialize azure.yaml and project structure |
 | `secure-defaults` | **MANDATORY** — Managed identity, RBAC roles, ban key-based auth |
+| `avm-bicep-rules` | **MANDATORY** — AVM modules from Bicep registry, azd patterns preferred |
 | `azure-deploy` | Deployment patterns and azd commands |
 | `azure-validate` | Pre-deployment validation |
 | `azure-functions` | Azure Functions triggers, bindings |

@@ -24,6 +24,7 @@ Invoke these skills for domain guidance:
 | Skill | Purpose |
 |-------|---------|
 | @secure-defaults | **MANDATORY** — Enforces managed identity, RBAC roles, bans key-based auth in all Bicep |
+| @avm-bicep-rules | **MANDATORY** — Enforces AVM modules from Bicep registry; prefer azd patterns first |
 | @azure-prepare | Initialize project structure (azure.yaml, infra/) |
 | @azure-networking | VNet, private endpoints, NSGs |
 | @azure-security-hardening | Security baseline configuration |
@@ -35,23 +36,23 @@ Invoke these skills for domain guidance:
 ## Best Practices (Non-Negotiable)
 
 - ✅ **Invoke `secure-defaults` skill before generating ANY Bicep** — it contains mandatory patterns and banned patterns
+- ✅ **Invoke `avm-bicep-rules` skill before generating ANY Bicep** — use AVM modules, never raw declarations
 - ✅ Managed identities over connection strings (ALWAYS)
 - ✅ RBAC role assignments for every service-to-service connection (identity alone is not enough)
 - ✅ Private endpoints for databases and storage
 - ✅ Key Vault for external secrets only (NOT for Azure service connection strings)
 - ✅ Enable diagnostics on every resource
-- ✅ Use Azure Verified Modules (AVM) when available
 - ✅ Tag resources consistently (environment, project, owner)
 - ❌ NEVER use `listKeys()` or `listCredentials()` in Bicep
 - ❌ NEVER hardcode secrets or connection strings
 - ❌ NEVER use `administratorLogin`/`administratorLoginPassword` for SQL (use Entra-only auth)
 - ❌ NEVER expose PaaS services to public internet without justification
+- ❌ NEVER write raw `resource` declarations when an AVM module exists
 
 ## Output
 
 Create in the infra/ folder:
-- main.bicep - Main orchestration
-- modules/ - Reusable Bicep modules
+- main.bicep - Main orchestration using AVM modules
 - main.parameters.json - Environment parameters
 
 Create at project root:
@@ -61,15 +62,14 @@ Create at project root:
 
 ```
 infra/
-├── main.bicep              # Main orchestration
+├── main.bicep              # Main orchestration (uses AVM modules from Bicep registry)
 ├── main.parameters.json    # Environment parameters
 ├── abbreviations.json      # Resource naming conventions
-└── modules/
-    ├── app-service.bicep
-    ├── cosmos-db.bicep
-    ├── key-vault.bicep
+└── modules/                # Only for custom logic not covered by AVM
     └── ...
 ```
+
+> **Note:** Prefer AVM modules from `br/public:avm/...` over local modules in `./modules/`. Only create local modules for custom orchestration logic that no AVM module covers. See `avm-bicep-rules` skill for the full module catalog and priority order.
 
 ### azure.yaml Example
 
