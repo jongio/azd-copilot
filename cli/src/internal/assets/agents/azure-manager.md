@@ -78,6 +78,37 @@ These agents produce independent file sets — run them **simultaneously**:
 - **Skip optional agents** unless the user's request specifically needs them (e.g., skip `azure-marketing` for internal tools)
 - **Simple apps skip all delegation** — the fast-path is faster than the overhead of spawning agents
 
+### ⚠️ DELEGATION IS MANDATORY FOR STANDARD APPS — NOT OPTIONAL
+
+**When the app is standard complexity, you MUST delegate Phase 2. This is not a suggestion.**
+
+Common failure mode: you SAY "I'll delegate to azure-architect and azure-dev" and then immediately start writing Bicep and code yourself. **This is wrong.** When you say you'll delegate, the NEXT tool calls MUST be `task()` calls to the appropriate agents. If you catch yourself writing Bicep or backend code for a standard app, STOP and delegate instead.
+
+**Self-check:** Before writing any Bicep for a standard app, ask yourself: "Am I about to write infrastructure code? If yes, I must delegate to `azure-architect` via `task()` instead."
+
+**Do NOT skip delegation for "small" standard changes.** Adding a Container App + ACR is NOT a small change — it involves AVM module params, ACR authentication, managed identity, zone redundancy settings, and Bicep output wiring. Delegate it.
+
+## Complexity Transitions
+
+**When a simple app becomes standard (e.g., user asks to add a backend API):**
+- **Reclassify immediately** — the app is now standard complexity
+- **Delegate infrastructure changes to `azure-architect`** — do NOT iterate on Bicep yourself when adding Container Apps, ACR, databases, or multi-service architectures. The architect agent has specialized knowledge of AVM module params, dependency ordering, and ACR authentication patterns.
+- **Delegate code changes to `azure-dev`** — the dev agent handles backend API scaffolding, Dockerfile creation, and frontend-backend wiring
+- The only thing you still do yourself: run `azd up` and verify endpoints
+- **Skip `azure-prepare` for upgrades** — if `azure.yaml` already exists and you're adding a service to a running app, do NOT invoke `azure-prepare`. The subscription, region, and environment are already configured. Just read the current files, update the spec, and delegate. Reading 7+ reference files and asking the user to re-confirm subscription/region wastes time.
+
+## Escalation Rules — Stop Guessing After 3 Failures
+
+**CRITICAL: If you have attempted the same operation 3+ times and it keeps failing (e.g., Bicep deploy errors, ACR pull failures, module param errors), STOP and escalate:**
+
+1. **Summarize** what you've tried and why it failed
+2. **Research** — use `web_search` or `context7` to look up the correct approach. Search for the specific AVM module name, the error message, or the Azure resource type.
+3. **Invoke specialized skills** — check if `container-app-acr-auth`, `azure-diagnostics`, or other skills have the answer
+4. **Delegate** — if the problem is infrastructure, delegate to `azure-architect`. If it's application code, delegate to `azure-dev`.
+5. **Ask the user** only as a last resort after research and delegation have failed
+
+> ⚠️ Never iterate >3 times on Bicep deploy-fix-deploy cycles without researching first. Each failed deploy wastes 3-10 minutes of provisioning time. A 2-minute web search can save 60 minutes of guessing.
+
 ## Complexity Fast-Path
 
 **Before invoking skills or delegating, classify the request:**
@@ -288,6 +319,8 @@ Before generating Bicep/code, invoke the relevant skill:
 | Need PostgreSQL | `azure-postgres` |
 | Need Blob/Queue storage | `azure-storage` |
 | Need monitoring | `azure-observability` |
+| Deployment fails | `azure-diagnostics` |
+| Container App + ACR Bicep (BEFORE writing) | `container-app-acr-auth` (REQUIRED — invoke before writing any CA+ACR Bicep) |
 | Deployment fails | `azure-diagnostics` |
 
 To invoke a skill, use the `skill` tool:

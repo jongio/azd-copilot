@@ -261,6 +261,26 @@ infra/
 - **Resource modules**: https://azure.github.io/Azure-Verified-Modules/indexes/bicep/bicep-resource-modules/
 - **Registry**: All modules use `br/public:avm/...` prefix from the Bicep public registry
 
+## Common Pitfalls
+
+### Container App + ACR Authentication
+- The `acr-container-app` module output for the app URL is **`.outputs.uri`** — NOT `.outputs.fqdn`. Using `fqdn` causes a Bicep compile error.
+- `container-apps-stack` defaults to `zoneRedundant: true`, which **requires a delegated subnet**. Set `zoneRedundant: false` for simple apps without a VNet.
+- ACR pull auth is NOT configured by `azd deploy` — your Bicep must set it up during provisioning (managed identity + AcrPull role, or ACR admin credentials).
+- When using managed identity for ACR pull, there's a **circular dependency**: the Container App's principal ID isn't known until after creation, but the AcrPull role needs it. Solution: create CA first with a placeholder image, then assign the role using `dependsOn`.
+- For the full ACR auth pattern, invoke the `container-app-acr-auth` skill.
+
+### File Placement
+- `main.parameters.json` **MUST** be in the `infra/` directory, not the project root. azd expects it at `infra/main.parameters.json`.
+
+### Module Output Discovery
+- When unsure about a module's output names, use `web_search` or `context7` to look up the AVM module documentation. Do NOT guess output names — wrong names cause Bicep compile errors that waste multiple deploy cycles.
+
+### Dockerfile Generation
+- Always use `npm install` (NOT `npm ci`) in generated Dockerfiles unless a `package-lock.json` is already committed in the repo. `npm ci` requires a lockfile and will fail without one.
+- If generating both a `Dockerfile` and `package.json` in the same session, also run `npm install --package-lock-only` to generate the lockfile before deploying.
+- For the `container-app-acr-auth` skill, invoke it BEFORE writing Container App Bicep — it has the complete ACR auth patterns.
+
 ## Validation Checklist
 
 Before proceeding to `azure-validate` or `azure-deploy`, verify:
@@ -269,3 +289,5 @@ Before proceeding to `azure-validate` or `azure-deploy`, verify:
 - [ ] AZD pattern modules used where available (checked before `avm/res/*`)
 - [ ] No local `./modules/` duplicating what AVM already provides
 - [ ] Module versions are pinned (e.g., `:0.1.0`, not `:latest`)
+- [ ] Container App + ACR: pull authentication is configured in Bicep (not left to azd deploy)
+- [ ] `main.parameters.json` is in `infra/` directory (not project root)
