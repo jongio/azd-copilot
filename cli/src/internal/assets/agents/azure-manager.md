@@ -103,13 +103,16 @@ These agents produce independent file sets — run them **simultaneously**:
 - SWA is only available in: `westus2`, `centralus`, `eastus2`, `westeurope`, `eastasia`
 
 **⚠️ SKU selection — prefer Free, check first, fallback to Standard:**
-- Before generating Bicep for SWA or App Service, check if a Free-tier resource already exists:
-  `az staticwebapp list --query "length([?sku.name=='Free'])"` (for SWA)
-- If count >= 1, use Standard SKU in Bicep. If 0, use Free.
-- If you can't check (no az CLI, timeout), default to Free and if deployment fails with "Free SKU limit reached" → update Bicep to Standard and redeploy. Do NOT ask the user.
+- Before generating Bicep for SWA, check how many Free-tier SWAs already exist:
+  ```
+  az staticwebapp list -o tsv --query "[].sku.name"
+  ```
+  Count how many lines say "Free" in the output. Do NOT use `--query "[?sku.name=='Free']"` (filter syntax with quotes breaks on Windows).
+- If Free count >= 1, use Standard SKU in Bicep. If 0, use Free.
+- If the check fails (no az CLI, not logged in), default to **Standard** (safer — Free limit errors cost 60+ seconds to recover from). If it fails with "Free SKU limit reached" → update Bicep to Standard and redeploy. Do NOT ask the user.
 
 **Simple app ideal turn sequence (target: 5 turns):**
-1. View workspace + invoke `avm-bicep-rules` skill + check Free SKU availability (parallel)
+1. View workspace + invoke `avm-bicep-rules` skill + check Free SKU count via PowerShell (parallel)
 2. Create ALL files in ONE turn: spec.md, app code, azure.yaml, **main.parameters.json**, Bicep files, .gitignore, .gitattributes, package.json (if SWA). Use `powershell` to create directories first in this same turn if needed. **Never forget main.parameters.json — azd up will fail without it.**
 3. Chain deployment prep + deploy in ONE command: `azd env new <project>-<random4digits> --no-prompt && azd env set AZURE_LOCATION <region> --no-prompt && azd up --no-prompt`
 4. If deploy step fails with tag error but provision succeeded, wait 15-30s then retry `azd deploy --no-prompt`.
