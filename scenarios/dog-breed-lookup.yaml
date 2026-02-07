@@ -1,0 +1,40 @@
+name: dog-breed-lookup
+description: "Build a dog breed photo site with SWA, then add a backend API with Container App"
+timeout: 35m
+
+prompts:
+  - text: "site that uses dog photo api to show photos of dogs by breed"
+    success_criteria:
+      files_exist:
+        - azure.yaml
+        - infra/main.bicep
+        - src/web/index.html
+      deployed: true
+      endpoint_responds: true
+
+  - text: "build a backend api that combines dog photos and wikipedia data for dog breeds and displays on website"
+    success_criteria:
+      files_exist:
+        - src/api/server.js
+        - src/api/Dockerfile
+      deployed: true
+      endpoint_responds: true
+
+scoring:
+  max_duration_minutes: 30
+  max_turns: 50
+  max_azd_up_attempts: 5
+  max_bicep_edits: 6
+  must_delegate: false
+  must_invoke_skills:
+    - avm-bicep-rules
+  regressions:
+    - name: "ACR auth spiral"
+      pattern: "ACR.*auth|can't pull|registry.*credential"
+      max_occurrences: 3
+    - name: "zone redundancy"
+      pattern: "zone.*redundant|requires.*subnet"
+      max_occurrences: 1
+    - name: "npm ci without lockfile"
+      pattern: "npm ci.*lockfile|package-lock.*not found"
+      max_occurrences: 1
