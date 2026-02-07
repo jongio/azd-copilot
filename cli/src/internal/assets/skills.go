@@ -16,14 +16,15 @@ import (
 )
 
 // Upstream skills synced from microsoft/GitHub-Copilot-for-Azure.
-// Do NOT edit these files — they will be overwritten by `mage SyncSkills`.
+// Editable — changes survive `mage SyncSkills` (smart merge) and can be
+// contributed back via `mage ContributeSkills`.
 //
-//go:embed skills/*/SKILL.md skills/*/*/*.md skills/*/*/*/*.md skills/*/*/*/*/*.md
+//go:embed ghcp4a-skills/*/SKILL.md ghcp4a-skills/*/*/*.md ghcp4a-skills/*/*/*/*.md ghcp4a-skills/*/*/*/*/*.md
 var embeddedSkills embed.FS
 
-// Custom skills maintained in this repo.
+// Skills maintained in this repo (azd-copilot custom skills).
 //
-//go:embed custom-skills/*/SKILL.md custom-skills/*/*.md
+//go:embed skills/*/SKILL.md skills/*/*.md
 var embeddedCustomSkills embed.FS
 
 // SkillInfo contains metadata about a skill
@@ -42,8 +43,8 @@ func allSkillSources() []struct {
 		fs     embed.FS
 		prefix string
 	}{
-		{embeddedSkills, "skills"},
-		{embeddedCustomSkills, "custom-skills"},
+		{embeddedSkills, "ghcp4a-skills"},
+		{embeddedCustomSkills, "skills"},
 	}
 }
 

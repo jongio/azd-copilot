@@ -245,10 +245,12 @@ func Clean() error {
 const (
 	skillsSourceRepo = "https://github.com/microsoft/GitHub-Copilot-for-Azure.git"
 	skillsSourcePath = "plugin/skills"
-	skillsTargetPath = "src/internal/assets/skills"
+	skillsTargetPath = "src/internal/assets/ghcp4a-skills"
 )
 
-// SyncSkills syncs upstream skills from microsoft/GitHub-Copilot-for-Azure.
+// SyncSkills syncs upstream skills from microsoft/GitHub-Copilot-for-Azure
+// using a smart merge: new upstream files are added, deleted upstream files are
+// removed, but locally modified files are preserved.
 // Set SKILLS_SOURCE to a local clone path to skip cloning.
 func SyncSkills() error {
 	fmt.Println("🔄 Syncing upstream Azure skills...")
@@ -301,31 +303,136 @@ func SyncSkills() error {
 	}
 	fmt.Printf("📦 Found %d upstream skills\n\n", len(skillDirs))
 
-	// Wipe target (safe — only upstream content lives here)
-	if err := os.RemoveAll(skillsTargetPath); err != nil {
-		return fmt.Errorf("failed to clean target: %w", err)
-	}
+	// Ensure target directory exists
 	if err := os.MkdirAll(skillsTargetPath, 0755); err != nil {
 		return fmt.Errorf("failed to create target: %w", err)
 	}
 
-	// Copy each skill
-	copied := 0
+	// Smart merge: compare upstream vs local
+	added, updated, kept, removed := 0, 0, 0, 0
+
+	// Build set of upstream skill names
+	upstreamSet := make(map[string]bool)
+	for _, name := range skillDirs {
+		upstreamSet[name] = true
+	}
+
+	// Remove local skills that no longer exist upstream
+	localEntries, _ := os.ReadDir(skillsTargetPath)
+	for _, e := range localEntries {
+		if !e.IsDir() {
+			continue
+		}
+		if !upstreamSet[e.Name()] {
+			dst := filepath.Join(skillsTargetPath, e.Name())
+			// Check if locally modified (has uncommitted changes via git)
+			locallyModified := isLocallyModified(dst)
+			if locallyModified {
+				fmt.Printf("  ⚠️  %s: removed upstream but locally modified — keeping\n", e.Name())
+				kept++
+			} else {
+				os.RemoveAll(dst)
+				fmt.Printf("  🗑️  %s: removed (no longer upstream)\n", e.Name())
+				removed++
+			}
+		}
+	}
+
+	// Sync each upstream skill
 	for _, name := range skillDirs {
 		src := filepath.Join(skillsSrc, name)
 		dst := filepath.Join(skillsTargetPath, name)
-		if err := copyDir(src, dst); err != nil {
-			fmt.Printf("  ❌ %s: %v\n", name, err)
-			continue
+
+		if _, err := os.Stat(dst); os.IsNotExist(err) {
+			// New skill — copy it in
+			if err := copyDir(src, dst); err != nil {
+				fmt.Printf("  ❌ %s: %v\n", name, err)
+				continue
+			}
+			fmt.Printf("  ✅ %s (new)\n", name)
+			added++
+		} else {
+			// Existing skill — smart merge per file
+			fileAdded, fileUpdated, fileKept, err := mergeSkillDir(src, dst)
+			if err != nil {
+				fmt.Printf("  ❌ %s: %v\n", name, err)
+				continue
+			}
+			if fileAdded+fileUpdated > 0 {
+				fmt.Printf("  ✅ %s (merged: %d new, %d updated, %d kept)\n", name, fileAdded, fileUpdated, fileKept)
+			} else if fileKept > 0 {
+				fmt.Printf("  🔒 %s (all %d files locally modified — kept)\n", name, fileKept)
+			} else {
+				fmt.Printf("  ✅ %s (unchanged)\n", name)
+			}
+			added += fileAdded
+			updated += fileUpdated
+			kept += fileKept
 		}
-		fmt.Printf("  ✅ %s\n", name)
-		copied++
 	}
 
-	fmt.Printf("\n✨ Synced %d/%d upstream skills to %s\n", copied, len(skillDirs), skillsTargetPath)
+	fmt.Printf("\n✨ Sync complete: %d added, %d updated, %d locally modified (kept), %d removed\n",
+		added, updated, kept, removed)
 
 	// Update counts in static files
 	return UpdateCounts()
+}
+
+// mergeSkillDir merges an upstream skill directory into a local one.
+// Files modified locally are preserved; new/unchanged upstream files are copied.
+func mergeSkillDir(src, dst string) (added, updated, kept int, err error) {
+	return added, updated, kept, filepath.Walk(src, func(path string, info os.FileInfo, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if info.IsDir() {
+			rel, _ := filepath.Rel(src, path)
+			return os.MkdirAll(filepath.Join(dst, rel), 0755)
+		}
+
+		rel, _ := filepath.Rel(src, path)
+		dstFile := filepath.Join(dst, rel)
+
+		upstreamData, readErr := os.ReadFile(path)
+		if readErr != nil {
+			return readErr
+		}
+
+		localData, localErr := os.ReadFile(dstFile)
+		if localErr != nil {
+			// File doesn't exist locally — add it
+			if err := os.MkdirAll(filepath.Dir(dstFile), 0755); err != nil {
+				return err
+			}
+			added++
+			return os.WriteFile(dstFile, upstreamData, 0644)
+		}
+
+		// File exists locally — compare content
+		if string(localData) == string(upstreamData) {
+			// Identical — no action needed
+			return nil
+		}
+
+		// Different — check if locally modified (git tracks this)
+		if isLocallyModified(dstFile) {
+			kept++
+			return nil // Keep local version
+		}
+
+		// Not locally modified (upstream changed) — take upstream
+		updated++
+		return os.WriteFile(dstFile, upstreamData, 0644)
+	})
+}
+
+// isLocallyModified checks if a path has uncommitted local modifications via git.
+func isLocallyModified(path string) bool {
+	out, err := sh.Output("git", "diff", "--name-only", "HEAD", "--", path)
+	if err != nil {
+		return false // Can't determine — assume not modified
+	}
+	return strings.TrimSpace(out) != ""
 }
 
 // copyDir recursively copies a directory tree.
@@ -354,7 +461,7 @@ func copyDir(src, dst string) error {
 }
 
 const (
-	customSkillsPath = "src/internal/assets/custom-skills"
+	customSkillsPath = "src/internal/assets/skills"
 	agentsPath       = "src/internal/assets/agents"
 	countsFile       = "counts.json"
 )
@@ -443,9 +550,9 @@ func UpdateCounts() error {
 
 	// Also patch custom skill docs that mention counts
 	customSkillPatches := []string{
-		"src/internal/assets/custom-skills/marketing/messaging.md",
-		"src/internal/assets/custom-skills/marketing/azure-marketplace.md",
-		"src/internal/assets/custom-skills/support/faq.md",
+		"src/internal/assets/skills/marketing/messaging.md",
+		"src/internal/assets/skills/marketing/azure-marketplace.md",
+		"src/internal/assets/skills/support/faq.md",
 	}
 	agentPattern := `(\d+) specialized (?:AI )?agents`
 	agentReplace := fmt.Sprintf("%d specialized AI agents", c.Agents)
@@ -506,4 +613,120 @@ func UpdateCounts() error {
 func regexpReplace(text, pattern, replacement string) string {
 	re := regexp.MustCompile(pattern)
 	return re.ReplaceAllString(text, replacement)
+}
+
+// ContributeSkills creates a branch in a local clone of the upstream repo
+// with your local changes to ghcp4a-skills, ready for a PR.
+// Set UPSTREAM_FORK to your fork URL (default: origin upstream).
+func ContributeSkills() error {
+	fmt.Println("🚀 Preparing upstream contribution...")
+
+	// Find locally modified files in ghcp4a-skills
+	out, err := sh.Output("git", "diff", "--name-only", "HEAD", "--", skillsTargetPath)
+	if err != nil {
+		return fmt.Errorf("failed to check local changes: %w", err)
+	}
+
+	// Also check staged changes
+	stagedOut, err := sh.Output("git", "diff", "--name-only", "--cached", "--", skillsTargetPath)
+	if err == nil && stagedOut != "" {
+		if out != "" {
+			out += "\n" + stagedOut
+		} else {
+			out = stagedOut
+		}
+	}
+
+	if strings.TrimSpace(out) == "" {
+		fmt.Println("No local changes found in ghcp4a-skills/. Nothing to contribute.")
+		fmt.Println("Tip: Make changes to files in src/internal/assets/ghcp4a-skills/ first.")
+		return nil
+	}
+
+	changedFiles := strings.Split(strings.TrimSpace(out), "\n")
+	fmt.Printf("📝 Found %d changed file(s):\n", len(changedFiles))
+	for _, f := range changedFiles {
+		fmt.Printf("  • %s\n", f)
+	}
+
+	// Clone upstream repo
+	fmt.Println("\n📥 Cloning upstream repo...")
+	tempDir, err := os.MkdirTemp("", "contribute-skills-*")
+	if err != nil {
+		return fmt.Errorf("failed to create temp dir: %w", err)
+	}
+	// Don't defer RemoveAll — user needs the clone to push from
+
+	forkURL := os.Getenv("UPSTREAM_FORK")
+	if forkURL == "" {
+		forkURL = skillsSourceRepo
+	}
+
+	if err := sh.RunV("git", "clone", "--depth=1", forkURL, tempDir); err != nil {
+		os.RemoveAll(tempDir)
+		return fmt.Errorf("failed to clone upstream: %w", err)
+	}
+
+	// Create a branch
+	branchName := fmt.Sprintf("contribute-skills-%s", time.Now().Format("20060102-150405"))
+	if err := sh.RunV("git", "-C", tempDir, "checkout", "-b", branchName); err != nil {
+		os.RemoveAll(tempDir)
+		return fmt.Errorf("failed to create branch: %w", err)
+	}
+
+	// Copy changed files into the upstream clone
+	copied := 0
+	for _, localPath := range changedFiles {
+		// localPath is like: src/internal/assets/ghcp4a-skills/azure-deploy/SKILL.md
+		// upstream path is:  plugin/skills/azure-deploy/SKILL.md
+		rel := strings.TrimPrefix(localPath, skillsTargetPath+"/")
+		if rel == localPath {
+			rel = strings.TrimPrefix(localPath, strings.ReplaceAll(skillsTargetPath, "\\", "/")+"/")
+		}
+		upstreamPath := filepath.Join(tempDir, skillsSourcePath, rel)
+
+		// Read local file
+		data, readErr := os.ReadFile(localPath)
+		if readErr != nil {
+			fmt.Printf("  ⚠️  %s: %v\n", localPath, readErr)
+			continue
+		}
+
+		// Ensure parent dir exists
+		if err := os.MkdirAll(filepath.Dir(upstreamPath), 0755); err != nil {
+			fmt.Printf("  ⚠️  %s: %v\n", upstreamPath, err)
+			continue
+		}
+
+		if err := os.WriteFile(upstreamPath, data, 0644); err != nil {
+			fmt.Printf("  ❌ %s: %v\n", rel, err)
+			continue
+		}
+		fmt.Printf("  ✅ %s\n", rel)
+		copied++
+	}
+
+	if copied == 0 {
+		os.RemoveAll(tempDir)
+		return fmt.Errorf("no files were copied — nothing to contribute")
+	}
+
+	// Stage and commit
+	if err := sh.RunV("git", "-C", tempDir, "add", "."); err != nil {
+		return fmt.Errorf("git add failed: %w", err)
+	}
+	commitMsg := fmt.Sprintf("feat: contribute skill changes from azd-copilot (%d files)", copied)
+	if err := sh.RunV("git", "-C", tempDir, "commit", "-m", commitMsg); err != nil {
+		return fmt.Errorf("git commit failed: %w", err)
+	}
+
+	fmt.Printf("\n✨ Branch '%s' ready at: %s\n", branchName, tempDir)
+	fmt.Println("\nNext steps:")
+	fmt.Printf("  1. cd %s\n", tempDir)
+	fmt.Println("  2. git remote set-url origin <your-fork-url>  (if using upstream directly)")
+	fmt.Println("  3. git push -u origin " + branchName)
+	fmt.Println("  4. Open a PR at https://github.com/microsoft/GitHub-Copilot-for-Azure/pulls")
+	fmt.Println("\nOr set UPSTREAM_FORK=<your-fork-url> to clone your fork directly.")
+
+	return nil
 }

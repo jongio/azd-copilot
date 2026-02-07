@@ -130,8 +130,8 @@ Based on analysis, focus on these integration areas:
    - Create `.github/agents/azure-architect.agent.md`
 
 3. **Migrate Existing Skills**
-   - Convert `skills/azure-deploy` to SKILL.md format
-   - Convert `skills/azure-diagnostics` to SKILL.md format
+   - Convert `ghcp4a-skills/azure-deploy` to SKILL.md format
+   - Convert `ghcp4a-skills/azure-diagnostics` to SKILL.md format
    - Ensure compatibility with both CLI and coding agent
 
 ### Medium Priority

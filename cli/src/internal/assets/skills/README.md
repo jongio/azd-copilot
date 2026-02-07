@@ -1,8 +1,8 @@
-# Custom Skills
+# Skills
 
-This directory contains skills maintained in this repo. These are NOT synced from upstream and will never be overwritten by `mage syncSkills`.
+This directory contains custom skills maintained in this repo. These are NOT synced from upstream.
 
-For upstream Azure skills (synced from [GitHub-Copilot-for-Azure](https://github.com/microsoft/github-copilot-for-azure)), see `../skills/`.
+For upstream Azure skills (synced from [GitHub-Copilot-for-Azure](https://github.com/microsoft/github-copilot-for-azure)), see `../ghcp4a-skills/`.
 
 ## Custom Skills
 
