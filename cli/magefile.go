@@ -615,9 +615,9 @@ func regexpReplace(text, pattern, replacement string) string {
 	return re.ReplaceAllString(text, replacement)
 }
 
-// ContributeSkills creates a branch in a local clone of the upstream repo
-// with your local changes to ghcp4a-skills, ready for a PR.
-// Set UPSTREAM_FORK to your fork URL (default: origin upstream).
+// ContributeSkills creates a branch in the upstream repo clone at
+// c:\code\github-copilot-for-azure (or GHCP4A_REPO env var) with your local
+// changes to ghcp4a-skills, ready for a PR.
 func ContributeSkills() error {
 	fmt.Println("🚀 Preparing upstream contribution...")
 
@@ -649,32 +649,24 @@ func ContributeSkills() error {
 		fmt.Printf("  • %s\n", f)
 	}
 
-	// Clone upstream repo
-	fmt.Println("\n📥 Cloning upstream repo...")
-	tempDir, err := os.MkdirTemp("", "contribute-skills-*")
-	if err != nil {
-		return fmt.Errorf("failed to create temp dir: %w", err)
-	}
-	// Don't defer RemoveAll — user needs the clone to push from
-
-	forkURL := os.Getenv("UPSTREAM_FORK")
-	if forkURL == "" {
-		forkURL = skillsSourceRepo
+	// Use local upstream repo clone
+	upstreamRepo := os.Getenv("GHCP4A_REPO")
+	if upstreamRepo == "" {
+		upstreamRepo = `c:\code\github-copilot-for-azure`
 	}
 
-	if err := sh.RunV("git", "clone", "--depth=1", forkURL, tempDir); err != nil {
-		os.RemoveAll(tempDir)
-		return fmt.Errorf("failed to clone upstream: %w", err)
+	if _, err := os.Stat(filepath.Join(upstreamRepo, ".git")); os.IsNotExist(err) {
+		return fmt.Errorf("upstream repo not found at %s — set GHCP4A_REPO env var to the correct path", upstreamRepo)
 	}
+	fmt.Printf("📂 Using upstream repo: %s\n", upstreamRepo)
 
 	// Create a branch
 	branchName := fmt.Sprintf("contribute-skills-%s", time.Now().Format("20060102-150405"))
-	if err := sh.RunV("git", "-C", tempDir, "checkout", "-b", branchName); err != nil {
-		os.RemoveAll(tempDir)
+	if err := sh.RunV("git", "-C", upstreamRepo, "checkout", "-b", branchName); err != nil {
 		return fmt.Errorf("failed to create branch: %w", err)
 	}
 
-	// Copy changed files into the upstream clone
+	// Copy changed files into the upstream repo
 	copied := 0
 	for _, localPath := range changedFiles {
 		// localPath is like: src/internal/assets/ghcp4a-skills/azure-deploy/SKILL.md
@@ -683,7 +675,7 @@ func ContributeSkills() error {
 		if rel == localPath {
 			rel = strings.TrimPrefix(localPath, strings.ReplaceAll(skillsTargetPath, "\\", "/")+"/")
 		}
-		upstreamPath := filepath.Join(tempDir, skillsSourcePath, rel)
+		upstreamPath := filepath.Join(upstreamRepo, skillsSourcePath, rel)
 
 		// Read local file
 		data, readErr := os.ReadFile(localPath)
@@ -707,26 +699,23 @@ func ContributeSkills() error {
 	}
 
 	if copied == 0 {
-		os.RemoveAll(tempDir)
 		return fmt.Errorf("no files were copied — nothing to contribute")
 	}
 
 	// Stage and commit
-	if err := sh.RunV("git", "-C", tempDir, "add", "."); err != nil {
+	if err := sh.RunV("git", "-C", upstreamRepo, "add", "."); err != nil {
 		return fmt.Errorf("git add failed: %w", err)
 	}
 	commitMsg := fmt.Sprintf("feat: contribute skill changes from azd-copilot (%d files)", copied)
-	if err := sh.RunV("git", "-C", tempDir, "commit", "-m", commitMsg); err != nil {
+	if err := sh.RunV("git", "-C", upstreamRepo, "commit", "-m", commitMsg); err != nil {
 		return fmt.Errorf("git commit failed: %w", err)
 	}
 
-	fmt.Printf("\n✨ Branch '%s' ready at: %s\n", branchName, tempDir)
+	fmt.Printf("\n✨ Branch '%s' ready in: %s\n", branchName, upstreamRepo)
 	fmt.Println("\nNext steps:")
-	fmt.Printf("  1. cd %s\n", tempDir)
-	fmt.Println("  2. git remote set-url origin <your-fork-url>  (if using upstream directly)")
-	fmt.Println("  3. git push -u origin " + branchName)
-	fmt.Println("  4. Open a PR at https://github.com/microsoft/GitHub-Copilot-for-Azure/pulls")
-	fmt.Println("\nOr set UPSTREAM_FORK=<your-fork-url> to clone your fork directly.")
+	fmt.Printf("  cd %s\n", upstreamRepo)
+	fmt.Println("  git push -u origin " + branchName)
+	fmt.Println("  # Then open a PR at https://github.com/microsoft/GitHub-Copilot-for-Azure/pulls")
 
 	return nil
 }
