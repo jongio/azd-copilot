@@ -45,31 +45,46 @@ CREATE TABLE IF NOT EXISTS run_regressions (
     passed        BOOLEAN,
     PRIMARY KEY (run_id, name)
 );
+
+CREATE TABLE IF NOT EXISTS run_verification (
+    run_id   INTEGER REFERENCES runs(id),
+    name     TEXT NOT NULL,
+    passed   BOOLEAN NOT NULL DEFAULT 0,
+    error    TEXT,
+    PRIMARY KEY (run_id, name)
+);
 `
 
 // Run holds the result of analyzing a scenario session.
 type Run struct {
-	Scenario     string
-	SessionID    string
-	GitCommit    string
-	StartedAt    time.Time
-	DurationSec  int
-	TotalTurns   int
+	Scenario      string
+	SessionID     string
+	GitCommit     string
+	StartedAt     time.Time
+	DurationSec   int
+	TotalTurns    int
 	AzdUpAttempts int
-	BicepEdits   int
-	Delegated    bool
-	Deployed     bool
-	Score        float64
-	Passed       bool
-	Skills       map[string]bool       // skill name -> was invoked
-	Regressions  map[string]RegResult  // regression name -> result
+	BicepEdits    int
+	Delegated     bool
+	Deployed      bool
+	Score         float64
+	Passed        bool
+	Skills        map[string]bool            // skill name -> was invoked
+	Regressions   map[string]RegResult       // regression name -> result
+	Verification  map[string]VerifyResult    // step name -> result
 }
 
 // RegResult is the result of checking one regression pattern.
 type RegResult struct {
-	Occurrences int
-	MaxAllowed  int
-	Passed      bool
+	Occurrences int  `json:"occurrences"`
+	MaxAllowed  int  `json:"max_allowed"`
+	Passed      bool `json:"passed"`
+}
+
+// VerifyResult is the result of one Playwright verification step.
+type VerifyResult struct {
+	Passed bool   `json:"passed"`
+	Error  string `json:"error,omitempty"`
 }
 
 // DB wraps a SQLite connection for scenario results.
@@ -133,6 +148,14 @@ func (d *DB) InsertRun(r *Run) (int64, error) {
 		if _, err := d.db.Exec(`INSERT INTO run_regressions (run_id, name, occurrences, max_allowed, passed) VALUES (?, ?, ?, ?, ?)`,
 			runID, name, reg.Occurrences, reg.MaxAllowed, reg.Passed); err != nil {
 			return runID, fmt.Errorf("insert regression %s: %w", name, err)
+		}
+	}
+
+	// Insert verification records
+	for name, v := range r.Verification {
+		if _, err := d.db.Exec(`INSERT INTO run_verification (run_id, name, passed, error) VALUES (?, ?, ?, ?)`,
+			runID, name, v.Passed, v.Error); err != nil {
+			return runID, fmt.Errorf("insert verification %s: %w", name, err)
 		}
 	}
 
@@ -203,6 +226,7 @@ func (d *DB) ListRunsWithDetails(scenarioName string, limit int) ([]Run, error) 
 		}
 		ir.run.Skills = make(map[string]bool)
 		ir.run.Regressions = make(map[string]RegResult)
+		ir.run.Verification = make(map[string]VerifyResult)
 		idRuns = append(idRuns, ir)
 	}
 	if err := rows.Err(); err != nil {
@@ -252,6 +276,29 @@ func (d *DB) loadRunDetails(runID int64, r *Run) error {
 			return fmt.Errorf("scan regression: %w", err)
 		}
 		r.Regressions[name] = reg
+	}
+
+	// Load verification results
+	vRows, err := d.db.Query(`SELECT name, passed, error FROM run_verification WHERE run_id = ?`, runID)
+	if err != nil {
+		// Table may not exist in older DBs — not fatal
+		return nil
+	}
+	defer vRows.Close()
+	if r.Verification == nil {
+		r.Verification = make(map[string]VerifyResult)
+	}
+	for vRows.Next() {
+		var name string
+		var v VerifyResult
+		var errStr sql.NullString
+		if err := vRows.Scan(&name, &v.Passed, &errStr); err != nil {
+			return fmt.Errorf("scan verification: %w", err)
+		}
+		if errStr.Valid {
+			v.Error = errStr.String
+		}
+		r.Verification[name] = v
 	}
 
 	return nil

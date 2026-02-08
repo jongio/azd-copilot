@@ -23,6 +23,7 @@ var _ mg.Namespace // ensure mage import is used
 const (
 	scenariosDir = "../../scenarios"
 	dbFile       = "results.db"
+	jsonFile     = "results.json"
 )
 
 func scenarioDir() string {
@@ -31,6 +32,10 @@ func scenarioDir() string {
 
 func dbPath() string {
 	return filepath.Join(scenariosDir, dbFile)
+}
+
+func jsonPath() string {
+	return filepath.Join(scenariosDir, jsonFile)
 }
 
 type Scenario mg.Namespace
@@ -110,13 +115,13 @@ func (Scenario) Run(scenarioFile string) error {
 	fmt.Printf("   Timeout: %s\n", s.Timeout)
 
 	azdBinary := "azd"
-	sessionID, err := scenario.RunScenario(context.Background(), s, azdBinary)
+	runResult, err := scenario.RunScenario(context.Background(), s, azdBinary)
 	if err != nil {
 		return err
 	}
 
 	fmt.Printf("\n📊 Run complete. Analyze with:\n")
-	fmt.Printf("   mage scenario:analyze %s %s\n", sessionID, scenarioFile)
+	fmt.Printf("   mage scenario:analyze %s %s\n", runResult.SessionID, scenarioFile)
 	return nil
 }
 
@@ -239,6 +244,47 @@ func (Scenario) Loop(scenarioFile string) error {
 		_ = exec.Command("xdg-open", dashPath).Start()
 	}
 
+	return nil
+}
+
+// Export saves all results from the SQLite database to results.json (committed to git).
+// Usage: mage scenario:export
+func (Scenario) Export() error {
+	db, err := scenario.OpenDB(dbPath())
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	jp := jsonPath()
+	if err := db.ExportJSON(jp); err != nil {
+		return err
+	}
+
+	fmt.Printf("✅ Exported results to %s\n", jp)
+	return nil
+}
+
+// Import loads results from results.json into the SQLite database, skipping duplicates.
+// Usage: mage scenario:import
+func (Scenario) Import() error {
+	jp := jsonPath()
+	if _, err := os.Stat(jp); os.IsNotExist(err) {
+		return fmt.Errorf("no results file found at %s — nothing to import", jp)
+	}
+
+	db, err := scenario.OpenDB(dbPath())
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	n, err := db.ImportJSON(jp)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("✅ Imported %d new run(s) from %s\n", n, jp)
 	return nil
 }
 

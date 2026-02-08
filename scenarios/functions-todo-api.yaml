@@ -1,0 +1,64 @@
+name: functions-todo-api
+description: "Build a serverless todo API with Azure Functions and Cosmos DB"
+timeout: 35m
+
+prompts:
+  - text: "build a todo app API using Azure Functions with a Cosmos DB backend. It should have CRUD endpoints for todos - create, read, update, delete. Use Node.js."
+    success_criteria:
+      files_exist:
+        - azure.yaml
+        - infra/main.bicep
+        - src/api/package.json
+      deployed: true
+
+  - text: "add a simple frontend that calls the API to manage todos, deploy it alongside the API"
+    success_criteria:
+      files_exist:
+        - src/web/index.html
+      deployed: true
+      endpoint_responds: true
+
+scoring:
+  max_duration_minutes: 25
+  max_turns: 40
+  max_azd_up_attempts: 4
+  max_bicep_edits: 5
+  must_delegate: false
+  must_invoke_skills:
+    - avm-bicep-rules
+    - azure-functions
+  regressions:
+    - name: "Cosmos connection string in code"
+      pattern: "connection[_-]?string|AccountKey=|masterKey"
+      max_occurrences: 2
+    - name: "missing CORS config"
+      pattern: "CORS|cors.*error|blocked by.*origin|Access-Control"
+      max_occurrences: 2
+    - name: "function app plan confusion"
+      pattern: "Premium|EP1|Elastic|App Service Plan.*functions"
+      max_occurrences: 1
+
+verification:
+  - name: "frontend loads"
+    action: navigate
+    url: "{{endpoint}}"
+    status_code: 200
+
+  - name: "page shows todo interface"
+    action: check
+    selector: "body"
+    value: "todo"
+
+  - name: "can add a todo"
+    action: type
+    selector: "input"
+    value: "Test todo from scenario"
+
+  - name: "submit todo"
+    action: click
+    selector: "button"
+
+  - name: "todo appears in list"
+    action: check
+    selector: "body"
+    value: "Test todo from scenario"

@@ -53,10 +53,11 @@ func RunLoop(ctx context.Context, cfg LoopConfig) ([]LoopResult, error) {
 
 		// Step 1: Run the scenario
 		fmt.Println("▶ Step 1: Running scenario...")
-		sessionID, err := RunScenario(ctx, s, cfg.AzdBinary)
+		runResult, err := RunScenario(ctx, s, cfg.AzdBinary)
 		if err != nil {
 			return results, fmt.Errorf("iteration %d run: %w", i, err)
 		}
+		sessionID := runResult.SessionID
 
 		// Step 2: Analyze
 		fmt.Println("\n▶ Step 2: Analyzing session...")

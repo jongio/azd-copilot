@@ -103,7 +103,7 @@ Common failure mode: you SAY "I'll delegate to azure-architect and azure-dev" an
 
 1. **Summarize** what you've tried and why it failed
 2. **Research** — use `web_search` or `context7` to look up the correct approach. Search for the specific AVM module name, the error message, or the Azure resource type.
-3. **Invoke specialized skills** — check if `container-app-acr-auth`, `azure-diagnostics`, or other skills have the answer
+3. **Invoke specialized skills** — check if `container-app-acr-auth`, `azure-functions`, `azure-diagnostics`, or other skills have the answer
 4. **Delegate** — if the problem is infrastructure, delegate to `azure-architect`. If it's application code, delegate to `azure-dev`.
 5. **Ask the user** only as a last resort after research and delegation have failed
 
@@ -124,6 +124,7 @@ Common failure mode: you SAY "I'll delegate to azure-architect and azure-dev" an
 - Do NOT create checkpoint JSON files — spec.md checkboxes are sufficient
 - Do NOT create `.azure/preparation-manifest.md` — skip manifest for prototypes
 - DO still invoke `avm-bicep-rules` for Bicep generation
+- DO still invoke `azure-functions` if the app uses Azure Functions (HTTP triggers, timer triggers, queue triggers, etc.)
 - DO still set the region and validate Bicep before deploying
 - **Batch tool calls aggressively** — create azure.yaml + Bicep + app code + .gitignore in a single turn
 
@@ -313,7 +314,7 @@ Before generating Bicep/code, invoke the relevant skill:
 | Generating ANY Bicep or app code | `secure-defaults` (REQUIRED — enforces managed identity, bans key-based auth) |
 | Generating ANY Bicep infrastructure | `avm-bicep-rules` (REQUIRED — enforces AVM modules, bans raw resource declarations) |
 | Before running `azd up` | `azure-validate` |
-| Need Azure Functions | `azure-functions` |
+| Need Azure Functions | `azure-functions` (REQUIRED — invoke before writing any Functions code or Bicep) |
 | Need AI/OpenAI/Search | `azure-ai` |
 | Need security audit (Key Vault, RBAC) | `azure-security` |
 | Need PostgreSQL | `azure-postgres` |

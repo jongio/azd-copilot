@@ -1,0 +1,139 @@
+[
+  {
+    "scenario": "dog-breed-lookup",
+    "session_id": "6d7f59b9-80eb-48dd-b77b-67c4ecc6c1ff",
+    "git_commit": "15170f6ae792",
+    "started_at": "2026-02-06T23:00:29.056Z",
+    "duration_sec": 10540,
+    "total_turns": 90,
+    "azd_up_attempts": 14,
+    "bicep_edits": 15,
+    "delegated": false,
+    "deployed": true,
+    "score": 0.4370886102035607,
+    "passed": false,
+    "skills": {
+      "avm-bicep-rules": true
+    },
+    "regressions": {
+      "ACR auth spiral": {
+        "occurrences": 6,
+        "max_allowed": 3,
+        "passed": false
+      },
+      "npm ci without lockfile": {
+        "occurrences": 0,
+        "max_allowed": 1,
+        "passed": true
+      },
+      "zone redundancy": {
+        "occurrences": 1,
+        "max_allowed": 1,
+        "passed": true
+      }
+    }
+  },
+  {
+    "scenario": "dog-breed-lookup",
+    "session_id": "be93706d-0d84-4000-9bbf-68573dc269d7",
+    "git_commit": "15170f6ae792",
+    "started_at": "2026-02-07T02:27:55.283Z",
+    "duration_sec": 1406,
+    "total_turns": 46,
+    "azd_up_attempts": 7,
+    "bicep_edits": 6,
+    "delegated": false,
+    "deployed": true,
+    "score": 0.9398496240601503,
+    "passed": false,
+    "skills": {
+      "avm-bicep-rules": true
+    },
+    "regressions": {
+      "ACR auth spiral": {
+        "occurrences": 3,
+        "max_allowed": 3,
+        "passed": true
+      },
+      "npm ci without lockfile": {
+        "occurrences": 1,
+        "max_allowed": 1,
+        "passed": true
+      },
+      "zone redundancy": {
+        "occurrences": 1,
+        "max_allowed": 1,
+        "passed": true
+      }
+    }
+  },
+  {
+    "scenario": "dog-breed-lookup",
+    "session_id": "50f97a55-67c5-46a5-9e0f-dea0f751b098",
+    "git_commit": "15170f6ae792",
+    "started_at": "2026-02-07T05:14:47.556Z",
+    "duration_sec": 323,
+    "total_turns": 27,
+    "azd_up_attempts": 2,
+    "bicep_edits": 3,
+    "delegated": false,
+    "deployed": true,
+    "score": 1,
+    "passed": true,
+    "skills": {
+      "avm-bicep-rules": true
+    },
+    "regressions": {
+      "ACR auth spiral": {
+        "occurrences": 1,
+        "max_allowed": 3,
+        "passed": true
+      },
+      "npm ci without lockfile": {
+        "occurrences": 0,
+        "max_allowed": 1,
+        "passed": true
+      },
+      "zone redundancy": {
+        "occurrences": 0,
+        "max_allowed": 1,
+        "passed": true
+      }
+    }
+  },
+  {
+    "scenario": "functions-todo-api",
+    "session_id": "08bca520-e13c-4abd-bf8e-e7c0022c2119",
+    "git_commit": "f369d60f5bfa",
+    "started_at": "2026-02-07T06:18:34.836Z",
+    "duration_sec": 336,
+    "total_turns": 16,
+    "azd_up_attempts": 2,
+    "bicep_edits": 1,
+    "delegated": false,
+    "deployed": true,
+    "score": 0.95,
+    "passed": false,
+    "skills": {
+      "avm-bicep-rules": true,
+      "azure-functions": false
+    },
+    "regressions": {
+      "Cosmos connection string in code": {
+        "occurrences": 0,
+        "max_allowed": 2,
+        "passed": true
+      },
+      "function app plan confusion": {
+        "occurrences": 0,
+        "max_allowed": 1,
+        "passed": true
+      },
+      "missing CORS config": {
+        "occurrences": 0,
+        "max_allowed": 2,
+        "passed": true
+      }
+    }
+  }
+]

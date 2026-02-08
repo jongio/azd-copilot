@@ -38,3 +38,18 @@ scoring:
     - name: "npm ci without lockfile"
       pattern: "npm ci.*lockfile|package-lock.*not found"
       max_occurrences: 1
+
+verification:
+  - name: "homepage loads"
+    action: navigate
+    url: "{{endpoint}}"
+    status_code: 200
+
+  - name: "page has breed content"
+    action: check
+    selector: "body"
+    value: "breed"
+
+  - name: "breed images render"
+    action: check_not_empty
+    selector: "img"

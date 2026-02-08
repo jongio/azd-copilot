@@ -28,13 +28,19 @@ const (
 	idleTimeout = 3 * time.Minute
 )
 
+// RunResult holds the output of a scenario run.
+type RunResult struct {
+	SessionID string
+	WorkDir   string
+}
+
 // RunScenario executes a scenario by launching azd copilot with each prompt.
-// Returns the session ID of the resulting session.
-func RunScenario(ctx context.Context, s *Scenario, azdBinary string) (string, error) {
+// Returns the session ID and working directory of the resulting session.
+func RunScenario(ctx context.Context, s *Scenario, azdBinary string) (*RunResult, error) {
 	// Create a fresh temp directory
 	tempDir, err := os.MkdirTemp("", "scenario-"+s.Name+"-*")
 	if err != nil {
-		return "", fmt.Errorf("create temp dir: %w", err)
+		return nil, fmt.Errorf("create temp dir: %w", err)
 	}
 	fmt.Printf("📂 Working directory: %s\n", tempDir)
 
@@ -55,7 +61,6 @@ func RunScenario(ctx context.Context, s *Scenario, azdBinary string) (string, er
 		err := runSinglePrompt(ctx, azdBinary, tempDir, prompt.Text, i > 0)
 		if err != nil {
 			fmt.Printf("⚠️  Prompt %d exited with error: %v\n", i+1, err)
-			// Continue to next prompt — partial completion is still useful to analyze
 		}
 
 		fmt.Printf("✅ Prompt %d complete\n", i+1)
@@ -64,11 +69,23 @@ func RunScenario(ctx context.Context, s *Scenario, azdBinary string) (string, er
 	// Find the most recent session ID
 	sessionID, err := findLatestSession()
 	if err != nil {
-		return "", fmt.Errorf("find session: %w", err)
+		return nil, fmt.Errorf("find session: %w", err)
 	}
 
 	fmt.Printf("\n📊 Session ID: %s\n", sessionID)
-	return sessionID, nil
+
+	// Run verification steps if defined
+	if len(s.Verification) > 0 {
+		fmt.Println("\n🧪 Running verification...")
+		vResult, err := RunVerification(ctx, s, tempDir, "")
+		if err != nil {
+			fmt.Printf("⚠️  Verification error: %v\n", err)
+		} else {
+			fmt.Printf("🧪 %s\n", vResult.Summary)
+		}
+	}
+
+	return &RunResult{SessionID: sessionID, WorkDir: tempDir}, nil
 }
 
 // runSinglePrompt runs one azd copilot invocation with completion detection.

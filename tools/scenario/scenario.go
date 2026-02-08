@@ -20,11 +20,22 @@ import (
 
 // Scenario defines a repeatable test scenario for azd-copilot.
 type Scenario struct {
-	Name        string   `yaml:"name"`
-	Description string   `yaml:"description"`
-	Timeout     string   `yaml:"timeout,omitempty"` // e.g. "30m"
-	Prompts     []Prompt `yaml:"prompts"`
-	Scoring     Scoring  `yaml:"scoring"`
+	Name         string         `yaml:"name"`
+	Description  string         `yaml:"description"`
+	Timeout      string         `yaml:"timeout,omitempty"` // e.g. "30m"
+	Prompts      []Prompt       `yaml:"prompts"`
+	Scoring      Scoring        `yaml:"scoring"`
+	Verification []VerifyStep   `yaml:"verification,omitempty"`
+}
+
+// VerifyStep is a single Playwright verification action.
+type VerifyStep struct {
+	Name       string `yaml:"name"`                  // human-readable step name
+	Action     string `yaml:"action"`                // navigate, click, type, wait, check
+	Selector   string `yaml:"selector,omitempty"`     // CSS selector for click/type/check
+	URL        string `yaml:"url,omitempty"`          // for navigate action (supports {{endpoint}})
+	Value      string `yaml:"value,omitempty"`        // text to type, or expected text for check
+	StatusCode int    `yaml:"status_code,omitempty"`  // expected HTTP status for navigate
 }
 
 // Prompt is a single user message injected into the copilot session.

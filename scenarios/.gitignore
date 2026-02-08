@@ -1,2 +1,5 @@
 # Generated dashboard (regenerate with: mage scenario:dashboard)
 dashboard.html
+
+# SQLite database (use mage scenario:export / scenario:import for JSON)
+results.db
