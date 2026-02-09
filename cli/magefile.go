@@ -281,7 +281,7 @@ func SyncSkills() error {
 			{"git", "-C", tempDir, "sparse-checkout", "set", skillsSourcePath},
 		}
 		for _, args := range cmds {
-			if err := sh.RunV(args[0], args[1:]...); err != nil {
+			if err := runWithRetry(args[0], args[1:]...); err != nil {
 				return fmt.Errorf("git command failed: %w", err)
 			}
 		}
@@ -376,6 +376,23 @@ func SyncSkills() error {
 
 	// Update counts in static files
 	return UpdateCounts()
+}
+
+// runWithRetry runs a command with up to 3 retries on failure.
+func runWithRetry(cmd string, args ...string) error {
+	const maxRetries = 3
+	var err error
+	for i := 0; i < maxRetries; i++ {
+		if i > 0 {
+			delay := time.Duration(i*5) * time.Second
+			fmt.Printf("  ⚠️  Attempt %d/%d failed, retrying in %s...\n", i, maxRetries, delay)
+			time.Sleep(delay)
+		}
+		if err = sh.RunV(cmd, args...); err == nil {
+			return nil
+		}
+	}
+	return err
 }
 
 // mergeSkillDir merges an upstream skill directory into a local one.
