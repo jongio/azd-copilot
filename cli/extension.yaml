@@ -6,7 +6,7 @@ displayName: Azure Copilot
 description: |
   AI-powered Azure development assistant. Describe what you want to build,
   and Copilot builds and deploys it to Azure. Includes 16 specialized agents
-  and 27 Azure skills.
+  and 28 Azure skills.
 usage: azd copilot <command> [options]
 version: 0.1.0
 entryPoint: copilot
