@@ -101,9 +101,13 @@ Validate IaC is ready:
 azd provision --preview --no-prompt
 ```
 
-### 8. Package Validation
+### 8. Build Verification
 
-Confirm all services build/package successfully:
+Build the project and verify there are no errors. If the build fails, fix the issues and re-build until it succeeds. Do NOT proceed to packaging or deployment with build errors.
+
+### 9. Package Validation
+
+Confirm all services package successfully:
 
 ```bash
 azd package --no-prompt

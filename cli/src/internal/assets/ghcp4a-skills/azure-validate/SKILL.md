@@ -26,9 +26,10 @@ description: "**CRITICAL**: Run azure-validate before deploying Azure resources.
 |---|--------|-----------|
 | 1 | **Load Manifest** — Read `.azure/preparation-manifest.md` for recipe. If missing → run azure-prepare first | — |
 | 2 | **Run Validation** — Load recipe-specific validation steps, including policy validation for the target subscription | [recipes/](references/recipes/) |
-| 3 | **Resolve Errors** — Fix failures before proceeding | See recipe's `errors.md` |
-| 4 | **Update Manifest** — Set status to `Validated` with results | — |
-| 5 | **Deploy** — Only after ALL validations pass → invoke **azure-deploy** | — |
+| 3 | **Build Verification** — Build the project and fix any errors before proceeding | See recipe |
+| 4 | **Resolve Errors** — Fix failures before proceeding | See recipe's `errors.md` |
+| 5 | **Update Manifest** — Set status to `Validated` with results | — |
+| 6 | **Deploy** — Only after ALL validations pass → invoke **azure-deploy** | — |
 
 ---
 

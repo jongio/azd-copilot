@@ -138,15 +138,131 @@ The extension auto-configures these MCP servers for Copilot CLI:
 
 ## Architecture
 
+### How It Works
+
+When you run `azd copilot`, the Go extension bootstraps a full AI development environment and hands off to GitHub Copilot CLI:
+
+```mermaid
+flowchart LR
+    User["👤 User"] --> AZD["azd copilot"]
+
+    subgraph Extension ["Go CLI Extension"]
+        AZD --> Context["Detect Project Context\nazure.yaml, env, services"]
+        Context --> Install["Install Agents & Skills\n~/.azd/copilot/"]
+        Install --> MCP["Configure MCP Servers\n~/.copilot/mcp-config.json"]
+    end
+
+    MCP --> Copilot["GitHub Copilot CLI"]
+
+    subgraph Session ["Copilot Session"]
+        Copilot --> Agents["16 Agents"]
+        Copilot --> Skills["28 Skills"]
+        Copilot --> Servers["6 MCP Servers"]
+    end
+
+    Servers --> Azure["☁️ Azure"]
+
+    style Extension fill:#0078D4,color:#fff
+    style Session fill:#24292f,color:#fff
 ```
-azd copilot (Go CLI extension)
-├── Launches GitHub Copilot CLI with:
-│   ├── 16 agents installed to ~/.copilot/agents/
-│   ├── 28 skills installed to ~/.copilot/skills/
-│   └── 6 MCP servers configured in ~/.copilot/mcp-config.json
-├── Detects azd project context (azure.yaml, services, environment)
-├── Passes Azure context as environment variables
-└── Exposes its own MCP server (azd copilot mcp serve)
+
+### GitHub Copilot CLI + MCP Servers
+
+Copilot CLI acts as the AI brain. MCP servers give it tools to interact with Azure, your project, documentation, and the browser:
+
+```mermaid
+flowchart TB
+    Copilot["GitHub Copilot CLI\n(AI reasoning + tool calling)"]
+
+    Copilot --> azure["@azure/mcp\nAzure resource operations"]
+    Copilot --> azd_mcp["azd mcp server\nAzure Developer CLI"]
+    Copilot --> app["azd copilot mcp serve\nExtension MCP server"]
+    Copilot --> learn["microsoft-learn\nDocumentation search"]
+    Copilot --> c7["context7\nLibrary docs lookup"]
+    Copilot --> pw["playwright\nBrowser automation"]
+
+    azure --> Azure["☁️ Azure\nResources, subscriptions,\ndeployments"]
+    azd_mcp --> AZD["Azure Developer CLI\nazure.yaml, environments,\nprovision & deploy"]
+    app --> Ext["Extension Data\ncheckpoints, specs,\nagent/skill metadata"]
+
+    style Copilot fill:#24292f,color:#fff
+    style Azure fill:#0078D4,color:#fff
+```
+
+### Agents & Skills
+
+Agents are domain experts that Copilot delegates to. Skills are step-by-step playbooks that agents follow. The **azure-manager** agent coordinates all others:
+
+```mermaid
+flowchart TB
+    Manager["azure-manager\n(Coordinator)"]
+
+    Manager --> Arch["azure-architect\nInfra & Bicep"]
+    Manager --> Dev["azure-dev\nApp code & APIs"]
+    Manager --> Data["azure-data\nDatabases & schemas"]
+    Manager --> AI["azure-ai\nAI services & RAG"]
+    Manager --> Sec["azure-security\nSecurity & identity"]
+    Manager --> DevOps["azure-devops\nCI/CD & observability"]
+    Manager --> Fin["azure-finance\nCost optimization"]
+    Manager --> Quality["azure-quality\nTesting & review"]
+    Manager --> More["+ 7 more agents\ndocs, product, design,\nanalytics, marketing,\nsupport, compliance"]
+
+    Dev --> S1["Skills: azure-prepare\nazure-deploy, azure-validate"]
+    Sec --> S2["Skills: azure-compliance\nentra-app-registration"]
+    AI --> S3["Skills: azure-ai\nmicrosoft-foundry"]
+    DevOps --> S4["Skills: azure-diagnostics\nazure-observability"]
+
+    style Manager fill:#0078D4,color:#fff
+```
+
+### Build Flow
+
+The `azd copilot build` command goes from description to deployed app in two phases:
+
+```mermaid
+flowchart LR
+    Desc["📝 Description"] --> Spec
+
+    subgraph Phase1 ["Phase 1: Spec Generation"]
+        Spec["Generate Spec\n(azure-manager agent)"] --> Review["👤 User Review\ndocs/spec.md"]
+    end
+
+    Review -->|"azd copilot build --approve"| Build
+
+    subgraph Phase2 ["Phase 2: Build & Deploy"]
+        Build["Design\nazure.yaml, architecture"] --> Develop["Develop\nbackend, frontend, DB"]
+        Develop --> Test["Quality\ntests, lint, security"]
+        Test --> Infra["Infrastructure\nBicep, CI/CD, docs"]
+        Infra --> Deploy["Deploy\nazd up"]
+    end
+
+    Deploy --> Live["🚀 Live on Azure"]
+
+    style Phase1 fill:#24292f,color:#fff
+    style Phase2 fill:#0078D4,color:#fff
+```
+
+### Upstream Skill Sync
+
+Skills from [microsoft/GitHub-Copilot-for-Azure](https://github.com/microsoft/GitHub-Copilot-for-Azure) are synced into this repo. Local source uses exact sync; remote uses smart merge to preserve local edits:
+
+```mermaid
+flowchart LR
+    subgraph Sources ["Source"]
+        Local["📂 Local Clone\n(exact sync)"]
+        Remote["🌐 GitHub Repo\n(smart merge)"]
+    end
+
+    Local --> Sync
+    Remote --> Sync
+
+    Sync["mage SyncSkills"] --> Target["ghcp4a-skills/\n18 upstream skills"]
+    Target --> Embed["go:embed\nCompiled into binary"]
+    Embed --> Install["~/.azd/copilot/skills/\nInstalled at runtime"]
+
+    Custom["skills/\n10 custom skills"] --> Embed
+
+    style Sources fill:#24292f,color:#fff
 ```
 
 ### Project Structure
