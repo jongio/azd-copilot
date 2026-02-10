@@ -1,84 +1,596 @@
 ---
 import Layout from '../components/Layout.astro';
+import TerminalCode from '../components/TerminalCode.astro';
 ---
 
-<Layout title="Getting Started">
-  <div class="content">
-    <h1>Getting Started</h1>
-    
-    <section class="section">
-      <h2>Prerequisites</h2>
-      <ul>
-        <li><a href="https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd">Azure Developer CLI (azd)</a></li>
-        <li>GitHub Copilot subscription (optional, for AI features)</li>
-      </ul>
-    </section>
-
-    <section class="section">
-      <h2>Installation</h2>
-      <p>Install the extension using the Azure Developer CLI:</p>
-      <pre><code>azd extension install jongio.azd.copilot</code></pre>
-    </section>
-
-    <section class="section">
-      <h2>Verify Installation</h2>
-      <p>Check that the extension is installed correctly:</p>
-      <pre><code>azd copilot version</code></pre>
-    </section>
-
-    <section class="section">
-      <h2>Usage</h2>
-      <p>Once installed, you can use the extension with:</p>
-      <pre><code>azd copilot --help</code></pre>
-    </section>
-
-    <section class="section">
-      <h2>Next Steps</h2>
-      <p>
-        Check out the <a href="https://github.com/jongio/azd-copilot">GitHub repository</a> 
-        for more documentation and examples.
+<Layout title="Getting Started" description="Get up and running with azd-copilot in under 5 minutes">
+  <!-- Hero -->
+  <section class="gs-hero" aria-labelledby="gs-heading">
+    <div class="gs-hero-container">
+      <h1 id="gs-heading" class="gs-hero-title animate-fade-up">
+        Getting <span class="text-gradient-animated">Started</span>
+      </h1>
+      <p class="gs-hero-description animate-fade-up" style="animation-delay: 0.1s">
+        Get up and running with azd-copilot in under 5 minutes.<br />
+        Install the Azure Developer CLI, add the extension, and launch your AI-powered Azure experience.
       </p>
-    </section>
+      <div class="gs-time-badge animate-fade-up" style="animation-delay: 0.2s">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        ~5 minutes
+      </div>
+    </div>
+  </section>
+
+  <!-- Step Navigation -->
+  <nav class="step-nav" aria-label="Quick start steps">
+    <div class="step-nav-container">
+      <ol class="step-nav-list">
+        <li><a href="#step-1"><span class="step-nav-num">1</span> Install azd</a></li>
+        <li><a href="#step-2"><span class="step-nav-num">2</span> Install azd-copilot</a></li>
+        <li><a href="#step-3"><span class="step-nav-num">3</span> Launch</a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <!-- Steps -->
+  <div class="steps-container">
+    <div class="steps-content">
+
+      <!-- Step 1: Install Azure Developer CLI -->
+      <section class="step" id="step-1">
+        <div class="step-header">
+          <div class="step-number">1</div>
+          <div>
+            <h2 class="step-title">Install Azure Developer CLI</h2>
+            <p class="step-subtitle">The foundation for azd-copilot</p>
+          </div>
+        </div>
+        <div class="step-body">
+          <div class="substep">
+            <h3>Choose your platform</h3>
+            <div class="platform-tabs" role="tablist">
+              <button class="platform-tab active" role="tab" aria-selected="true" data-platform="windows">Windows</button>
+              <button class="platform-tab" role="tab" aria-selected="false" data-platform="macos">macOS</button>
+              <button class="platform-tab" role="tab" aria-selected="false" data-platform="linux">Linux</button>
+            </div>
+            <div class="platform-content active" data-platform="windows">
+              <TerminalCode code="winget install microsoft.azd" />
+            </div>
+            <div class="platform-content" data-platform="macos">
+              <TerminalCode code="brew install azd" />
+            </div>
+            <div class="platform-content" data-platform="linux">
+              <TerminalCode code='curl -fsSL https://aka.ms/install-azd.sh | bash' />
+            </div>
+          </div>
+          <div class="tip-box">
+            <span class="tip-icon">💡</span>
+            <span>After installing azd, <strong>restart your terminal</strong> for changes to take effect. See the <a href="https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd" target="_blank" rel="noopener">full installation guide</a> for more options.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Step 2: Install azd-copilot -->
+      <section class="step" id="step-2">
+        <div class="step-header">
+          <div class="step-number">2</div>
+          <div>
+            <h2 class="step-title">Install azd-copilot</h2>
+            <p class="step-subtitle">Enable extensions and install the azd-copilot package</p>
+          </div>
+        </div>
+        <div class="step-body">
+          <div class="substep">
+            <h3>Enable azd extensions</h3>
+            <TerminalCode code="azd config set alpha.extensions on" />
+          </div>
+
+          <div class="substep">
+            <h3>Add the extension source</h3>
+            <TerminalCode code='azd extension source add -n jongio -t url -l https://raw.githubusercontent.com/jongio/azd-copilot/main/registry.json' />
+          </div>
+
+          <div class="substep">
+            <h3>Install the extension</h3>
+            <TerminalCode code="azd extension install jongio.azd.copilot" />
+          </div>
+
+          <div class="substep">
+            <h3>Verify installation</h3>
+            <TerminalCode code="azd copilot version" />
+            <div class="expected-output">
+              <span class="expected-label">Expected output:</span>
+              <pre><code>azd-copilot version 0.0.x</code></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Step 3: Launch -->
+      <section class="step" id="step-3">
+        <div class="step-header">
+          <div class="step-number">3</div>
+          <div>
+            <h2 class="step-title">Launch</h2>
+            <p class="step-subtitle">Enter your immersive Azure coding AI experience</p>
+          </div>
+        </div>
+        <div class="step-body">
+          <div class="hero-command-gs">
+            <span class="hero-cmd-prompt-gs" aria-hidden="true">❯</span>
+            <span class="hero-cmd-text-gs">azd copilot</span>
+          </div>
+
+          <div class="substep">
+            <h3>Or build directly from a description</h3>
+            <TerminalCode code='azd copilot build --description "A todo API with PostgreSQL on Azure Container Apps"' />
+          </div>
+
+          <div class="substep">
+            <h3>Explore available agents and skills</h3>
+            <div class="command-pair">
+              <TerminalCode code="azd copilot agents" />
+            </div>
+            <div class="command-pair" style="margin-top: 0.5rem;">
+              <TerminalCode code="azd copilot skills" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
   </div>
+
+  <!-- What's Next -->
+  <section class="next-steps" aria-labelledby="next-heading">
+    <div class="next-steps-container">
+      <h2 id="next-heading" class="next-steps-title">What's <span class="text-gradient">Next</span>?</h2>
+      <div class="next-grid">
+        <a href="/azd-copilot/agents/" class="next-card glass">
+          <span class="next-icon">🤖</span>
+          <h3>Meet the Agents</h3>
+          <p>Explore 16 specialized AI agents for architecture, security, DevOps, and more.</p>
+          <span class="next-link">View Agents →</span>
+        </a>
+        <a href="/azd-copilot/reference/cli/" class="next-card glass">
+          <span class="next-icon">📖</span>
+          <h3>CLI Reference</h3>
+          <p>Complete reference for all azd copilot commands and flags.</p>
+          <span class="next-link">View Reference →</span>
+        </a>
+        <a href="https://github.com/jongio/azd-copilot" target="_blank" rel="noopener" class="next-card glass">
+          <span class="next-icon">💻</span>
+          <h3>Source Code</h3>
+          <p>Explore the code, report issues, or contribute to the project.</p>
+          <span class="next-link">View on GitHub →</span>
+        </a>
+      </div>
+    </div>
+  </section>
 </Layout>
 
 <style>
-  .content {
-    max-width: 48rem;
+  /* Hero */
+  .gs-hero {
+    padding: 4rem 1.5rem 2rem;
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(6, 182, 212, 0.15), transparent),
+      radial-gradient(ellipse 60% 40% at 80% 50%, rgba(139, 92, 246, 0.1), transparent);
+  }
+
+  @media (min-width: 768px) {
+    .gs-hero { padding: 6rem 2rem 3rem; }
+  }
+
+  .gs-hero-container {
+    max-width: 56rem;
     margin: 0 auto;
-    padding: 3rem 1.5rem;
+    text-align: center;
   }
 
-  h1 {
-    margin-bottom: 2rem;
+  .gs-hero-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
   }
 
-  .section {
-    margin-bottom: 3rem;
+  @media (min-width: 640px) { .gs-hero-title { font-size: 3.5rem; } }
+
+  .gs-hero-description {
+    max-width: 36rem;
+    margin: 0 auto 1.5rem;
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: var(--color-muted-foreground);
   }
 
-  .section h2 {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
+  .gs-time-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 1rem;
+    border-radius: 9999px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: var(--color-glow-emerald);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  /* Step Navigation */
+  .step-nav {
+    position: sticky;
+    top: 4rem;
+    z-index: 40;
+    padding: 0.75rem 1.5rem;
     border-bottom: 1px solid var(--color-border);
   }
 
-  .section ul {
-    padding-left: 1.5rem;
+  .dark .step-nav {
+    background: rgba(10, 10, 15, 0.9);
+    backdrop-filter: blur(16px);
+  }
+
+  .light .step-nav {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(16px);
+  }
+
+  .step-nav-container {
+    max-width: 56rem;
+    margin: 0 auto;
+  }
+
+  .step-nav-list {
+    display: flex;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-x: auto;
+  }
+
+  .step-nav-list li a {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-muted-foreground);
+    text-decoration: none;
+    border-radius: 0.5rem;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  .step-nav-list li a:hover {
+    color: var(--color-foreground);
+    background: var(--color-secondary);
+    text-decoration: none;
+  }
+
+  .step-nav-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    color: white;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* Steps */
+  .steps-container {
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  @media (min-width: 768px) {
+    .steps-container { padding: 3rem 2rem 5rem; }
+  }
+
+  .steps-content {
+    max-width: 56rem;
+    margin: 0 auto;
+  }
+
+  .step {
+    margin-bottom: 3rem;
+    padding-bottom: 3rem;
+    border-bottom: 1px solid var(--color-border);
+    scroll-margin-top: 8rem;
+  }
+
+  .step:last-child {
+    border-bottom: none;
+  }
+
+  .step-header {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+  }
+
+  .step-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    color: white;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .step-title {
+    font-size: 1.5rem;
+    font-weight: 700;
     margin: 0;
   }
 
-  .section li {
+  .step-subtitle {
+    font-size: 0.9375rem;
+    color: var(--color-muted-foreground);
+    margin: 0.25rem 0 0;
+  }
+
+  .step-body {
+    padding-left: 3.5rem;
+  }
+
+  @media (max-width: 639px) {
+    .step-body { padding-left: 0; }
+  }
+
+  /* Substeps */
+  .substep {
+    margin-bottom: 1.5rem;
+  }
+
+  .substep h3 {
+    font-size: 1rem;
+    font-weight: 600;
     margin-bottom: 0.5rem;
   }
 
-  .section p {
+  .substep-desc {
+    font-size: 0.875rem;
     color: var(--color-muted-foreground);
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.6;
   }
 
-  .section pre {
+  /* Platform tabs */
+  .platform-tabs {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+    padding: 0.25rem;
+    border-radius: 0.75rem;
+    background: var(--color-secondary);
+    width: fit-content;
+  }
+
+  .platform-tab {
+    padding: 0.5rem 1.25rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    border: none;
+    border-radius: 0.5rem;
+    background: transparent;
+    color: var(--color-muted-foreground);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .platform-tab.active {
+    background: var(--color-primary);
+    color: white;
+  }
+
+  .platform-tab:hover:not(.active) {
+    color: var(--color-foreground);
+  }
+
+  .platform-content {
+    display: none;
+  }
+
+  .platform-content.active {
+    display: block;
+  }
+
+  /* Launch command */
+  .hero-command-gs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1.25rem 2rem;
+    margin-bottom: 2rem;
+    border-radius: 1rem;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    box-shadow: 0 0 40px rgba(6, 182, 212, 0.15), 0 0 80px rgba(139, 92, 246, 0.1);
+  }
+
+  .hero-cmd-prompt-gs {
+    font-family: var(--font-mono);
+    font-size: 2rem;
+    color: var(--color-glow-cyan);
+    line-height: 1;
+  }
+
+  .hero-cmd-text-gs {
+    font-family: var(--font-mono);
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--color-foreground);
+    line-height: 1;
+  }
+
+  @media (min-width: 640px) {
+    .hero-cmd-prompt-gs { font-size: 2.5rem; }
+    .hero-cmd-text-gs { font-size: 3rem; }
+  }
+
+  /* Expected output */
+  .expected-output {
+    margin-top: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    background: rgba(16, 185, 129, 0.06);
+    border: 1px solid rgba(16, 185, 129, 0.15);
+  }
+
+  .expected-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-glow-emerald);
+    margin-bottom: 0.375rem;
+  }
+
+  .expected-output pre {
     margin: 0;
+    padding: 0;
+    background: none;
+    border: none;
+    border-radius: 0;
+  }
+
+  .expected-output pre code {
+    font-size: 0.8125rem;
+    color: var(--color-muted-foreground);
+    background: none;
+    padding: 0;
+  }
+
+  /* Tip box */
+  .tip-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border-radius: 0.75rem;
+    background: rgba(6, 182, 212, 0.06);
+    border: 1px solid rgba(6, 182, 212, 0.15);
+    font-size: 0.875rem;
+    color: var(--color-muted-foreground);
+    line-height: 1.6;
+  }
+
+  .tip-icon {
+    flex-shrink: 0;
+    font-size: 1rem;
+  }
+
+  /* Command pair */
+  .command-pair {
+    margin-bottom: 0;
+  }
+
+  /* Next Steps */
+  .next-steps {
+    padding: 4rem 1.5rem 5rem;
+    border-top: 1px solid var(--color-border);
+    background: var(--color-secondary);
+  }
+
+  @media (min-width: 768px) {
+    .next-steps { padding: 5rem 2rem 6rem; }
+  }
+
+  .next-steps-container {
+    max-width: 56rem;
+    margin: 0 auto;
+  }
+
+  .next-steps-title {
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .next-grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .next-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .next-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+  }
+
+  .next-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--color-primary);
+    box-shadow: 0 8px 30px rgba(6, 182, 212, 0.15);
+    text-decoration: none;
+  }
+
+  .next-icon {
+    font-size: 1.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .next-card h3 {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    margin: 0 0 0.375rem;
+  }
+
+  .next-card p {
+    font-size: 0.8125rem;
+    color: var(--color-muted-foreground);
+    line-height: 1.5;
+    margin: 0;
+    flex: 1;
+  }
+
+  .next-link {
+    display: inline-block;
+    margin-top: 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-primary);
   }
 </style>
+
+<script>
+  document.querySelectorAll('.platform-tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const platform = (tab as HTMLElement).dataset.platform!;
+      document.querySelectorAll('.platform-tab').forEach(t => {
+        t.classList.toggle('active', (t as HTMLElement).dataset.platform === platform);
+        t.setAttribute('aria-selected', String((t as HTMLElement).dataset.platform === platform));
+      });
+      document.querySelectorAll('.platform-content').forEach(c => {
+        c.classList.toggle('active', (c as HTMLElement).dataset.platform === platform);
+      });
+    });
+  });
+</script>

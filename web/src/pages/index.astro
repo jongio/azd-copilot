@@ -3,7 +3,36 @@ import Layout from '../components/Layout.astro';
 import FeatureCard from '../components/FeatureCard.astro';
 import TerminalCode from '../components/TerminalCode.astro';
 
-// Feature data - highlight the unique value props
+// Built-on pillars
+const builtOn = [
+  {
+    icon: "🧠",
+    label: "GitHub Copilot SDK",
+    description: "Native integration with GitHub Copilot CLI for immersive AI coding",
+  },
+  {
+    icon: "🔌",
+    label: "Azure MCP Servers",
+    description: "Live connections to Azure, azd, Microsoft Learn, and Context7",
+  },
+  {
+    icon: "⚡",
+    label: "Azure Skills",
+    description: "28 curated skills for deployment, security, cost optimization, and more",
+  },
+  {
+    icon: "🛠️",
+    label: "Azure SDKs",
+    description: "Direct access to Azure services through official SDKs and CLI tools",
+  },
+  {
+    icon: "🤖",
+    label: "Azure Agents",
+    description: "16 specialized agents for architecture, DevOps, security, data, and AI",
+  },
+];
+
+// Feature data
 const features = [
   {
     icon: "🤖",
@@ -58,7 +87,7 @@ const stats = [
 ];
 ---
 
-<Layout title="Home" description="AI-powered Azure development with 16 specialized agents and 28 curated skills">
+<Layout title="Home" description="Your immersive Azure coding AI experience — GitHub Copilot SDK, Azure MCP, Skills, SDKs, and Agents in one package">
   <!-- Hero Section -->
   <section class="hero" aria-labelledby="hero-heading">
     <div class="hero-container">
@@ -78,18 +107,23 @@ const stats = [
         
         <!-- Main heading -->
         <h1 id="hero-heading" class="hero-title animate-fade-up" style="animation-delay: 0.1s">
-          AI-Powered<br />
-          <span class="text-gradient-animated">Azure Development</span>
+          Your Immersive<br />
+          <span class="text-gradient-animated">Azure Coding AI</span>
         </h1>
         
         <p class="hero-description animate-fade-up" style="animation-delay: 0.2s">
-          azd-copilot extends Azure Developer CLI with <strong>16 specialized agents</strong> and 
-          <strong>28 curated skills</strong>. Build Azure applications with domain expert AI assistance 
-          for architecture, security, DevOps, and more.
+          <strong>GitHub Copilot SDK</strong>, <strong>Azure MCP</strong>, <strong>Azure Skills</strong>,
+          <strong>Azure SDKs</strong>, and <strong>Azure Agents</strong> — all in one package.
         </p>
+
+        <!-- Front and center: azd copilot -->
+        <div class="hero-command animate-fade-up" style="animation-delay: 0.3s">
+          <span class="hero-cmd-prompt" aria-hidden="true">❯</span>
+          <span class="hero-cmd-text">azd copilot</span>
+        </div>
         
         <!-- CTA Buttons -->
-        <div class="hero-actions animate-fade-up" style="animation-delay: 0.3s">
+        <div class="hero-actions animate-fade-up" style="animation-delay: 0.4s">
           <a href="/azd-copilot/getting-started/" class="btn-primary">
             Get Started
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -105,12 +139,33 @@ const stats = [
           </a>
         </div>
 
-        <p class="hero-social-proof animate-fade-up" style="animation-delay: 0.4s">
+        <p class="hero-social-proof animate-fade-up" style="animation-delay: 0.5s">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="check-icon">
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
           Open source • Works with GitHub Copilot CLI
         </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Built On Section -->
+  <section class="built-on" aria-labelledby="built-on-heading">
+    <div class="built-on-container">
+      <h2 id="built-on-heading" class="built-on-title">
+        Built On <span class="text-gradient">The Best of Azure & GitHub</span>
+      </h2>
+      <p class="built-on-description">
+        One package that brings together the entire Azure AI development stack
+      </p>
+      <div class="built-on-grid">
+        {builtOn.map((item) => (
+          <div class="built-on-card glass">
+            <span class="built-on-icon">{item.icon}</span>
+            <h3 class="built-on-label">{item.label}</h3>
+            <p class="built-on-desc">{item.description}</p>
+          </div>
+        ))}
       </div>
     </div>
   </section>
@@ -168,7 +223,7 @@ const stats = [
               <div class="step-number">2</div>
               <div class="step-content">
                 <h4>Add Source & Install</h4>
-                <TerminalCode code='azd extension source add jongio "https://jongio.github.io/azd-copilot/registry.json"' />
+                <TerminalCode code='azd extension source add -n jongio -t url -l https://raw.githubusercontent.com/jongio/azd-copilot/main/registry.json' />
                 <div style="margin-top: 0.5rem;">
                   <TerminalCode code="azd extension install jongio.azd.copilot" />
                 </div>
@@ -178,8 +233,8 @@ const stats = [
             <div class="install-step">
               <div class="step-number">3</div>
               <div class="step-content">
-                <h4>Configure MCP Servers</h4>
-                <TerminalCode code="azd copilot mcp configure" />
+                <h4>Launch</h4>
+                <TerminalCode code="azd copilot" />
               </div>
             </div>
           </div>
@@ -271,7 +326,7 @@ const stats = [
 
   .hero-description {
     max-width: 36rem;
-    margin: 0 auto 2rem;
+    margin: 0 auto 1.5rem;
     font-size: 1.125rem;
     line-height: 1.7;
     color: var(--color-muted-foreground);
@@ -285,6 +340,48 @@ const stats = [
     .hero-description {
       font-size: 1.25rem;
     }
+  }
+
+  .hero-command {
+    max-width: 32rem;
+    margin: 0 auto 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem 2rem;
+    border-radius: 1rem;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    box-shadow: 0 0 40px rgba(6, 182, 212, 0.15), 0 0 80px rgba(139, 92, 246, 0.1);
+  }
+
+  .hero-cmd-prompt {
+    font-family: var(--font-mono);
+    font-size: 2rem;
+    color: var(--color-glow-cyan);
+    line-height: 1;
+  }
+
+  .hero-cmd-text {
+    font-family: var(--font-mono);
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--color-foreground);
+    line-height: 1;
+  }
+
+  @media (min-width: 640px) {
+    .hero-cmd-prompt { font-size: 2.5rem; }
+    .hero-cmd-text { font-size: 3.5rem; }
+    .hero-command { padding: 1.25rem 2.5rem; }
+  }
+
+  @media (min-width: 1024px) {
+    .hero-cmd-prompt { font-size: 3rem; }
+    .hero-cmd-text { font-size: 4rem; }
+    .hero-command { max-width: 36rem; padding: 1.5rem 3rem; }
   }
 
   .hero-actions {
@@ -314,6 +411,85 @@ const stats = [
 
   .check-icon {
     color: var(--color-glow-emerald);
+  }
+
+  /* Built On Section */
+  .built-on {
+    padding: 4rem 1.5rem 5rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  @media (min-width: 768px) {
+    .built-on { padding: 5rem 2rem 6rem; }
+  }
+
+  .built-on-container {
+    max-width: 72rem;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .built-on-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+  }
+
+  @media (min-width: 768px) {
+    .built-on-title { font-size: 2.5rem; }
+  }
+
+  .built-on-description {
+    font-size: 1.125rem;
+    color: var(--color-muted-foreground);
+    margin-bottom: 2.5rem;
+  }
+
+  .built-on-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 640px) {
+    .built-on-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  @media (min-width: 1024px) {
+    .built-on-grid { grid-template-columns: repeat(5, 1fr); }
+  }
+
+  .built-on-card {
+    padding: 1.5rem 1rem;
+    border-radius: 1rem;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+
+  .built-on-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(6, 182, 212, 0.3);
+    box-shadow: 0 8px 30px rgba(6, 182, 212, 0.1);
+  }
+
+  .built-on-icon {
+    display: block;
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .built-on-label {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    margin: 0 0 0.375rem;
+    color: var(--color-foreground);
+  }
+
+  .built-on-desc {
+    font-size: 0.75rem;
+    color: var(--color-muted-foreground);
+    line-height: 1.5;
+    margin: 0;
   }
 
   /* Features Section */
