@@ -192,7 +192,7 @@ func launchViaConsole(ctx context.Context, copilotPath *CopilotPath, args []stri
 			cmd.Stdin = tty
 			cmd.Stdout = tty
 			cmd.Stderr = tty
-			defer tty.Close()
+			defer func() { _ = tty.Close() }()
 		}
 	}
 
