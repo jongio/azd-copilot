@@ -201,12 +201,22 @@ go test ./...
 ### Upstream Skill Workflow
 
 ```bash
-# Pull latest skills from microsoft/GitHub-Copilot-for-Azure
+# Pull latest skills from upstream main (default)
 mage SyncSkills
+
+# Sync from a local clone of the upstream repo
+mage SyncSkills -source /path/to/local/clone
+
+# Sync from a different repo or branch
+mage SyncSkills -repo https://github.com/user/fork.git
+mage SyncSkills -branch feature-x
+mage SyncSkills -repo https://github.com/user/fork.git -branch my-branch
 
 # Contribute your skill changes back upstream
 mage ContributeSkills
 ```
+
+Flags can also be set via environment variables (`SKILLS_SOURCE`, `SKILLS_REPO`, `SKILLS_BRANCH`).
 
 The sync uses **smart merge** — your local changes are preserved, new upstream files are added, and only unmodified files are updated.
 

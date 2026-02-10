@@ -4,6 +4,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -185,11 +186,49 @@ const (
 // SyncSkills syncs upstream skills from microsoft/GitHub-Copilot-for-Azure
 // using a smart merge: new upstream files are added, deleted upstream files are
 // removed, but locally modified files are preserved.
-// Set SKILLS_SOURCE to a local clone path to skip cloning.
+//
+// Flags (also settable via environment variables):
+//
+//	-source / SKILLS_SOURCE — path to a local clone (skips cloning)
+//	-repo   / SKILLS_REPO   — GitHub repo URL to clone from (default: upstream)
+//	-branch / SKILLS_BRANCH — branch to sync from (default: main)
+//
+// Examples:
+//
+//	mage SyncSkills                                                  # upstream main (default)
+//	mage SyncSkills -source /path/to/local/clone                     # local folder
+//	mage SyncSkills -repo https://github.com/user/fork.git           # custom repo
+//	mage SyncSkills -branch feature-x                                # custom branch
+//	mage SyncSkills -repo https://github.com/user/fork.git -branch x # both
 func SyncSkills() error {
+	// Parse flags — fall back to env vars
+	fs := flag.NewFlagSet("SyncSkills", flag.ContinueOnError)
+	sourceFlag := fs.String("source", "", "path to a local clone of the upstream repo")
+	repoFlag := fs.String("repo", "", "GitHub repo URL to clone from")
+	branchFlag := fs.String("branch", "", "branch to sync from")
+
+	// os.Args[0] is the binary, os.Args[1] is the target name
+	if len(os.Args) > 2 {
+		if err := fs.Parse(os.Args[2:]); err != nil {
+			return err
+		}
+	}
+
+	sourceDir := *sourceFlag
+	if sourceDir == "" {
+		sourceDir = os.Getenv("SKILLS_SOURCE")
+	}
+	repo := *repoFlag
+	if repo == "" {
+		repo = os.Getenv("SKILLS_REPO")
+	}
+	branch := *branchFlag
+	if branch == "" {
+		branch = os.Getenv("SKILLS_BRANCH")
+	}
+
 	fmt.Println("🔄 Syncing upstream Azure skills...")
 
-	sourceDir := os.Getenv("SKILLS_SOURCE")
 	var tempDir string
 
 	if sourceDir != "" {
@@ -200,8 +239,16 @@ func SyncSkills() error {
 		}
 		fmt.Printf("📂 Using local source: %s\n", sourceDir)
 	} else {
-		// Sparse clone just the skills directory
-		fmt.Println("📥 Cloning upstream repo (sparse)...")
+		// Determine repo URL and branch
+		cloneRepo := skillsSourceRepo
+		if repo != "" {
+			cloneRepo = repo
+		}
+		if branch == "" {
+			branch = "main"
+		}
+
+		fmt.Printf("📥 Cloning %s (branch: %s, sparse)...\n", cloneRepo, branch)
 		var err error
 		tempDir, err = os.MkdirTemp("", "skills-sync-*")
 		if err != nil {
@@ -211,7 +258,7 @@ func SyncSkills() error {
 
 		sourceDir = tempDir
 		cmds := [][]string{
-			{"git", "clone", "--depth=1", "--filter=blob:none", "--sparse", skillsSourceRepo, tempDir},
+			{"git", "clone", "--depth=1", "--branch", branch, "--filter=blob:none", "--sparse", cloneRepo, tempDir},
 			{"git", "-C", tempDir, "sparse-checkout", "set", skillsSourcePath},
 		}
 		for _, args := range cmds {

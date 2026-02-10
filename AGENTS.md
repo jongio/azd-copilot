@@ -57,6 +57,8 @@ The `SKILL.md` must have YAML frontmatter with `name` and `description`. After a
 | Command | What it does |
 |---------|-------------|
 | `mage SyncSkills` | Pull latest upstream skills into `ghcp4a-skills/` (smart merge — keeps your changes) |
+| `mage SyncSkills -source /path` | Sync from a local clone instead of cloning remotely |
+| `mage SyncSkills -repo url -branch branch` | Sync from a custom repo/branch (e.g. a fork) |
 | `mage ContributeSkills` | Create a branch with your `ghcp4a-skills/` changes for a PR to upstream |
 
 ## MCP Server Configuration
