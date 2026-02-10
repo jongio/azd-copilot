@@ -7,10 +7,13 @@ package copilot
 
 import (
 	"fmt"
+	"os"
 	"runtime"
 )
 
-type consoleHandles struct{}
+type consoleHandles struct {
+	conin, conout *os.File
+}
 
 func attachConsole() (*consoleHandles, error) {
 	return nil, fmt.Errorf("attachConsole is only supported on Windows (current OS: %s)", runtime.GOOS)
