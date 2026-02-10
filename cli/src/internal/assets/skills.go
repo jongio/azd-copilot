@@ -48,16 +48,16 @@ func allSkillSources() []struct {
 	}
 }
 
-// InstallSkills extracts embedded skills to ~/.copilot/skills/
-func InstallSkills() (int, error) {
+// InstallSkills extracts embedded skills to ~/.azd/copilot/skills/
+func InstallSkills() (string, int, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return 0, fmt.Errorf("failed to get home directory: %w", err)
+		return "", 0, fmt.Errorf("failed to get home directory: %w", err)
 	}
 
-	destDir := filepath.Join(home, ".copilot", "skills")
+	destDir := filepath.Join(home, ".azd", "copilot", "skills")
 	if err := fileutil.EnsureDir(destDir); err != nil {
-		return 0, fmt.Errorf("failed to create skills directory: %w", err)
+		return "", 0, fmt.Errorf("failed to create skills directory: %w", err)
 	}
 
 	installed := 0
@@ -98,11 +98,11 @@ func InstallSkills() (int, error) {
 			return nil
 		})
 		if err != nil {
-			return installed, err
+			return destDir, installed, err
 		}
 	}
 
-	return installed, nil
+	return destDir, installed, nil
 }
 
 // ListSkills returns information about all embedded skills

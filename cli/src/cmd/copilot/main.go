@@ -169,8 +169,9 @@ func runCopilotSession(cmd *cobra.Command) error {
 		}
 	}
 
-	// Install agents and skills to ~/.copilot/
-	if err := setupAgentsAndSkills(); err != nil {
+	// Install agents and skills to ~/.azd/copilot/
+	assetDirs, err := setupAgentsAndSkills()
+	if err != nil {
 		if debugMode {
 			fmt.Fprintf(os.Stderr, "Warning: failed to install agents/skills: %v\n", err)
 		}
@@ -186,7 +187,7 @@ func runCopilotSession(cmd *cobra.Command) error {
 		Yolo:           yolo,
 		Agent:          agent,
 		Model:          model,
-		AddDirs:        addDirs,
+		AddDirs:        append(addDirs, assetDirs...),
 		Verbose:        verbose,
 		Debug:          debugMode,
 		ProjectContext: projectContext,
@@ -211,18 +212,24 @@ func printBanner() {
 	cliout.Newline()
 }
 
-func setupAgentsAndSkills() error {
+func setupAgentsAndSkills() ([]string, error) {
+	var dirs []string
+
 	// Install agents
-	if _, err := assets.InstallAgents(); err != nil {
-		return fmt.Errorf("failed to install agents: %w", err)
+	agentsDir, _, err := assets.InstallAgents()
+	if err != nil {
+		return nil, fmt.Errorf("failed to install agents: %w", err)
 	}
+	dirs = append(dirs, agentsDir)
 
 	// Install skills
-	if _, err := assets.InstallSkills(); err != nil {
-		return fmt.Errorf("failed to install skills: %w", err)
+	skillsDir, _, err := assets.InstallSkills()
+	if err != nil {
+		return nil, fmt.Errorf("failed to install skills: %w", err)
 	}
+	dirs = append(dirs, skillsDir)
 
-	return nil
+	return dirs, nil
 }
 
 func buildProjectContext() *copilot.ProjectContext {

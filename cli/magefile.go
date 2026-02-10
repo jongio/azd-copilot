@@ -4,7 +4,6 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -73,6 +72,7 @@ func All() error {
 // Build builds the CLI binary and installs it locally using azd x build.
 func Build() error {
 	_ = killExtensionProcesses()
+	time.Sleep(500 * time.Millisecond)
 
 	// Ensure azd extensions are set up (enables extensions + installs azd x if needed)
 	if err := ensureAzdExtensions(); err != nil {
@@ -92,7 +92,7 @@ func Build() error {
 	}
 
 	// Build and install directly using azd x build
-	if err := sh.RunWithV(env, "azd", "x", "build"); err != nil {
+	if err := runWithEnvRetry(env, "azd", "x", "build"); err != nil {
 		return fmt.Errorf("build failed: %w", err)
 	}
 
@@ -183,72 +183,52 @@ const (
 	skillsTargetPath = "src/internal/assets/ghcp4a-skills"
 )
 
-// SyncSkills syncs upstream skills from microsoft/GitHub-Copilot-for-Azure
-// using a smart merge: new upstream files are added, deleted upstream files are
-// removed, but locally modified files are preserved.
+// SyncSkills syncs upstream skills from microsoft/GitHub-Copilot-for-Azure.
 //
-// Flags (also settable via environment variables):
+// When syncing from a local path, an exact sync is performed: the target is
+// mirrored to match the source, including file deletions and content updates.
 //
-//	-source / SKILLS_SOURCE — path to a local clone (skips cloning)
-//	-repo   / SKILLS_REPO   — GitHub repo URL to clone from (default: upstream)
-//	-branch / SKILLS_BRANCH — branch to sync from (default: main)
+// When syncing from a remote repo, a smart merge is used: new files are added,
+// deleted files are removed, but locally modified files are preserved.
+//
+// The source parameter controls where to sync from:
+//
+//	(empty)          — clone upstream main (default)
+//	local path       — exact sync from a local clone (auto-detected)
+//	repo URL         — smart merge from a custom repo (main branch)
+//	repo URL@branch  — smart merge from a custom repo at a specific branch
 //
 // Examples:
 //
-//	mage SyncSkills                                                  # upstream main (default)
-//	mage SyncSkills -source /path/to/local/clone                     # local folder
-//	mage SyncSkills -repo https://github.com/user/fork.git           # custom repo
-//	mage SyncSkills -branch feature-x                                # custom branch
-//	mage SyncSkills -repo https://github.com/user/fork.git -branch x # both
-func SyncSkills() error {
-	// Parse flags — fall back to env vars
-	fs := flag.NewFlagSet("SyncSkills", flag.ContinueOnError)
-	sourceFlag := fs.String("source", "", "path to a local clone of the upstream repo")
-	repoFlag := fs.String("repo", "", "GitHub repo URL to clone from")
-	branchFlag := fs.String("branch", "", "branch to sync from")
-
-	// os.Args[0] is the binary, os.Args[1] is the target name
-	if len(os.Args) > 2 {
-		if err := fs.Parse(os.Args[2:]); err != nil {
-			return err
-		}
-	}
-
-	sourceDir := *sourceFlag
-	if sourceDir == "" {
-		sourceDir = os.Getenv("SKILLS_SOURCE")
-	}
-	repo := *repoFlag
-	if repo == "" {
-		repo = os.Getenv("SKILLS_REPO")
-	}
-	branch := *branchFlag
-	if branch == "" {
-		branch = os.Getenv("SKILLS_BRANCH")
-	}
-
+//	mage SyncSkills                                                        # upstream main
+//	mage SyncSkills C:\code\GitHub-Copilot-for-Azure                       # local folder
+//	mage SyncSkills https://github.com/user/fork.git                       # custom repo
+//	mage SyncSkills https://github.com/user/fork.git@my-branch             # custom repo + branch
+func SyncSkills(source string) error {
 	fmt.Println("🔄 Syncing upstream Azure skills...")
 
+	var sourceDir string
 	var tempDir string
 
-	if sourceDir != "" {
-		// Use local clone
+	if source == "" {
+		// Default: clone upstream main
+		source = skillsSourceRepo
+	}
+
+	// Detect if source is a local path or a repo URL
+	isLocal := isLocalPath(source)
+	if isLocal {
+		sourceDir = source
 		skillsDir := filepath.Join(sourceDir, skillsSourcePath)
 		if _, err := os.Stat(skillsDir); os.IsNotExist(err) {
 			return fmt.Errorf("skills not found at %s", skillsDir)
 		}
-		fmt.Printf("📂 Using local source: %s\n", sourceDir)
+		fmt.Printf("📂 Using local source: %s (exact sync)\n", sourceDir)
 	} else {
-		// Determine repo URL and branch
-		cloneRepo := skillsSourceRepo
-		if repo != "" {
-			cloneRepo = repo
-		}
-		if branch == "" {
-			branch = "main"
-		}
+		// Parse optional @branch suffix
+		repo, branch := parseRepoSource(source)
 
-		fmt.Printf("📥 Cloning %s (branch: %s, sparse)...\n", cloneRepo, branch)
+		fmt.Printf("📥 Cloning %s (branch: %s, sparse)...\n", repo, branch)
 		var err error
 		tempDir, err = os.MkdirTemp("", "skills-sync-*")
 		if err != nil {
@@ -258,7 +238,7 @@ func SyncSkills() error {
 
 		sourceDir = tempDir
 		cmds := [][]string{
-			{"git", "clone", "--depth=1", "--branch", branch, "--filter=blob:none", "--sparse", cloneRepo, tempDir},
+			{"git", "clone", "--depth=1", "--branch", branch, "--filter=blob:none", "--sparse", repo, tempDir},
 			{"git", "-C", tempDir, "sparse-checkout", "set", skillsSourcePath},
 		}
 		for _, args := range cmds {
@@ -306,9 +286,7 @@ func SyncSkills() error {
 		}
 		if !upstreamSet[e.Name()] {
 			dst := filepath.Join(skillsTargetPath, e.Name())
-			// Check if locally modified (has uncommitted changes via git)
-			locallyModified := isLocallyModified(dst)
-			if locallyModified {
+			if !isLocal && isLocallyModified(dst) {
 				fmt.Printf("  ⚠️  %s: removed upstream but locally modified — keeping\n", e.Name())
 				kept++
 			} else {
@@ -334,13 +312,13 @@ func SyncSkills() error {
 			added++
 		} else {
 			// Existing skill — smart merge per file
-			fileAdded, fileUpdated, fileKept, err := mergeSkillDir(src, dst)
+			fileAdded, fileUpdated, fileKept, fileRemoved, err := mergeSkillDir(src, dst, isLocal)
 			if err != nil {
 				fmt.Printf("  ❌ %s: %v\n", name, err)
 				continue
 			}
-			if fileAdded+fileUpdated > 0 {
-				fmt.Printf("  ✅ %s (merged: %d new, %d updated, %d kept)\n", name, fileAdded, fileUpdated, fileKept)
+			if fileAdded+fileUpdated+fileRemoved > 0 {
+				fmt.Printf("  ✅ %s (merged: %d new, %d updated, %d removed, %d kept)\n", name, fileAdded, fileUpdated, fileRemoved, fileKept)
 			} else if fileKept > 0 {
 				fmt.Printf("  🔒 %s (all %d files locally modified — kept)\n", name, fileKept)
 			} else {
@@ -349,6 +327,7 @@ func SyncSkills() error {
 			added += fileAdded
 			updated += fileUpdated
 			kept += fileKept
+			removed += fileRemoved
 		}
 	}
 
@@ -376,10 +355,66 @@ func runWithRetry(cmd string, args ...string) error {
 	return err
 }
 
+// runWithEnvRetry runs a command with environment variables, retrying up to 3 times on failure.
+func runWithEnvRetry(env map[string]string, cmd string, args ...string) error {
+	const maxRetries = 3
+	var err error
+	for i := 0; i < maxRetries; i++ {
+		if i > 0 {
+			delay := time.Duration(i*5) * time.Second
+			fmt.Printf("  ⚠️  Attempt %d/%d failed, retrying in %s...\n", i, maxRetries, delay)
+			time.Sleep(delay)
+		}
+		if err = sh.RunWithV(env, cmd, args...); err == nil {
+			return nil
+		}
+	}
+	return err
+}
+
 // mergeSkillDir merges an upstream skill directory into a local one.
-// Files modified locally are preserved; new/unchanged upstream files are copied.
-func mergeSkillDir(src, dst string) (added, updated, kept int, err error) {
-	return added, updated, kept, filepath.Walk(src, func(path string, info os.FileInfo, walkErr error) error {
+// When exactSync is true (local source), all upstream changes are applied and
+// deleted files are removed without checking for local modifications.
+// When exactSync is false (remote source), locally modified files are preserved.
+func mergeSkillDir(src, dst string, exactSync bool) (added, updated, kept, removed int, err error) {
+	// Build set of all files in upstream source (relative paths)
+	upstreamFiles := make(map[string]bool)
+	err = filepath.Walk(src, func(path string, info os.FileInfo, walkErr error) error {
+		if walkErr != nil || info.IsDir() {
+			return walkErr
+		}
+		rel, _ := filepath.Rel(src, path)
+		upstreamFiles[rel] = true
+		return nil
+	})
+	if err != nil {
+		return
+	}
+
+	// Remove local files that no longer exist upstream
+	err = filepath.Walk(dst, func(path string, info os.FileInfo, walkErr error) error {
+		if walkErr != nil || info.IsDir() {
+			return walkErr
+		}
+		rel, _ := filepath.Rel(dst, path)
+		if upstreamFiles[rel] {
+			return nil // File still exists upstream
+		}
+		if !exactSync && isLocallyModified(path) {
+			kept++
+			return nil
+		}
+		fmt.Printf("    🗑️  %s (deleted upstream)\n", rel)
+		os.Remove(path)
+		removed++
+		return nil
+	})
+	if err != nil {
+		return
+	}
+
+	// Sync upstream files into local
+	err = filepath.Walk(src, func(path string, info os.FileInfo, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
 		}
@@ -408,20 +443,26 @@ func mergeSkillDir(src, dst string) (added, updated, kept int, err error) {
 
 		// File exists locally — compare content
 		if string(localData) == string(upstreamData) {
-			// Identical — no action needed
 			return nil
 		}
 
 		// Different — check if locally modified (git tracks this)
-		if isLocallyModified(dstFile) {
+		if !exactSync && isLocallyModified(dstFile) {
 			kept++
-			return nil // Keep local version
+			return nil
 		}
 
 		// Not locally modified (upstream changed) — take upstream
 		updated++
 		return os.WriteFile(dstFile, upstreamData, 0644)
 	})
+
+	// Clean up empty directories left after file removals
+	if removed > 0 {
+		removeEmptyDirs(dst)
+	}
+
+	return added, updated, kept, removed, err
 }
 
 // isLocallyModified checks if a path has uncommitted local modifications via git.
@@ -431,6 +472,43 @@ func isLocallyModified(path string) bool {
 		return false // Can't determine — assume not modified
 	}
 	return strings.TrimSpace(out) != ""
+}
+
+// isLocalPath returns true if source looks like a local filesystem path
+// rather than a git repo URL.
+func isLocalPath(source string) bool {
+	// URLs start with a scheme or git@ notation
+	if strings.HasPrefix(source, "https://") ||
+		strings.HasPrefix(source, "http://") ||
+		strings.HasPrefix(source, "git@") ||
+		strings.HasPrefix(source, "ssh://") {
+		return false
+	}
+	// Check if the path actually exists on disk
+	_, err := os.Stat(source)
+	return err == nil
+}
+
+// parseRepoSource splits a source string into repo URL and branch.
+// Supports "repo@branch" syntax; defaults to "main" if no branch specified.
+func parseRepoSource(source string) (repo, branch string) {
+	// Split on last @ that comes after the scheme (to avoid splitting user@host)
+	// Look for @ after ".git" or after the path portion
+	repo = source
+	branch = "main"
+
+	// Find @ that's not part of the scheme (git@...)
+	// We look for @ after "github.com" or similar host portion
+	idx := strings.LastIndex(source, "@")
+	if idx > 0 {
+		// Make sure the @ isn't part of git@github.com style prefix
+		beforeAt := source[:idx]
+		if strings.Contains(beforeAt, "/") {
+			repo = beforeAt
+			branch = source[idx+1:]
+		}
+	}
+	return repo, branch
 }
 
 // copyDir recursively copies a directory tree.
@@ -456,6 +534,25 @@ func copyDir(src, dst string) error {
 		}
 		return os.WriteFile(target, data, 0644)
 	})
+}
+
+// removeEmptyDirs removes empty directories within root (bottom-up).
+func removeEmptyDirs(root string) {
+	// Walk bottom-up by collecting dirs first, then checking in reverse
+	var dirs []string
+	filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err == nil && info.IsDir() && path != root {
+			dirs = append(dirs, path)
+		}
+		return nil
+	})
+	// Remove in reverse order (deepest first)
+	for i := len(dirs) - 1; i >= 0; i-- {
+		entries, err := os.ReadDir(dirs[i])
+		if err == nil && len(entries) == 0 {
+			os.Remove(dirs[i])
+		}
+	}
 }
 
 const (

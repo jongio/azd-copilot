@@ -26,21 +26,21 @@ type AgentInfo struct {
 	FilePath    string
 }
 
-// InstallAgents extracts embedded agents to ~/.copilot/agents/
-func InstallAgents() (int, error) {
+// InstallAgents extracts embedded agents to ~/.azd/copilot/agents/
+func InstallAgents() (string, int, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return 0, fmt.Errorf("failed to get home directory: %w", err)
+		return "", 0, fmt.Errorf("failed to get home directory: %w", err)
 	}
 
-	destDir := filepath.Join(home, ".copilot", "agents")
+	destDir := filepath.Join(home, ".azd", "copilot", "agents")
 	if err := fileutil.EnsureDir(destDir); err != nil {
-		return 0, fmt.Errorf("failed to create agents directory: %w", err)
+		return "", 0, fmt.Errorf("failed to create agents directory: %w", err)
 	}
 
 	entries, err := fs.ReadDir(embeddedAgents, "agents")
 	if err != nil {
-		return 0, fmt.Errorf("failed to read embedded agents: %w", err)
+		return "", 0, fmt.Errorf("failed to read embedded agents: %w", err)
 	}
 
 	installed := 0
@@ -61,7 +61,7 @@ func InstallAgents() (int, error) {
 		installed++
 	}
 
-	return installed, nil
+	return destDir, installed, nil
 }
 
 // ListAgents returns information about all embedded agents

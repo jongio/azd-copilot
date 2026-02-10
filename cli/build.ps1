@@ -167,5 +167,9 @@ foreach ($PLATFORM in $PLATFORMS) {
     }
 }
 
+# Kill extension processes again right before azd x build copies to ~/.azd/extensions/
+# This prevents "file in use" errors during the install step
+Stop-ExtensionProcesses
+
 Write-Host "`n✓ Build completed successfully!" -ForegroundColor Green
 Write-Host "  Binaries are located in the $OUTPUT_DIR directory." -ForegroundColor Gray

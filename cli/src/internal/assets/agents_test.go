@@ -185,16 +185,16 @@ invalid yaml content here
 
 func TestInstallAgents(t *testing.T) {
 	// Test that InstallAgents doesn't panic
-	// Note: Actually installing to ~/.copilot/agents/ may modify user's system
+	// Note: Actually installing to ~/.azd/copilot/agents/ may modify user's system
 	// so we just verify the function works without error
 
-	count, err := InstallAgents()
+	dir, count, err := InstallAgents()
 	if err != nil {
 		t.Logf("InstallAgents() error = %v (may be expected if no home directory)", err)
 		return
 	}
 
-	t.Logf("InstallAgents() installed %d agents", count)
+	t.Logf("InstallAgents() installed %d agents to %s", count, dir)
 
 	if count == 0 {
 		t.Log("InstallAgents() installed 0 agents (may be expected if already installed)")
