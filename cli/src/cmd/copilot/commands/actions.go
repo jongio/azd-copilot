@@ -223,7 +223,7 @@ This command helps identify and fix:
 
 // runQuickAction executes a quick action by launching Copilot with a specific prompt
 func runQuickAction(cmd *cobra.Command, action string, prompt string) error {
-	cliout.Section("🤖", fmt.Sprintf("Azure Copilot: %s", action))
+	cliout.Section("🤖", fmt.Sprintf("Azure Copilot CLI: %s", action))
 	cliout.Newline()
 
 	// Check if Copilot CLI is installed

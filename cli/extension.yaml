@@ -2,7 +2,7 @@
 
 id: jongio.azd.copilot
 namespace: copilot
-displayName: Azure Copilot
+displayName: Azure Copilot CLI
 description: |
   AI-powered Azure development assistant. Describe what you want to build,
   and Copilot builds and deploys it to Azure. Includes 16 specialized agents

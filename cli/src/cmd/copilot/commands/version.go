@@ -45,7 +45,7 @@ func NewVersionCommand() *cobra.Command {
 				return encoder.Encode(info)
 			}
 
-			cliout.Section("🤖", "Azure Copilot Extension")
+			cliout.Section("🤖", "Azure Copilot CLI Extension")
 			cliout.Newline()
 			cliout.Label("Version", Version)
 			cliout.Label("Built", BuildTime)

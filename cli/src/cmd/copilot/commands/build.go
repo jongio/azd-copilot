@@ -74,7 +74,7 @@ Project Modes:
 }
 
 func runBuild(cmd *cobra.Command, description string) error {
-	cliout.Section("🏗️", "Azure Copilot: Building your application")
+	cliout.Section("🏗️", "Azure Copilot CLI: Building your application")
 	cliout.Newline()
 
 	// Check if Copilot CLI is installed

@@ -40,8 +40,8 @@ func main() {
 
 	rootCmd := &cobra.Command{
 		Use:   "copilot",
-		Short: "Azure Copilot - AI-powered Azure development assistant",
-		Long: fmt.Sprintf(`Azure Copilot is an Azure Developer CLI extension that integrates GitHub Copilot CLI
+		Short: "Azure Copilot CLI - AI-powered Azure development assistant",
+		Long: fmt.Sprintf(`Azure Copilot CLI is an Azure Developer CLI extension that integrates GitHub Copilot CLI
 with %d specialized Azure agents and %d focused skills for Azure development.
 
 When run without subcommands, starts an interactive Copilot session with Azure context.`, assets.AgentCount(), assets.SkillCount()),
@@ -195,7 +195,7 @@ func runCopilotSession(cmd *cobra.Command) error {
 }
 
 func printBanner() {
-	banner := figure.NewFigure("Azure Copilot", "small", true)
+	banner := figure.NewFigure("Azure Copilot CLI", "small", true)
 	fmt.Printf("%s%s%s", cliout.Cyan, banner.String(), cliout.Reset)
 	cliout.Newline()
 	fmt.Printf("%sAI-powered Azure development assistant%s\n", cliout.Bold, cliout.Reset)
