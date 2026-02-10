@@ -62,7 +62,8 @@ jobs:
         run: gosec -quiet -exclude=G204,G304 ./cli/src/...
 
       - name: Vulnerability check
-        run: govulncheck ./cli/src/...
+        working-directory: cli
+        run: govulncheck ./src/...
 
   test:
     name: Test
