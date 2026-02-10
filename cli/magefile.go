@@ -18,8 +18,6 @@ import (
 )
 
 const (
-	binaryName    = "copilot"
-	srcDir        = "src/cmd/copilot"
 	binDir        = "bin"
 	extensionFile = "extension.yaml"
 	extensionID   = "jongio.azd.copilot"
@@ -71,150 +69,34 @@ func All() error {
 	return Build()
 }
 
-// Build builds the CLI binary and installs it locally.
+// Build builds the CLI binary and installs it locally using azd x build.
 func Build() error {
 	_ = killExtensionProcesses()
+
+	// Ensure azd extensions are set up (enables extensions + installs azd x if needed)
+	if err := ensureAzdExtensions(); err != nil {
+		return err
+	}
 
 	version, err := getVersion()
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("Building extension...")
+	fmt.Println("Building and installing extension...")
 
-	// Determine platform-specific binary name
-	binaryExt := ""
-	if runtime.GOOS == "windows" {
-		binaryExt = ".exe"
+	env := map[string]string{
+		"EXTENSION_ID":      extensionID,
+		"EXTENSION_VERSION": version,
 	}
 
-	// Create bin directory
-	if err := os.MkdirAll(binDir, 0755); err != nil {
-		return fmt.Errorf("failed to create bin directory: %w", err)
-	}
-
-	// Build the binary with version info
-	buildTime := time.Now().UTC().Format(time.RFC3339)
-	commit := "unknown"
-	if out, err := sh.Output("git", "rev-parse", "HEAD"); err == nil && out != "" {
-		commit = out
-	}
-	ldflags := fmt.Sprintf("-X github.com/jongio/azd-copilot/cli/src/cmd/copilot/commands.Version=%s -X github.com/jongio/azd-copilot/cli/src/cmd/copilot/commands.BuildTime=%s -X github.com/jongio/azd-copilot/cli/src/cmd/copilot/commands.Commit=%s", version, buildTime, commit)
-
-	binaryPath := filepath.Join(binDir, binaryName+binaryExt)
-	if err := sh.RunV("go", "build", "-ldflags", ldflags, "-o", binaryPath, "./"+srcDir); err != nil {
+	// Build and install directly using azd x build
+	if err := sh.RunWithV(env, "azd", "x", "build"); err != nil {
 		return fmt.Errorf("build failed: %w", err)
 	}
 
 	fmt.Printf("✅ Build complete! Version: %s\n", version)
-
-	// Install the extension
-	if err := Install(); err != nil {
-		return err
-	}
-
 	fmt.Println("   Run 'azd copilot version' to verify")
-	return nil
-}
-
-// Install installs the extension to the azd extensions directory.
-func Install() error {
-	version, err := getVersion()
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("Installing extension...")
-
-	// Determine paths
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("failed to get home directory: %w", err)
-	}
-
-	goos := runtime.GOOS
-	goarch := runtime.GOARCH
-	binaryExt := ""
-	if goos == "windows" {
-		binaryExt = ".exe"
-	}
-
-	extensionDir := filepath.Join(homeDir, ".azd", "extensions", extensionID)
-	installedBinaryName := strings.ReplaceAll(extensionID, ".", "-") + "-" + goos + "-" + goarch + binaryExt
-	installedBinaryPath := filepath.Join(extensionDir, installedBinaryName)
-
-	// Create extension directory
-	if err := os.MkdirAll(extensionDir, 0755); err != nil {
-		return fmt.Errorf("failed to create extension directory: %w", err)
-	}
-
-	// Copy binary
-	srcBinary := filepath.Join(binDir, binaryName+binaryExt)
-	srcData, err := os.ReadFile(srcBinary)
-	if err != nil {
-		return fmt.Errorf("failed to read built binary: %w", err)
-	}
-	if err := os.WriteFile(installedBinaryPath, srcData, 0755); err != nil {
-		return fmt.Errorf("failed to write installed binary: %w", err)
-	}
-
-	// Copy extension.yaml
-	extYamlData, err := os.ReadFile(extensionFile)
-	if err != nil {
-		return fmt.Errorf("failed to read extension.yaml: %w", err)
-	}
-	if err := os.WriteFile(filepath.Join(extensionDir, "extension.yaml"), extYamlData, 0644); err != nil {
-		return fmt.Errorf("failed to write extension.yaml: %w", err)
-	}
-
-	// Update azd config.json to register the extension
-	configPath := filepath.Join(homeDir, ".azd", "config.json")
-	configData, err := os.ReadFile(configPath)
-
-	var config map[string]interface{}
-	if err != nil {
-		// config.json doesn't exist yet — start with empty config
-		config = make(map[string]interface{})
-	} else if err := json.Unmarshal(configData, &config); err != nil {
-		return fmt.Errorf("failed to parse azd config: %w", err)
-	}
-
-	// Ensure extension.installed exists
-	extension, ok := config["extension"].(map[string]interface{})
-	if !ok {
-		extension = make(map[string]interface{})
-		config["extension"] = extension
-	}
-	installed, ok := extension["installed"].(map[string]interface{})
-	if !ok {
-		installed = make(map[string]interface{})
-		extension["installed"] = installed
-	}
-
-	// Register the extension
-	relativePath := filepath.Join("extensions", extensionID, installedBinaryName)
-	installed[extensionID] = map[string]interface{}{
-		"id":          extensionID,
-		"namespace":   "copilot",
-		"displayName": "Copilot Extension",
-		"description": "GitHub Copilot integration for Azure Developer CLI",
-		"usage":       "azd copilot <command> [options]",
-		"version":     version,
-		"capabilities": []string{"custom-commands"},
-		"path":        relativePath,
-		"source":      "local",
-	}
-
-	// Write updated config
-	updatedConfig, err := json.MarshalIndent(config, "", "  ")
-	if err != nil {
-		return fmt.Errorf("failed to marshal config: %w", err)
-	}
-	if err := os.WriteFile(configPath, updatedConfig, 0644); err != nil {
-		return fmt.Errorf("failed to write config: %w", err)
-	}
-
-	fmt.Println("✅ Extension installed!")
 	return nil
 }
 
@@ -240,6 +122,58 @@ func Test() error {
 func Clean() error {
 	fmt.Println("Cleaning build artifacts...")
 	return os.RemoveAll(binDir)
+}
+
+// Watch monitors files and rebuilds on changes (requires azd x watch).
+func Watch() error {
+	// Ensure azd extensions are set up
+	if err := ensureAzdExtensions(); err != nil {
+		return err
+	}
+
+	fmt.Println("Starting watch mode...")
+
+	env := map[string]string{
+		"EXTENSION_ID": extensionID,
+	}
+
+	return sh.RunWithV(env, "azd", "x", "watch")
+}
+
+// ensureAzdExtensions checks that azd is installed, extensions are enabled, and the azd x extension is installed.
+// This is a prerequisite for commands that use azd x (build, watch, etc.).
+func ensureAzdExtensions() error {
+	// Check if azd is available
+	if _, err := sh.Output("azd", "version"); err != nil {
+		return fmt.Errorf("azd is not installed or not in PATH. Install from https://aka.ms/azd")
+	}
+
+	// Check if extensions are enabled by looking at config
+	configOutput, err := sh.Output("azd", "config", "show")
+	if err != nil {
+		// Config might not exist yet, that's okay
+		configOutput = ""
+	}
+
+	// Enable extensions if not already enabled
+	if !strings.Contains(configOutput, `"enabled": "on"`) && !strings.Contains(configOutput, `"enabled":"on"`) {
+		fmt.Println("📦 Enabling azd extensions...")
+		if err := sh.RunV("azd", "config", "set", "alpha.extension.enabled", "on"); err != nil {
+			return fmt.Errorf("failed to enable azd extensions: %w", err)
+		}
+		fmt.Println("✅ Extensions enabled!")
+	}
+
+	// Check if azd x extension is available
+	if _, err := sh.Output("azd", "x", "--help"); err != nil {
+		fmt.Println("📦 Installing azd x extension (developer kit)...")
+		if err := sh.RunV("azd", "extension", "install", "microsoft.azd.extensions", "--source", "azd", "--no-prompt"); err != nil {
+			return fmt.Errorf("failed to install azd x extension: %w", err)
+		}
+		fmt.Println("✅ azd x extension installed!")
+	}
+
+	return nil
 }
 
 const (
