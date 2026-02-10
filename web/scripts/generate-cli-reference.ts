@@ -133,14 +133,8 @@ function discoverCommands(): CommandInfo[] {
       }
     }
   } catch (err) {
-    console.warn('⚠️  Could not run CLI to discover commands. Using fallback.');
-    // Fallback: just add version command
-    commands.push({
-      name: 'version',
-      description: 'Show version information',
-      usage: 'azd copilot version',
-      flags: []
-    });
+    console.warn('⚠️  Could not run CLI to discover commands. Skipping generation to preserve existing pages.');
+    return commands;
   }
   
   return commands;
@@ -150,7 +144,7 @@ function generateFlagsTable(command: CommandInfo): string {
   if (command.flags.length === 0) return '';
   
   const rows = command.flags.map(f => 
-    `<tr class="border-t border-[var(--color-border-default)]">
+    `<tr class="border-t border-[var(--color-border)]">
       <td class="py-3 px-4"><code>${f.flag}</code></td>
       <td class="py-3 px-4">${f.short ? `<code>${f.short}</code>` : '-'}</td>
       <td class="py-3 px-4">${f.description}</td>
@@ -162,7 +156,7 @@ function generateFlagsTable(command: CommandInfo): string {
 <div class="overflow-x-auto my-4">
   <table class="min-w-full text-sm">
     <thead>
-      <tr class="bg-[var(--color-bg-tertiary)]">
+      <tr class="bg-[var(--color-muted)]">
         <th class="text-left py-3 px-4 font-semibold">Flag</th>
         <th class="text-left py-3 px-4 font-semibold">Short</th>
         <th class="text-left py-3 px-4 font-semibold">Description</th>
@@ -211,16 +205,16 @@ import Layout from '../../../components/Layout.astro';
 
   .breadcrumb {
     font-size: 0.875rem;
-    color: var(--color-text-tertiary);
+    color: var(--color-muted-foreground);
     margin-bottom: 2rem;
   }
 
   .breadcrumb a {
-    color: var(--color-text-tertiary);
+    color: var(--color-muted-foreground);
   }
 
   .breadcrumb a:hover {
-    color: var(--color-interactive-default);
+    color: var(--color-primary);
   }
 
   h1 {
@@ -229,7 +223,7 @@ import Layout from '../../../components/Layout.astro';
 
   .description {
     font-size: 1.125rem;
-    color: var(--color-text-secondary);
+    color: var(--color-muted-foreground);
     margin-bottom: 2rem;
   }
 
@@ -242,7 +236,7 @@ import Layout from '../../../components/Layout.astro';
   .back-link {
     margin-top: 3rem;
     padding-top: 2rem;
-    border-top: 1px solid var(--color-border-default);
+    border-top: 1px solid var(--color-border);
   }
 </style>
 `;
@@ -312,7 +306,7 @@ import Layout from '../../../components/Layout.astro';
 
   .intro {
     font-size: 1.25rem;
-    color: var(--color-text-secondary);
+    color: var(--color-muted-foreground);
     margin-bottom: 3rem;
   }
 
@@ -328,7 +322,7 @@ import Layout from '../../../components/Layout.astro';
   .flags-table {
     width: 100%;
     font-size: 0.875rem;
-    border: 1px solid var(--color-border-default);
+    border: 1px solid var(--color-border);
     border-radius: 0.5rem;
     overflow: hidden;
   }
@@ -336,13 +330,13 @@ import Layout from '../../../components/Layout.astro';
   .flags-table th {
     text-align: left;
     padding: 0.75rem 1rem;
-    background: var(--color-bg-tertiary);
+    background: var(--color-muted);
     font-weight: 600;
   }
 
   .flags-table td {
     padding: 0.75rem 1rem;
-    border-top: 1px solid var(--color-border-default);
+    border-top: 1px solid var(--color-border);
   }
 
   .commands-grid {
@@ -354,15 +348,15 @@ import Layout from '../../../components/Layout.astro';
   .command-card {
     display: block;
     padding: 1.5rem;
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border-default);
+    background: var(--color-secondary);
+    border: 1px solid var(--color-border);
     border-radius: 0.5rem;
     text-decoration: none;
     transition: border-color 0.15s ease;
   }
 
   .command-card:hover {
-    border-color: var(--color-interactive-default);
+    border-color: var(--color-primary);
     text-decoration: none;
   }
 
@@ -370,19 +364,19 @@ import Layout from '../../../components/Layout.astro';
     display: block;
     font-size: 1rem;
     font-weight: 600;
-    color: var(--color-interactive-default);
+    color: var(--color-primary);
     margin-bottom: 0.5rem;
   }
 
   .command-desc {
-    color: var(--color-text-secondary);
+    color: var(--color-muted-foreground);
     margin: 0 0 0.75rem 0;
     font-size: 0.875rem;
   }
 
   .command-meta {
     font-size: 0.75rem;
-    color: var(--color-text-tertiary);
+    color: var(--color-muted-foreground);
   }
 </style>
 `;
@@ -393,6 +387,12 @@ async function main() {
   
   // Discover commands
   const commands = discoverCommands();
+  
+  if (commands.length === 0) {
+    console.log('  ⏭️  No commands discovered. Preserving existing pages.\n');
+    return;
+  }
+  
   console.log(`  📋 Discovered ${commands.length} commands: ${commands.map(c => c.name).join(', ')}\n`);
   
   // Ensure output directory exists

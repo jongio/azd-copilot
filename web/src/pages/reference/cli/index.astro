@@ -150,7 +150,7 @@ import Layout from '../../../components/Layout.astro';
 
   .intro {
     font-size: 1.25rem;
-    color: var(--color-text-secondary);
+    color: var(--color-muted-foreground);
     margin-bottom: 3rem;
   }
 
@@ -166,7 +166,7 @@ import Layout from '../../../components/Layout.astro';
   .flags-table {
     width: 100%;
     font-size: 0.875rem;
-    border: 1px solid var(--color-border-default);
+    border: 1px solid var(--color-border);
     border-radius: 0.5rem;
     overflow: hidden;
   }
@@ -174,13 +174,13 @@ import Layout from '../../../components/Layout.astro';
   .flags-table th {
     text-align: left;
     padding: 0.75rem 1rem;
-    background: var(--color-bg-tertiary);
+    background: var(--color-muted);
     font-weight: 600;
   }
 
   .flags-table td {
     padding: 0.75rem 1rem;
-    border-top: 1px solid var(--color-border-default);
+    border-top: 1px solid var(--color-border);
   }
 
   .commands-grid {
@@ -192,15 +192,15 @@ import Layout from '../../../components/Layout.astro';
   .command-card {
     display: block;
     padding: 1.5rem;
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border-default);
+    background: var(--color-secondary);
+    border: 1px solid var(--color-border);
     border-radius: 0.5rem;
     text-decoration: none;
     transition: border-color 0.15s ease;
   }
 
   .command-card:hover {
-    border-color: var(--color-interactive-default);
+    border-color: var(--color-primary);
     text-decoration: none;
   }
 
@@ -208,18 +208,18 @@ import Layout from '../../../components/Layout.astro';
     display: block;
     font-size: 1rem;
     font-weight: 600;
-    color: var(--color-interactive-default);
+    color: var(--color-primary);
     margin-bottom: 0.5rem;
   }
 
   .command-desc {
-    color: var(--color-text-secondary);
+    color: var(--color-muted-foreground);
     margin: 0 0 0.75rem 0;
     font-size: 0.875rem;
   }
 
   .command-meta {
     font-size: 0.75rem;
-    color: var(--color-text-tertiary);
+    color: var(--color-muted-foreground);
   }
 </style>

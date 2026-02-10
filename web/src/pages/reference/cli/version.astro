@@ -21,19 +21,19 @@ import Layout from '../../../components/Layout.astro';
 <div class="overflow-x-auto my-4">
   <table class="min-w-full text-sm">
     <thead>
-      <tr class="bg-[var(--color-bg-tertiary)]">
+      <tr class="bg-[var(--color-muted)]">
         <th class="text-left py-3 px-4 font-semibold">Flag</th>
         <th class="text-left py-3 px-4 font-semibold">Short</th>
         <th class="text-left py-3 px-4 font-semibold">Description</th>
       </tr>
     </thead>
     <tbody>
-      <tr class="border-t border-[var(--color-border-default)]">
+      <tr class="border-t border-[var(--color-border)]">
       <td class="py-3 px-4"><code>--help</code></td>
       <td class="py-3 px-4"><code>-h</code></td>
       <td class="py-3 px-4">help for version</td>
     </tr>
-<tr class="border-t border-[var(--color-border-default)]">
+<tr class="border-t border-[var(--color-border)]">
       <td class="py-3 px-4"><code>--json</code></td>
       <td class="py-3 px-4">-</td>
       <td class="py-3 px-4">Output version as JSON</td>
@@ -57,16 +57,16 @@ import Layout from '../../../components/Layout.astro';
 
   .breadcrumb {
     font-size: 0.875rem;
-    color: var(--color-text-tertiary);
+    color: var(--color-muted-foreground);
     margin-bottom: 2rem;
   }
 
   .breadcrumb a {
-    color: var(--color-text-tertiary);
+    color: var(--color-muted-foreground);
   }
 
   .breadcrumb a:hover {
-    color: var(--color-interactive-default);
+    color: var(--color-primary);
   }
 
   h1 {
@@ -75,7 +75,7 @@ import Layout from '../../../components/Layout.astro';
 
   .description {
     font-size: 1.125rem;
-    color: var(--color-text-secondary);
+    color: var(--color-muted-foreground);
     margin-bottom: 2rem;
   }
 
@@ -88,6 +88,6 @@ import Layout from '../../../components/Layout.astro';
   .back-link {
     margin-top: 3rem;
     padding-top: 2rem;
-    border-top: 1px solid var(--color-border-default);
+    border-top: 1px solid var(--color-border);
   }
 </style>
