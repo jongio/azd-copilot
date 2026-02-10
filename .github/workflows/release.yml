@@ -409,12 +409,14 @@ jobs:
           azd extension install microsoft.azd.extensions --source azd
 
       - name: Build binaries
+        working-directory: cli
         run: |
           export EXTENSION_ID="jongio.azd.copilot"
           export EXTENSION_VERSION="${{ steps.version.outputs.next }}"
           azd x build --all
 
       - name: Package
+        working-directory: cli
         run: azd x pack
 
       - name: Extract release notes
@@ -433,6 +435,7 @@ jobs:
           cat /tmp/release-notes.md
 
       - name: Release
+        working-directory: cli
         run: |
           azd x release \
             --repo "${{ github.repository }}" \
@@ -443,12 +446,18 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update registry
+        working-directory: cli
         run: |
+          cd ..
+          git pull
+          cd cli
+          
           azd x publish \
-            --registry registry.json \
+            --registry ../registry.json \
             --version "${{ steps.version.outputs.next }}" \
             --repo "${{ github.repository }}"
           
+          cd ..
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add registry.json
