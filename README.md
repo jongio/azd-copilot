@@ -5,14 +5,13 @@
 `azd copilot` is an [Azure Developer CLI](https://learn.microsoft.com/azure/developer/azure-developer-cli/) extension that turns GitHub Copilot CLI into a full-stack Azure development assistant — 16 specialized agents, 28 Azure skills, and 6 MCP servers working together so you can go from idea to deployed app in one command.
 
 ```
-  _                        ___            _ _       _
- /_\  ___ _  _ _ _ ___    / __|___ _ __  (_) |___  | |_
-/ _ \|_ / || | '_/ -_)  | (__/ _ \ '_ \ | | / _ \ |  _|
+   _                        ___            _ _       _
+  /_\  ___ _  _ _ _ ___    / __|___ _ __  (_) |___  | |_
+ / _ \|_ / || | '_/ -_ )  | (__/ _ \ '_ \ | | / _ \ |  _|
 /_/ \_\/__|\_,_|_| \___|   \___\___/ .__/ |_|_\___/  \__|
                                    |_|
-AI-powered Azure development assistant
-Built on Copilot SDK • Azure MCP • Azure Developer CLI • Azure Agents & Skills
-Version 0.1.0 • 16 agents • 28 skills
+         AI-powered Azure development assistant
+          Version 0.1.0 • 16 agents • 28 skills
 ```
 
 ---

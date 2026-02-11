@@ -408,6 +408,12 @@ jobs:
           azd extension source add azd --location https://aka.ms/azd/extensions/registry --type url 2>/dev/null || true
           azd extension install microsoft.azd.extensions --source azd
 
+      - name: Update version in extension.yaml
+        working-directory: cli
+        run: |
+          sed -i "s/^version: .*/version: ${{ steps.version.outputs.next }}/" extension.yaml
+          cat extension.yaml | grep version
+
       - name: Build binaries
         working-directory: cli
         run: |
