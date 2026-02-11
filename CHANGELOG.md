@@ -1,3 +1,7 @@
+## [0.1.4] - 2026-02-11
+
+- chore: update registry for v0.1.3 (ecf12da)
+
 ## [0.1.3] - 2026-02-11
 
 - feat: update version in extension.yaml during release process and improve README formatting (bb5684f)
