@@ -19,10 +19,25 @@ Version 0.1.0 • 16 agents • 28 skills
 
 ## Quick Start
 
-```bash
-# Install
-azd extension install jongio.azd.copilot
+### 1. Install Azure Developer CLI
 
+- **Windows**: `winget install microsoft.azd`
+- **macOS**: `brew tap azure/azd && brew install azd`
+- **Linux**: `curl -fsSL https://aka.ms/install-azd.sh | bash`
+
+### 2. Install the Extension
+
+```bash
+# Add the azd-copilot extension registry
+azd extension source add -n copilot -t url -l https://raw.githubusercontent.com/jongio/azd-copilot/main/registry.json
+
+# Install the extension
+azd extension install jongio.azd.copilot
+```
+
+### 3. Run It
+
+```bash
 # Start an interactive session
 azd copilot
 
