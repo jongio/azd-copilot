@@ -61,7 +61,7 @@
             "darwin/amd64": {
               "checksum": {
                 "algorithm": "sha256",
-                "value": "b7e3260336e03b28f8d73a57a5bbf38d6b3ff80c65be94dcd7544981d2f00c7e"
+                "value": "9d8816f2f6823e13fc177de2997efbc2a68bb11724bf360a292fcfd21dc45998"
               },
               "entryPoint": "jongio-azd-copilot-darwin-amd64",
               "executable": "copilot.exe",
@@ -70,7 +70,7 @@
             "darwin/arm64": {
               "checksum": {
                 "algorithm": "sha256",
-                "value": "9d5966bbd81b9f5a9cef76c82bb92b87a72e0efa3a559717646849001023253e"
+                "value": "ea34c6994e37369d2fb6d9ef5d8bed7f7ae3b25f6cab32bd4089bf99b3442bd0"
               },
               "entryPoint": "jongio-azd-copilot-darwin-arm64",
               "executable": "copilot.exe",
@@ -79,7 +79,7 @@
             "linux/amd64": {
               "checksum": {
                 "algorithm": "sha256",
-                "value": "df817891e6b26f7adc42ca1881e2b4df6086e55547670c675e883208cc8f4867"
+                "value": "ad9b6ce128828e602250e25f523940b03ba589202c3fe142d12792188de6727a"
               },
               "entryPoint": "jongio-azd-copilot-linux-amd64",
               "executable": "copilot.exe",
@@ -88,7 +88,7 @@
             "linux/arm64": {
               "checksum": {
                 "algorithm": "sha256",
-                "value": "f10c2735c5fb48a40c7bd4af9e6b3f80fb5656e3f128afe83f1c3b39f0133df2"
+                "value": "bb54371d23824d1c6815b167fb1b18524475555628d9e9076ee1bb13e1b9b869"
               },
               "entryPoint": "jongio-azd-copilot-linux-arm64",
               "executable": "copilot.exe",
@@ -97,7 +97,7 @@
             "windows/amd64": {
               "checksum": {
                 "algorithm": "sha256",
-                "value": "68fff6cd471e9d52e20fa19b691ae77f452120d34126fc81abc7174e656f8ef2"
+                "value": "9b326e92e12a9eb5dce4bcbb7226ca4448f726bddf937837da99f2197e93eff1"
               },
               "entryPoint": "jongio-azd-copilot-windows-amd64.exe",
               "executable": "copilot.exe",
@@ -106,11 +106,120 @@
             "windows/arm64": {
               "checksum": {
                 "algorithm": "sha256",
-                "value": "865b4297b19db1da2fe08ddb459ee1f3936672b41afb671736f47c84b017edbf"
+                "value": "88391cb9c6f8876190c3a75714850fc76d24905d5a5697ddc02a8a4f226575d4"
               },
               "entryPoint": "jongio-azd-copilot-windows-arm64.exe",
               "executable": "copilot.exe",
               "url": "https://github.com/jongio/azd-copilot/releases/download/azd-ext-jongio-azd-copilot_0.1.4/jongio-azd-copilot-windows-arm64.zip"
+            }
+          },
+          "entryPoint": "copilot"
+        },
+        {
+          "version": "0.1.3",
+          "capabilities": [
+            "custom-commands",
+            "lifecycle-events",
+            "mcp-server",
+            "metadata"
+          ],
+          "usage": "azd copilot \u003ccommand\u003e [options]",
+          "examples": [
+            {
+              "name": "interactive",
+              "description": "Start an interactive AI development session",
+              "usage": "azd copilot"
+            },
+            {
+              "name": "prompt",
+              "description": "Execute a single prompt non-interactively",
+              "usage": "azd copilot -p \"build me a REST API for managing products\""
+            },
+            {
+              "name": "resume",
+              "description": "Resume the previous session",
+              "usage": "azd copilot --resume"
+            },
+            {
+              "name": "agent",
+              "description": "Use a specific agent for specialized tasks",
+              "usage": "azd copilot --agent azure-security"
+            },
+            {
+              "name": "yolo",
+              "description": "Auto-approve all tool executions",
+              "usage": "azd copilot --yolo -p \"deploy to production\""
+            },
+            {
+              "name": "agents-list",
+              "description": "List all available agents",
+              "usage": "azd copilot agents"
+            },
+            {
+              "name": "skills-list",
+              "description": "List all available skills",
+              "usage": "azd copilot skills"
+            },
+            {
+              "name": "context",
+              "description": "Show current azd project context",
+              "usage": "azd copilot context"
+            }
+          ],
+          "artifacts": {
+            "darwin/amd64": {
+              "checksum": {
+                "algorithm": "sha256",
+                "value": "97a696bb3ef17cc14930ec7d3fd5ea59cbb60fc570db76b433f6598b571f72b2"
+              },
+              "entryPoint": "jongio-azd-copilot-darwin-amd64",
+              "executable": "copilot.exe",
+              "url": "https://github.com/jongio/azd-copilot/releases/download/azd-ext-jongio-azd-copilot_0.1.3/jongio-azd-copilot-darwin-amd64.zip"
+            },
+            "darwin/arm64": {
+              "checksum": {
+                "algorithm": "sha256",
+                "value": "5cbeee2c243d1999563a0941fbb41ac7f7f85e8e198493d9a62188d8fcb551d7"
+              },
+              "entryPoint": "jongio-azd-copilot-darwin-arm64",
+              "executable": "copilot.exe",
+              "url": "https://github.com/jongio/azd-copilot/releases/download/azd-ext-jongio-azd-copilot_0.1.3/jongio-azd-copilot-darwin-arm64.zip"
+            },
+            "linux/amd64": {
+              "checksum": {
+                "algorithm": "sha256",
+                "value": "e9a0db31128438b83cbb91c8533ff4d4e354436fbc640e2015e43f869a38b95d"
+              },
+              "entryPoint": "jongio-azd-copilot-linux-amd64",
+              "executable": "copilot.exe",
+              "url": "https://github.com/jongio/azd-copilot/releases/download/azd-ext-jongio-azd-copilot_0.1.3/jongio-azd-copilot-linux-amd64.tar.gz"
+            },
+            "linux/arm64": {
+              "checksum": {
+                "algorithm": "sha256",
+                "value": "bec39ef3871dfc5e77f57d9977c5db65c0d53432b6d8ed8d59b598f51b4a11c1"
+              },
+              "entryPoint": "jongio-azd-copilot-linux-arm64",
+              "executable": "copilot.exe",
+              "url": "https://github.com/jongio/azd-copilot/releases/download/azd-ext-jongio-azd-copilot_0.1.3/jongio-azd-copilot-linux-arm64.tar.gz"
+            },
+            "windows/amd64": {
+              "checksum": {
+                "algorithm": "sha256",
+                "value": "cd1b866c4bc0ad478e66b8ebe8220d2ea71e8210562e3a2e0caeb55034b2624a"
+              },
+              "entryPoint": "jongio-azd-copilot-windows-amd64.exe",
+              "executable": "copilot.exe",
+              "url": "https://github.com/jongio/azd-copilot/releases/download/azd-ext-jongio-azd-copilot_0.1.3/jongio-azd-copilot-windows-amd64.zip"
+            },
+            "windows/arm64": {
+              "checksum": {
+                "algorithm": "sha256",
+                "value": "b0498b4e3eeaf99183c1f6844a33e40a8ca6c2fa2bc47ec6d272d1b3de73199e"
+              },
+              "entryPoint": "jongio-azd-copilot-windows-arm64.exe",
+              "executable": "copilot.exe",
+              "url": "https://github.com/jongio/azd-copilot/releases/download/azd-ext-jongio-azd-copilot_0.1.3/jongio-azd-copilot-windows-arm64.zip"
             }
           },
           "entryPoint": "copilot"

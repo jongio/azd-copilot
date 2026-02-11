@@ -8,7 +8,7 @@ description: |
   and Copilot builds and deploys it to Azure. Includes 16 specialized agents
   and 29 Azure skills.
 usage: azd copilot <command> [options]
-version: 0.1.2
+version: 0.1.4
 entryPoint: copilot
 
 capabilities:
