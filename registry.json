@@ -1,3 +1,129 @@
 {
-  "extensions": []
+  "extensions": [
+    {
+      "id": "jongio.azd.copilot",
+      "namespace": "copilot",
+      "displayName": "Azure Copilot CLI",
+      "description": "AI-powered Azure development assistant. Describe what you want to build,\nand Copilot builds and deploys it to Azure. Includes 16 specialized agents\nand 29 Azure skills.\n",
+      "versions": [
+        {
+          "version": "0.1.4",
+          "capabilities": [
+            "custom-commands",
+            "lifecycle-events",
+            "mcp-server",
+            "metadata"
+          ],
+          "usage": "azd copilot \u003ccommand\u003e [options]",
+          "examples": [
+            {
+              "name": "interactive",
+              "description": "Start an interactive AI development session",
+              "usage": "azd copilot"
+            },
+            {
+              "name": "prompt",
+              "description": "Execute a single prompt non-interactively",
+              "usage": "azd copilot -p \"build me a REST API for managing products\""
+            },
+            {
+              "name": "resume",
+              "description": "Resume the previous session",
+              "usage": "azd copilot --resume"
+            },
+            {
+              "name": "agent",
+              "description": "Use a specific agent for specialized tasks",
+              "usage": "azd copilot --agent azure-security"
+            },
+            {
+              "name": "yolo",
+              "description": "Auto-approve all tool executions",
+              "usage": "azd copilot --yolo -p \"deploy to production\""
+            },
+            {
+              "name": "agents-list",
+              "description": "List all available agents",
+              "usage": "azd copilot agents"
+            },
+            {
+              "name": "skills-list",
+              "description": "List all available skills",
+              "usage": "azd copilot skills"
+            },
+            {
+              "name": "context",
+              "description": "Show current azd project context",
+              "usage": "azd copilot context"
+            }
+          ],
+          "artifacts": {
+            "darwin/amd64": {
+              "checksum": {
+                "algorithm": "sha256",
+                "value": "b7e3260336e03b28f8d73a57a5bbf38d6b3ff80c65be94dcd7544981d2f00c7e"
+              },
+              "entryPoint": "jongio-azd-copilot-darwin-amd64",
+              "executable": "copilot.exe",
+              "url": "https://github.com/jongio/azd-copilot/releases/download/azd-ext-jongio-azd-copilot_0.1.4/jongio-azd-copilot-darwin-amd64.zip"
+            },
+            "darwin/arm64": {
+              "checksum": {
+                "algorithm": "sha256",
+                "value": "9d5966bbd81b9f5a9cef76c82bb92b87a72e0efa3a559717646849001023253e"
+              },
+              "entryPoint": "jongio-azd-copilot-darwin-arm64",
+              "executable": "copilot.exe",
+              "url": "https://github.com/jongio/azd-copilot/releases/download/azd-ext-jongio-azd-copilot_0.1.4/jongio-azd-copilot-darwin-arm64.zip"
+            },
+            "linux/amd64": {
+              "checksum": {
+                "algorithm": "sha256",
+                "value": "df817891e6b26f7adc42ca1881e2b4df6086e55547670c675e883208cc8f4867"
+              },
+              "entryPoint": "jongio-azd-copilot-linux-amd64",
+              "executable": "copilot.exe",
+              "url": "https://github.com/jongio/azd-copilot/releases/download/azd-ext-jongio-azd-copilot_0.1.4/jongio-azd-copilot-linux-amd64.tar.gz"
+            },
+            "linux/arm64": {
+              "checksum": {
+                "algorithm": "sha256",
+                "value": "f10c2735c5fb48a40c7bd4af9e6b3f80fb5656e3f128afe83f1c3b39f0133df2"
+              },
+              "entryPoint": "jongio-azd-copilot-linux-arm64",
+              "executable": "copilot.exe",
+              "url": "https://github.com/jongio/azd-copilot/releases/download/azd-ext-jongio-azd-copilot_0.1.4/jongio-azd-copilot-linux-arm64.tar.gz"
+            },
+            "windows/amd64": {
+              "checksum": {
+                "algorithm": "sha256",
+                "value": "68fff6cd471e9d52e20fa19b691ae77f452120d34126fc81abc7174e656f8ef2"
+              },
+              "entryPoint": "jongio-azd-copilot-windows-amd64.exe",
+              "executable": "copilot.exe",
+              "url": "https://github.com/jongio/azd-copilot/releases/download/azd-ext-jongio-azd-copilot_0.1.4/jongio-azd-copilot-windows-amd64.zip"
+            },
+            "windows/arm64": {
+              "checksum": {
+                "algorithm": "sha256",
+                "value": "865b4297b19db1da2fe08ddb459ee1f3936672b41afb671736f47c84b017edbf"
+              },
+              "entryPoint": "jongio-azd-copilot-windows-arm64.exe",
+              "executable": "copilot.exe",
+              "url": "https://github.com/jongio/azd-copilot/releases/download/azd-ext-jongio-azd-copilot_0.1.4/jongio-azd-copilot-windows-arm64.zip"
+            }
+          },
+          "entryPoint": "copilot"
+        }
+      ],
+      "tags": [
+        "ai",
+        "copilot",
+        "development",
+        "productivity",
+        "github-copilot",
+        "azure"
+      ]
+    }
+  ]
 }
