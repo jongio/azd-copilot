@@ -8,6 +8,10 @@ interface Props {
 }
 
 const { title, description = 'GitHub Copilot integration for Azure Developer CLI', variant = 'landing' } = Astro.props;
+
+const siteUrl = 'https://jongio.github.io/azd-copilot';
+const fullTitle = title === 'Home' ? 'Azure Copilot CLI' : `${title} | Azure Copilot CLI`;
+const ogImage = `${siteUrl}/social-preview.png`;
 ---
 
 <!DOCTYPE html>
@@ -20,7 +24,22 @@ const { title, description = 'GitHub Copilot integration for Azure Developer CLI
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <title>{title} | azd-copilot</title>
+    <title>{fullTitle}</title>
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:url" content={siteUrl} />
+    <meta property="og:site_name" content="Azure Copilot CLI" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
     <script is:inline>
       // Theme initialization - check localStorage before render to prevent flash
       (function() {
