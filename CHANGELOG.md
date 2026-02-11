@@ -1,3 +1,13 @@
+## [0.1.3] - 2026-02-11
+
+- feat: update version in extension.yaml during release process and improve README formatting (bb5684f)
+- chore: update registry for v0.1.4 (9bcce92)
+- docs: update README with installation instructions for Azure Developer CLI and extension (7b0780f)
+- Refactor code structure for improved readability and maintainability (d201bfb)
+- fix: add GH_TOKEN to environment variables for GitHub actions (5b2fc51)
+- feat: update version in extension.yaml and add debug steps for build artifacts (dacacee)
+- feat: add release workflow for building and publishing azd extensions (1433a19)
+
 ## [0.1.2] - 2026-02-11
 
 - fix: update working directory for build, package, and release steps in release workflow (0ca8c76)
