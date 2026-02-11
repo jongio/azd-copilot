@@ -1,3 +1,7 @@
+## [0.1.2] - 2026-02-11
+
+- fix: update working directory for build, package, and release steps in release workflow (0ca8c76)
+
 ## [0.1.1] - 2026-02-10
 
 - feat: add notification step for azd-extensions on successful release (2ac86e9)
