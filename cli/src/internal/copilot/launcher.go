@@ -414,6 +414,11 @@ func buildEnv(opts Options) []string {
 		fmt.Sprintf("AZD_COPILOT_VERSION=%s", Version),
 	}
 
+	// Tell Copilot CLI where to find our custom agents and skills
+	if len(opts.AddDirs) > 0 {
+		env = append(env, fmt.Sprintf("COPILOT_CUSTOM_INSTRUCTIONS_DIRS=%s", strings.Join(opts.AddDirs, ",")))
+	}
+
 	// Inject project context as environment variables
 	if opts.ProjectContext != nil {
 		env = append(env,

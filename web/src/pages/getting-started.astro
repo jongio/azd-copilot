@@ -25,9 +25,10 @@ import TerminalCode from '../components/TerminalCode.astro';
   <nav class="step-nav" aria-label="Quick start steps">
     <div class="step-nav-container">
       <ol class="step-nav-list">
-        <li><a href="#step-1"><span class="step-nav-num">1</span> Install azd</a></li>
-        <li><a href="#step-2"><span class="step-nav-num">2</span> Install azd-copilot</a></li>
-        <li><a href="#step-3"><span class="step-nav-num">3</span> Launch</a></li>
+        <li><a href="#step-1"><span class="step-nav-num">1</span> Install Copilot CLI</a></li>
+        <li><a href="#step-2"><span class="step-nav-num">2</span> Install azd</a></li>
+        <li><a href="#step-3"><span class="step-nav-num">3</span> Install azd-copilot</a></li>
+        <li><a href="#step-4"><span class="step-nav-num">4</span> Launch</a></li>
       </ol>
     </div>
   </nav>
@@ -36,10 +37,31 @@ import TerminalCode from '../components/TerminalCode.astro';
   <div class="steps-container">
     <div class="steps-content">
 
-      <!-- Step 1: Install Azure Developer CLI -->
+      <!-- Step 1: Install GitHub Copilot CLI -->
       <section class="step" id="step-1">
         <div class="step-header">
           <div class="step-number">1</div>
+          <div>
+            <h2 class="step-title">Install GitHub Copilot CLI</h2>
+            <p class="step-subtitle">The AI engine that powers azd-copilot</p>
+          </div>
+        </div>
+        <div class="step-body">
+          <div class="substep">
+            <h3>Install via npm</h3>
+            <TerminalCode code="npm install -g @github/copilot" />
+          </div>
+          <div class="tip-box">
+            <span class="tip-icon">💡</span>
+            <span>You can also install via <code>brew install copilot-cli</code> (macOS/Linux) or <code>winget install GitHub.Copilot</code> (Windows). See the <a href="https://docs.github.com/en/copilot/how-tos/copilot-cli/install-copilot-cli" target="_blank" rel="noopener">GitHub Copilot CLI installation guide</a> for all options.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Step 2: Install Azure Developer CLI -->
+      <section class="step" id="step-2">
+        <div class="step-header">
+          <div class="step-number">2</div>
           <div>
             <h2 class="step-title">Install Azure Developer CLI</h2>
             <p class="step-subtitle">The foundation for azd-copilot</p>
@@ -70,10 +92,10 @@ import TerminalCode from '../components/TerminalCode.astro';
         </div>
       </section>
 
-      <!-- Step 2: Install azd-copilot -->
-      <section class="step" id="step-2">
+      <!-- Step 3: Install azd-copilot -->
+      <section class="step" id="step-3">
         <div class="step-header">
-          <div class="step-number">2</div>
+          <div class="step-number">3</div>
           <div>
             <h2 class="step-title">Install azd-copilot</h2>
             <p class="step-subtitle">Enable extensions and install the azd-copilot package</p>
@@ -106,10 +128,10 @@ import TerminalCode from '../components/TerminalCode.astro';
         </div>
       </section>
 
-      <!-- Step 3: Launch -->
-      <section class="step" id="step-3">
+      <!-- Step 4: Launch -->
+      <section class="step" id="step-4">
         <div class="step-header">
-          <div class="step-number">3</div>
+          <div class="step-number">4</div>
           <div>
             <h2 class="step-title">Launch</h2>
             <p class="step-subtitle">Enter your immersive Azure coding AI experience</p>

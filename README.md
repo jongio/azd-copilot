@@ -18,13 +18,21 @@
 
 ## Quick Start
 
-### 1. Install Azure Developer CLI
+### 1. Install GitHub Copilot CLI
+
+```bash
+npm install -g @github/copilot
+```
+
+Or see the [GitHub Copilot CLI installation guide](https://docs.github.com/en/copilot/how-tos/copilot-cli/install-copilot-cli) for more options including Homebrew and WinGet.
+
+### 2. Install Azure Developer CLI
 
 - **Windows**: `winget install microsoft.azd`
 - **macOS**: `brew tap azure/azd && brew install azd`
 - **Linux**: `curl -fsSL https://aka.ms/install-azd.sh | bash`
 
-### 2. Install the Extension
+### 3. Install the Extension
 
 ```bash
 # Add the azd-copilot extension registry
@@ -34,7 +42,7 @@ azd extension source add -n copilot -t url -l https://raw.githubusercontent.com/
 azd extension install jongio.azd.copilot
 ```
 
-### 3. Run It
+### 4. Run It
 
 ```bash
 # Start an interactive session
