@@ -6,6 +6,8 @@ set -e
 
 REPO="jongio/azd-copilot"
 EXTENSION_ID="jongio.azd.copilot"
+SOURCE_NAME="jongio"
+REGISTRY_URL="https://jongio.github.io/azd-extensions/registry.json"
 
 echo "🔄 Restoring stable azd copilot extension"
 echo ""
@@ -33,13 +35,13 @@ echo "   ✓"
 
 # Add stable registry source
 echo "📋 Adding stable registry source..."
-azd extension source remove "$REPO" 2>/dev/null || true
-azd extension source add -n "$REPO" -t url -l "https://raw.githubusercontent.com/$REPO/main/registry.json"
+azd extension source remove "$SOURCE_NAME" 2>/dev/null || true
+azd extension source add -n "$SOURCE_NAME" -t url -l "$REGISTRY_URL"
 echo "   ✓"
 
 # Install stable version
 echo "📦 Installing stable version..."
-if ! azd extension install "$EXTENSION_ID" --source "$REPO"; then
+if ! azd extension install "$EXTENSION_ID" --source "$SOURCE_NAME"; then
     echo "❌ Failed to install stable extension"
     exit 1
 fi

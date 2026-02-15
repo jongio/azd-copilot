@@ -9,6 +9,8 @@
 $ErrorActionPreference = 'Stop'
 $repo = "jongio/azd-copilot"
 $extensionId = "jongio.azd.copilot"
+$sourceName = "jongio"
+$registryUrl = "https://jongio.github.io/azd-extensions/registry.json"
 
 Write-Host "🔄 Restoring stable azd copilot extension" -ForegroundColor Cyan
 Write-Host ""
@@ -43,13 +45,13 @@ Write-Host "   ✓" -ForegroundColor DarkGray
 
 # Add stable registry source
 Write-Host "📋 Adding stable registry source..." -ForegroundColor Gray
-azd extension source remove $repo 2>$null
-azd extension source add -n $repo -t url -l "https://raw.githubusercontent.com/$repo/main/registry.json"
+azd extension source remove $sourceName 2>$null
+azd extension source add -n $sourceName -t url -l $registryUrl
 Write-Host "   ✓" -ForegroundColor DarkGray
 
 # Install stable version
 Write-Host "📦 Installing stable version..." -ForegroundColor Gray
-azd extension install $extensionId --source $repo
+azd extension install $extensionId --source $sourceName
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Failed to install stable extension" -ForegroundColor Red
     exit 1
