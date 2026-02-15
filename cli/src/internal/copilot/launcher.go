@@ -233,7 +233,7 @@ func FindCopilotCLI() (*CopilotPath, error) {
 			}
 		}
 		if npmGlobalPath != "" {
-			npmLoader := filepath.Join(npmGlobalPath, "node_modules", "@github", "copilot", "npm-loader.js")
+			npmLoader := filepath.Clean(filepath.Join(npmGlobalPath, "node_modules", "@github", "copilot", "npm-loader.js"))
 			if _, err := os.Stat(npmLoader); err == nil {
 				return &CopilotPath{Path: npmLoader, IsNode: true}, nil
 			}
@@ -244,7 +244,7 @@ func FindCopilotCLI() (*CopilotPath, error) {
 		if nvmRoot != "" {
 			currentVersion := os.Getenv("NVM_SYMLINK")
 			if currentVersion != "" {
-				npmLoader := filepath.Join(currentVersion, "node_modules", "@github", "copilot", "npm-loader.js")
+				npmLoader := filepath.Clean(filepath.Join(currentVersion, "node_modules", "@github", "copilot", "npm-loader.js"))
 				if _, err := os.Stat(npmLoader); err == nil {
 					return &CopilotPath{Path: npmLoader, IsNode: true}, nil
 				}
@@ -280,6 +280,7 @@ func FindCopilotCLI() (*CopilotPath, error) {
 		candidates = append(candidates, matches...)
 
 		for _, candidate := range candidates {
+			candidate = filepath.Clean(candidate)
 			if _, err := os.Stat(candidate); err == nil {
 				return &CopilotPath{Path: candidate, IsNode: false}, nil
 			}
@@ -323,6 +324,7 @@ func FindCopilotCLI() (*CopilotPath, error) {
 		}
 
 		for _, npmLoader := range npmGlobalPaths {
+			npmLoader = filepath.Clean(npmLoader)
 			if _, err := os.Stat(npmLoader); err == nil {
 				return &CopilotPath{Path: npmLoader, IsNode: true}, nil
 			}
