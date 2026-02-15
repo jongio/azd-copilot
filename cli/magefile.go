@@ -74,7 +74,7 @@ func Build() error {
 	_ = killExtensionProcesses()
 	time.Sleep(500 * time.Millisecond)
 
-	// Ensure azd extensions are set up (enables extensions + installs azd x if needed)
+	// Ensure azd extensions are set up (installs azd x if needed)
 	if err := ensureAzdExtensions(); err != nil {
 		return err
 	}
