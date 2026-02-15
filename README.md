@@ -36,7 +36,7 @@ Or see the [GitHub Copilot CLI installation guide](https://docs.github.com/en/co
 
 ```bash
 # Add the azd-copilot extension registry
-azd extension source add -n copilot -t url -l https://raw.githubusercontent.com/jongio/azd-copilot/main/registry.json
+azd extension source add -n jongio -t url -l https://jongio.github.io/azd-extensions/registry.json
 
 # Install the extension
 azd extension install jongio.azd.copilot
