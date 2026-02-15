@@ -1,3 +1,13 @@
+## [0.1.5] - 2026-02-15
+
+- Fix gosec G703: add #nosec annotations for known install paths (b1edc69)
+- Update extension source to jongio.github.io/azd-extensions registry (f437511)
+- Update magefile comment to remove 'enables extensions' reference (c186a80)
+- Fix gosec G703: sanitize paths with filepath.Clean() (36e04c4)
+- Remove extension preview/alpha requirement (99a0b73)
+- docs: update installation steps for GitHub Copilot CLI and Azure Developer CLI in README and getting-started page (005d11f)
+- chore: update registry for v0.1.4 (b4ff0de)
+
 ## [0.1.4] - 2026-02-11
 
 - chore: update registry for v0.1.3 (ecf12da)
