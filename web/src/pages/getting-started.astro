@@ -98,15 +98,10 @@ import TerminalCode from '../components/TerminalCode.astro';
           <div class="step-number">3</div>
           <div>
             <h2 class="step-title">Install azd-copilot</h2>
-            <p class="step-subtitle">Enable extensions and install the azd-copilot package</p>
+            <p class="step-subtitle">Install the azd-copilot package</p>
           </div>
         </div>
         <div class="step-body">
-          <div class="substep">
-            <h3>Enable azd extensions</h3>
-            <TerminalCode code="azd config set alpha.extensions on" />
-          </div>
-
           <div class="substep">
             <h3>Add the extension source</h3>
             <TerminalCode code='azd extension source add -n jongio -t url -l https://raw.githubusercontent.com/jongio/azd-copilot/main/registry.json' />

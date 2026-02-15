@@ -28,17 +28,13 @@ pkill -f "jongio-azd-copilot" 2>/dev/null || true
 sleep 0.5
 echo "   ✓"
 
-# Step 1: Enable extensions
-echo "📋 Enabling azd extensions..."
-azd config set alpha.extension.enabled on
-
-# Step 2: Uninstall existing extension
+# Step 1: Uninstall existing extension
 echo "🗑️  Uninstalling existing extension (if any)..."
 azd extension uninstall "$EXTENSION_ID" 2>/dev/null || true
 rm -rf "$HOME/.azd/extensions/$EXTENSION_ID" 2>/dev/null || true
 echo "   ✓"
 
-# Step 3: Download PR registry
+# Step 2: Download PR registry
 echo "📥 Downloading PR registry..."
 REGISTRY_PATH="$(pwd)/pr-registry.json"
 if ! curl -fsSL "$REGISTRY_URL" -o "$REGISTRY_PATH"; then
@@ -48,17 +44,17 @@ if ! curl -fsSL "$REGISTRY_URL" -o "$REGISTRY_PATH"; then
 fi
 echo "   ✓ Downloaded to: $REGISTRY_PATH"
 
-# Step 4: Add registry source
+# Step 3: Add registry source
 echo "🔗 Adding PR registry source..."
 azd extension source remove "pr-$PR_NUMBER" 2>/dev/null || true
 azd extension source add -n "pr-$PR_NUMBER" -t file -l "$REGISTRY_PATH"
 
-# Step 5: Install PR version
+# Step 4: Install PR version
 echo "📦 Installing version $VERSION..."
 rm -rf "$HOME/.azd/cache/"*"$EXTENSION_ID"* 2>/dev/null || true
 azd extension install "$EXTENSION_ID" --version "$VERSION"
 
-# Step 6: Verify installation
+# Step 5: Verify installation
 echo ""
 echo "✅ Installation complete!"
 echo ""
