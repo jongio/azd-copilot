@@ -1,6 +1,8 @@
-go 1.25.7
+go 1.26.0
 
 use (
 	./cli
 	./tools/scenario
 )
+
+replace github.com/jongio/azd-core => ../azd-core
