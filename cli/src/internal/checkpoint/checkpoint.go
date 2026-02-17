@@ -430,9 +430,9 @@ func GenerateResumePrompt(checkpoint *Checkpoint) string {
 	if len(checkpoint.CompletedPhases) > 0 {
 		sb.WriteString("### Completed Phases\n")
 		for _, p := range checkpoint.CompletedPhases {
-			sb.WriteString(fmt.Sprintf("- [x] %s\n", p))
+			fmt.Fprintf(&sb, "- [x] %s\n", p)
 		}
-		sb.WriteString(fmt.Sprintf("- [ ] %s ← **Continue here**\n\n", nextPhase))
+		fmt.Fprintf(&sb, "- [ ] %s ← **Continue here**\n\n", nextPhase)
 	}
 
 	// Files created
@@ -443,7 +443,7 @@ func GenerateResumePrompt(checkpoint *Checkpoint) string {
 		sb.WriteString("### Files Already Created\n\n")
 		sb.WriteString("```\n")
 		for _, f := range allFiles {
-			sb.WriteString(fmt.Sprintf("%s\n", f))
+			fmt.Fprintf(&sb, "%s\n", f)
 		}
 		sb.WriteString("```\n\n")
 	}
