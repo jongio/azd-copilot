@@ -4,5 +4,3 @@ use (
 	./cli
 	./tools/scenario
 )
-
-replace github.com/jongio/azd-core => ../azd-core
