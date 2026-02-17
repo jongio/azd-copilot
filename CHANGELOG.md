@@ -1,3 +1,14 @@
+## [0.1.6] - 2026-02-17
+
+- fix: convert all WriteString(Sprintf) to fmt.Fprintf for staticcheck QF1012 (a0bdd95)
+- fix: remaining fmt.Fprintf staticcheck QF1012 fixes in checkpoint.go (2f82262)
+- fix: remaining fmt.Fprintf staticcheck QF1012 fixes (9d0cb6c)
+- fix: use fmt.Fprintf instead of WriteString(Sprintf) to satisfy staticcheck (0ddc177)
+- fix: update azd-core to v0.4.4, remove go.work replace directive (5171a57)
+- chore: update Go to 1.26.0 and add update-azd-core workflow (835280b)
+- chore: add update-azd-core workflow (ae1065d)
+- chore: update registry for v0.1.5 (1feb654)
+
 ## [0.1.5] - 2026-02-15
 
 - Fix gosec G703: add #nosec annotations for known install paths (b1edc69)
