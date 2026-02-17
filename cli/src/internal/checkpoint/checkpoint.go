@@ -420,11 +420,11 @@ func GenerateResumePrompt(checkpoint *Checkpoint) string {
 
 	// Summary section
 	sb.WriteString("## Previous Progress\n\n")
-	sb.WriteString(fmt.Sprintf("- **Checkpoint ID:** `%s`\n", checkpoint.ID))
-	sb.WriteString(fmt.Sprintf("- **Phase Completed:** %s\n", checkpoint.Phase))
-	sb.WriteString(fmt.Sprintf("- **Type:** %s\n", checkpoint.Type))
-	sb.WriteString(fmt.Sprintf("- **Created:** %s\n", checkpoint.CreatedAt.Format("2006-01-02 15:04:05")))
-	sb.WriteString(fmt.Sprintf("- **Description:** %s\n\n", checkpoint.Description))
+	fmt.Fprintf(&sb, "- **Checkpoint ID:** `%s`\n", checkpoint.ID)
+	fmt.Fprintf(&sb, "- **Phase Completed:** %s\n", checkpoint.Phase)
+	fmt.Fprintf(&sb, "- **Type:** %s\n", checkpoint.Type)
+	fmt.Fprintf(&sb, "- **Created:** %s\n", checkpoint.CreatedAt.Format("2006-01-02 15:04:05"))
+	fmt.Fprintf(&sb, "- **Description:** %s\n\n", checkpoint.Description)
 
 	// Completed phases
 	if len(checkpoint.CompletedPhases) > 0 {
