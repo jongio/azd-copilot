@@ -10,6 +10,7 @@ import (
 	"github.com/jongio/azd-copilot/cli/src/internal/assets"
 	"github.com/jongio/azd-copilot/cli/src/internal/copilot"
 	"github.com/jongio/azd-copilot/cli/src/internal/logging"
+	selfskills "github.com/jongio/azd-copilot/cli/src/internal/skills"
 	"github.com/jongio/azd-core/cliout"
 
 	"github.com/common-nighthawk/go-figure"
@@ -82,6 +83,13 @@ When run without subcommands, starts an interactive Copilot session with Azure c
 
 			// Configure logging
 			logging.SetupLogger(debugMode, structuredLogs)
+
+			// Install azd-copilot self-skill
+			if err := selfskills.InstallSkill(); err != nil {
+				if debugMode {
+					slog.Debug("Failed to install copilot self-skill", "error", err)
+				}
+			}
 
 			// Log startup in debug mode
 			if debugMode {
