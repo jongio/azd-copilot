@@ -451,7 +451,7 @@ func GenerateResumePrompt(checkpoint *Checkpoint) string {
 	// Error context if recovery checkpoint
 	if checkpoint.Type == TypeRecovery && checkpoint.Context.ErrorMessage != "" {
 		sb.WriteString("### Previous Error\n\n")
-		sb.WriteString(fmt.Sprintf("```\n%s\n```\n\n", checkpoint.Context.ErrorMessage))
+		fmt.Fprintf(&sb, "```\n%s\n```\n\n", checkpoint.Context.ErrorMessage)
 		sb.WriteString("The previous attempt failed with the error above. Please try a different approach.\n\n")
 	}
 
@@ -463,13 +463,13 @@ func GenerateResumePrompt(checkpoint *Checkpoint) string {
 		sb.WriteString("1. Read the spec at `docs/spec.md`\n")
 		sb.WriteString("2. Review existing files listed above\n")
 		sb.WriteString("3. Identify what went wrong and try a different approach\n")
-		sb.WriteString(fmt.Sprintf("4. Continue with the **%s** phase\n\n", checkpoint.Phase))
+		fmt.Fprintf(&sb, "4. Continue with the **%s** phase\n\n", checkpoint.Phase)
 	} else {
-		sb.WriteString(fmt.Sprintf("The **%s** phase completed successfully. Continue with **%s**.\n\n", checkpoint.Phase, nextPhase))
+		fmt.Fprintf(&sb, "The **%s** phase completed successfully. Continue with **%s**.\n\n", checkpoint.Phase, nextPhase)
 		sb.WriteString("1. Read the spec at `docs/spec.md`\n")
 		sb.WriteString("2. Review existing files - do NOT regenerate them unless changes are needed\n")
-		sb.WriteString(fmt.Sprintf("3. Proceed with the **%s** phase\n", nextPhase))
-		sb.WriteString(fmt.Sprintf("4. Save a checkpoint when %s is complete\n\n", nextPhase))
+		fmt.Fprintf(&sb, "3. Proceed with the **%s** phase\n", nextPhase)
+		fmt.Fprintf(&sb, "4. Save a checkpoint when %s is complete\n\n", nextPhase)
 	}
 
 	// Phase-specific guidance
