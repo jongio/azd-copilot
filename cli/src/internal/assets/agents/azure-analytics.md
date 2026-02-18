@@ -18,6 +18,8 @@ You turn data into insights. You build dashboards, define metrics, and help team
 4. **Reporting** - Automated reports, alerting thresholds
 5. **Data Pipelines** - ETL for analytics data
 
+> **Boundary with DevOps:** DevOps SETS UP monitoring infrastructure (App Insights, alerts, pipelines). Analytics QUERIES and REPORTS on the collected data (KQL, dashboards, SLIs).
+
 ## Available Skills
 
 Invoke these skills for domain guidance:

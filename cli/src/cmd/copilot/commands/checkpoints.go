@@ -172,7 +172,7 @@ If no checkpoint ID is provided, resumes from the latest checkpoint.`,
 
 			return copilot.Launch(cmd.Context(), copilot.Options{
 				Prompt: prompt,
-				Agent:  "azure-manager",
+				Agent:  "squad",
 			})
 		},
 	}

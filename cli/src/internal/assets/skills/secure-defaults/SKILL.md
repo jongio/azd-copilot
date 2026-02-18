@@ -6,7 +6,7 @@ description: |
   infrastructure and application code. This skill OVERRIDES insecure patterns
   from upstream service references (connection strings, account keys, admin passwords).
   USE FOR: Every new Azure project, every Bicep generation, every SDK code generation.
-  INVOKED AUTOMATICALLY by azure-manager, azure-architect, and azure-dev agents.
+  INVOKED AUTOMATICALLY by squad, azure-architect, and azure-dev agents.
 ---
 
 # Secure Defaults

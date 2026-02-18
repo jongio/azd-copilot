@@ -5,7 +5,7 @@ description: |
   from the Bicep public registry instead of raw resource declarations. Prefer azd pattern
   modules first, then resource modules, raw declarations only as last resort.
   USE FOR: Every Bicep generation, every infra/ folder creation, every IaC task.
-  INVOKED AUTOMATICALLY by azure-manager, azure-architect, and azure-devops agents.
+  INVOKED AUTOMATICALLY by squad, azure-architect, and azure-devops agents.
 ---
 
 # AVM Bicep Rules

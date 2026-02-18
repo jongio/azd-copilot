@@ -106,7 +106,7 @@ func runBuild(cmd *cobra.Command, description string) error {
 		// Launch Copilot to generate spec
 		if err := copilot.Launch(cmd.Context(), copilot.Options{
 			Prompt: prompt,
-			Agent:  "azure-manager",
+			Agent:  "squad",
 		}); err != nil {
 			return err
 		}
@@ -146,7 +146,7 @@ func runBuildFromSpec(cmd *cobra.Command) error {
 	// Launch Copilot with the build prompt
 	return copilot.Launch(cmd.Context(), copilot.Options{
 		Prompt: prompt,
-		Agent:  "azure-manager",
+		Agent:  "squad",
 	})
 }
 

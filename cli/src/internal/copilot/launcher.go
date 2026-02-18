@@ -32,6 +32,8 @@ type Options struct {
 	Verbose        bool
 	Debug          bool
 	ProjectContext *ProjectContext
+	SquadMode      bool   // Enable Squad framework integration
+	SquadDir       string // Path to .ai-team/ directory (auto-detected if empty)
 }
 
 // ProjectContext contains azd project information
@@ -367,10 +369,10 @@ func IsCopilotInstalled() bool {
 func buildArgs(opts Options) []string {
 	var args []string
 
-	// Agent (default to azure-manager)
+	// Agent (default depends on squad mode)
 	agent := opts.Agent
 	if agent == "" {
-		agent = "azure-manager"
+		agent = "squad"
 	}
 	args = append(args, "--agent", agent)
 
@@ -479,7 +481,22 @@ func buildEnv(opts Options) []string {
 		}
 	}
 
+	// Squad mode environment variables
+	if opts.SquadMode {
+		env = append(env, "AZD_SQUAD_MODE=true")
+		if opts.SquadDir != "" {
+			env = append(env, fmt.Sprintf("AZD_SQUAD_DIR=%s", opts.SquadDir))
+		}
+	}
+
 	return env
+}
+
+// DetectSquadProject checks if the current directory has a Squad team (.ai-team/)
+func DetectSquadProject(projectPath string) bool {
+	teamFile := filepath.Join(projectPath, ".ai-team", "team.md")
+	_, err := os.Stat(teamFile)
+	return err == nil
 }
 
 // ConfigureMCPServer ensures Azure and azd MCP servers are configured in ~/.copilot/mcp-config.json

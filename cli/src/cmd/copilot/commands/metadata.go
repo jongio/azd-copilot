@@ -157,8 +157,8 @@ func outputMetadata() error {
 				Short:       "a",
 				Description: "Use a specific agent",
 				Type:        "string",
-				Default:     "azure-manager",
-				Values:      []string{"azure-manager", "azure-architect", "azure-dev", "azure-data", "azure-ai", "azure-security", "azure-devops"},
+				Default:     "squad",
+				Values:      []string{"squad", "azure-architect", "azure-dev", "azure-data", "azure-ai", "azure-security", "azure-devops"},
 			},
 			{
 				Name:        "model",
@@ -188,7 +188,7 @@ func outputMetadata() error {
 		Completions: []completionOption{
 			{
 				Context: "agent",
-				Values:  []string{"azure-manager", "azure-architect", "azure-dev", "azure-data", "azure-ai", "azure-security", "azure-devops"},
+				Values:  []string{"squad", "azure-architect", "azure-dev", "azure-data", "azure-ai", "azure-security", "azure-devops"},
 			},
 			{
 				Context: "mode",

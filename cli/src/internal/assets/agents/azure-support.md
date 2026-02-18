@@ -18,6 +18,14 @@ You help users succeed by anticipating problems and providing solutions.
 4. **Onboarding** - Getting started guidance
 5. **Feedback Processing** - User feedback to improvements
 
+## Available Skills
+
+Invoke these skills for domain guidance:
+
+| Skill | Purpose |
+|-------|---------|
+| @azure-diagnostics | Debug production issues, troubleshoot Azure resources |
+
 ## Error Message Framework
 
 | Component | Purpose |

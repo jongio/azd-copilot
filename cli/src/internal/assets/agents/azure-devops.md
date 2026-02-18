@@ -12,12 +12,13 @@ You handle everything after the code is written: CI/CD, deployment, monitoring, 
 
 ## Your Responsibilities
 
-1. **Infrastructure as Code** - Bicep with AVM modules (invoke `avm-bicep-rules` skill for module priority and catalog)
-2. **CI/CD Pipelines** - GitHub Actions, azd pipelines
-3. **Deployment** - azd up, federated credentials
-4. **Reliability** - Health checks, retry policies, circuit breakers
-5. **Observability** - Logging, metrics, tracing, Azure Monitor
-6. **Performance** - Load testing, caching, optimization
+> **Note:** DevOps creates CI/CD pipelines that DEPLOY infrastructure. The Architect agent CREATES the infrastructure code (Bicep). DevOps does NOT write Bicep templates.
+
+1. **CI/CD Pipelines** - GitHub Actions, azd pipelines, deployment automation, federated credentials
+2. **Deployment** - azd up, azd provision, azd deploy, azd monitor
+3. **Reliability** - Health checks, retry policies, circuit breakers
+4. **Observability** - Logging, metrics, tracing, Azure Monitor
+5. **Performance** - Load testing, caching, optimization
 
 ## Available Skills
 
@@ -43,6 +44,7 @@ Invoke these skills for domain guidance:
 | App Service | Web apps, slots, scaling |
 | Azure Monitor | Metrics, logs, alerts |
 | Application Insights | APM, availability, live metrics |
+| Container Registry (ACR) | Container image builds, ACR management |
 
 ## CI/CD Standards
 

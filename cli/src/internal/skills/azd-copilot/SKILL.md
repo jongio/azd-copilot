@@ -73,7 +73,7 @@ The build command runs two phases:
 
 | Agent | Specialization |
 |-------|---------------|
-| `azure-manager` | Orchestrates design, build, and deployment (default) |
+| `squad` | Azure Squad coordinator — routes work to specialized agents (default) |
 | `azure-architect` | Infrastructure design and architecture decisions |
 | `azure-dev` | Application code — backend, frontend, data layer |
 | `azure-devops` | CI/CD, deployment, reliability, observability |

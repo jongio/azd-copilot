@@ -167,7 +167,14 @@ const (
 	skillsTargetPath = "src/internal/assets/ghcp4a-skills"
 )
 
-// SyncSkills syncs upstream skills from microsoft/GitHub-Copilot-for-Azure.
+// SyncSkills syncs upstream skills from microsoft/GitHub-Copilot-for-Azure (main branch).
+//
+// For custom sources, use SyncSkillsFrom instead.
+func SyncSkills() error {
+	return SyncSkillsFrom("")
+}
+
+// SyncSkillsFrom syncs upstream skills from a custom source.
 //
 // When syncing from a local path, an exact sync is performed: the target is
 // mirrored to match the source, including file deletions and content updates.
@@ -184,11 +191,10 @@ const (
 //
 // Examples:
 //
-//	mage SyncSkills                                                        # upstream main
-//	mage SyncSkills C:\code\GitHub-Copilot-for-Azure                       # local folder
-//	mage SyncSkills https://github.com/user/fork.git                       # custom repo
-//	mage SyncSkills https://github.com/user/fork.git@my-branch             # custom repo + branch
-func SyncSkills(source string) error {
+//	mage SyncSkillsFrom C:\code\GitHub-Copilot-for-Azure                       # local folder
+//	mage SyncSkillsFrom https://github.com/user/fork.git                       # custom repo
+//	mage SyncSkillsFrom https://github.com/user/fork.git@my-branch             # custom repo + branch
+func SyncSkillsFrom(source string) error {
 	fmt.Println("🔄 Syncing upstream Azure skills...")
 
 	var sourceDir string

@@ -5,6 +5,7 @@ package copilot
 
 import (
 	"os"
+	"path/filepath"
 	"runtime"
 	"testing"
 )
@@ -39,7 +40,7 @@ func TestBuildArgs(t *testing.T) {
 		{
 			name:     "default options",
 			opts:     Options{},
-			contains: []string{"--agent", "azure-manager"},
+			contains: []string{"--agent", "squad"},
 			excludes: []string{"--resume", "--yolo", "-p"},
 		},
 		{
@@ -47,7 +48,7 @@ func TestBuildArgs(t *testing.T) {
 			opts: Options{
 				Prompt: "help me deploy",
 			},
-			contains: []string{"--agent", "azure-manager", "-p", "help me deploy"},
+			contains: []string{"--agent", "squad", "-p", "help me deploy"},
 		},
 		{
 			name: "with custom agent",
@@ -449,5 +450,164 @@ func TestPlatformSpecificPaths(t *testing.T) {
 		// Unix-specific tests
 		t.Log("Running on Unix-like system")
 		// Check for /dev/tty path in launchViaConsole logic
+	}
+}
+
+func TestBuildArgs_SquadMode(t *testing.T) {
+	tests := []struct {
+		name     string
+		opts     Options
+		contains []string
+		excludes []string
+	}{
+		{
+			name: "squad mode defaults to squad agent",
+			opts: Options{
+				SquadMode: true,
+			},
+			contains: []string{"--agent", "squad"},
+		},
+		{
+			name: "squad mode with explicit agent overrides",
+			opts: Options{
+				SquadMode: true,
+				Agent:     "azure-architect",
+			},
+			contains: []string{"--agent", "azure-architect"},
+			excludes: []string{"squad"},
+		},
+		{
+			name: "non-squad mode also defaults to squad",
+			opts: Options{
+				SquadMode: false,
+			},
+			contains: []string{"--agent", "squad"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			args := buildArgs(tt.opts)
+
+			for _, want := range tt.contains {
+				found := false
+				for _, arg := range args {
+					if arg == want {
+						found = true
+						break
+					}
+				}
+				if !found {
+					t.Errorf("buildArgs() should contain %q, got %v", want, args)
+				}
+			}
+
+			for _, exclude := range tt.excludes {
+				for _, arg := range args {
+					if arg == exclude {
+						t.Errorf("buildArgs() should not contain %q, got %v", exclude, args)
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestBuildEnv_SquadMode(t *testing.T) {
+	tests := []struct {
+		name     string
+		opts     Options
+		contains []string
+		excludes []string
+	}{
+		{
+			name: "squad mode env vars",
+			opts: Options{
+				SquadMode: true,
+			},
+			contains: []string{"AZD_SQUAD_MODE=true"},
+		},
+		{
+			name: "squad mode with squad dir",
+			opts: Options{
+				SquadMode: true,
+				SquadDir:  "/path/to/.ai-team",
+			},
+			contains: []string{
+				"AZD_SQUAD_MODE=true",
+				"AZD_SQUAD_DIR=/path/to/.ai-team",
+			},
+		},
+		{
+			name: "non-squad mode excludes squad vars",
+			opts: Options{
+				SquadMode: false,
+			},
+			excludes: []string{"AZD_SQUAD_MODE=true"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			env := buildEnv(tt.opts)
+
+			for _, want := range tt.contains {
+				found := false
+				for _, e := range env {
+					if e == want {
+						found = true
+						break
+					}
+				}
+				if !found {
+					t.Errorf("buildEnv() should contain %q", want)
+				}
+			}
+
+			for _, exclude := range tt.excludes {
+				for _, e := range env {
+					if e == exclude {
+						t.Errorf("buildEnv() should not contain %q", exclude)
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestDetectSquadProject(t *testing.T) {
+	t.Run("no team directory", func(t *testing.T) {
+		dir := t.TempDir()
+		if DetectSquadProject(dir) {
+			t.Error("DetectSquadProject() should return false for empty directory")
+		}
+	})
+
+	t.Run("with team directory", func(t *testing.T) {
+		dir := t.TempDir()
+		teamDir := filepath.Join(dir, ".ai-team")
+		if err := os.MkdirAll(teamDir, 0755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(teamDir, "team.md"), []byte("# Team"), 0644); err != nil {
+			t.Fatal(err)
+		}
+		if !DetectSquadProject(dir) {
+			t.Error("DetectSquadProject() should return true when .ai-team/team.md exists")
+		}
+	})
+}
+
+func TestOptions_SquadFields(t *testing.T) {
+	opts := Options{
+		SquadMode: true,
+		SquadDir:  "/path/to/squad",
+	}
+
+	if !opts.SquadMode {
+		t.Error("Options.SquadMode should be true")
+	}
+	if opts.SquadDir != "/path/to/squad" {
+		t.Errorf("Options.SquadDir = %q, want %q", opts.SquadDir, "/path/to/squad")
 	}
 }

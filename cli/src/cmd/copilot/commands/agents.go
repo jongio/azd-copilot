@@ -20,7 +20,7 @@ func NewAgentsCommand() *cobra.Command {
 		Long: fmt.Sprintf(`List and manage the %d specialized Azure agents.
 
 Each agent is an expert in a specific domain of Azure development:
-- azure-manager: Orchestrates all agents, main entry point
+- squad: Azure Squad coordinator — routes work to specialized agents
 - azure-architect: Infrastructure design, Bicep, networking
 - azure-dev: Application code, APIs, frontend
 - azure-data: Database schema, queries, migrations
