@@ -1,3 +1,8 @@
+## [0.1.7] - 2026-02-18
+
+- Update azd-core to v0.5.0 (43fc720)
+- chore: update registry for v0.1.6 (2f2b673)
+
 ## [0.1.6] - 2026-02-17
 
 - fix: convert all WriteString(Sprintf) to fmt.Fprintf for staticcheck QF1012 (a0bdd95)
