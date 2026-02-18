@@ -237,6 +237,6 @@ func runQuickAction(cmd *cobra.Command, action string, prompt string) error {
 	// Launch Copilot with the specific prompt
 	return copilot.Launch(cmd.Context(), copilot.Options{
 		Prompt: prompt,
-		Agent:  "azure-manager",
+		Agent:  "squad",
 	})
 }

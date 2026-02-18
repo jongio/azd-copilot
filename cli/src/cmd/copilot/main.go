@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/jongio/azd-copilot/cli/src/cmd/copilot/commands"
@@ -33,6 +34,7 @@ var (
 	verbose    bool
 	noBanner   bool
 	forceColor bool
+	squadMode  bool
 )
 
 func main() {
@@ -120,11 +122,12 @@ When run without subcommands, starts an interactive Copilot session with Azure c
 	rootCmd.Flags().StringVarP(&prompt, "prompt", "p", "", "Run with a specific prompt")
 	rootCmd.Flags().BoolVarP(&resume, "resume", "r", false, "Resume the last session")
 	rootCmd.Flags().BoolVarP(&yolo, "yolo", "y", false, "Auto-approve all actions (use with caution)")
-	rootCmd.Flags().StringVarP(&agent, "agent", "a", "", "Use a specific agent (default: azure-manager)")
+	rootCmd.Flags().StringVarP(&agent, "agent", "a", "", "Use a specific agent (default: squad)")
 	rootCmd.Flags().StringVarP(&model, "model", "m", "", "Use a specific AI model")
 	rootCmd.Flags().StringSliceVar(&addDirs, "add-dir", nil, "Additional directories to include")
 	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Verbose output")
 	rootCmd.Flags().BoolVar(&noBanner, "no-banner", false, "Skip the banner")
+	rootCmd.Flags().BoolVar(&squadMode, "squad", false, "Enable Squad multi-agent mode")
 
 	// Register all commands
 	rootCmd.AddCommand(
@@ -139,6 +142,7 @@ When run without subcommands, starts an interactive Copilot session with Azure c
 		commands.NewSpecCommand(),
 		commands.NewMCPCommand(),
 		commands.NewMetadataCommand(),
+		commands.NewSquadCommand(),
 		// Quick actions
 		commands.NewInitCommand(),
 		commands.NewReviewCommand(),
@@ -188,6 +192,21 @@ func runCopilotSession(cmd *cobra.Command) error {
 	// Build project context
 	projectContext := buildProjectContext()
 
+	// Auto-detect Squad mode if not explicitly set
+	cwd, _ := os.Getwd()
+	if !squadMode && cwd != "" && copilot.DetectSquadProject(cwd) {
+		squadMode = true
+		if !noBanner && prompt == "" {
+			cliout.Hint("Squad team detected — using multi-agent mode")
+		}
+	}
+
+	// Determine squad directory
+	var squadDir string
+	if squadMode && cwd != "" {
+		squadDir = filepath.Join(cwd, ".ai-team")
+	}
+
 	// Launch Copilot CLI
 	return copilot.Launch(cmd.Context(), copilot.Options{
 		Prompt:         prompt,
@@ -199,6 +218,8 @@ func runCopilotSession(cmd *cobra.Command) error {
 		Verbose:        verbose,
 		Debug:          debugMode,
 		ProjectContext: projectContext,
+		SquadMode:      squadMode,
+		SquadDir:       squadDir,
 	})
 }
 

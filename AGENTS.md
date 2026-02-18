@@ -39,6 +39,15 @@ go build ./...
 go test ./...
 ```
 
+After every change to CLI code, rebuild and install locally so `azd copilot` runs your latest bits:
+
+```bash
+cd cli
+mage build
+```
+
+This kills running extension processes, builds the binary, and installs it via `azd x build`. Always do this before testing changes locally.
+
 ## Adding a Custom Skill
 
 Create a directory in `skills/` with a `SKILL.md`:
@@ -57,8 +66,8 @@ The `SKILL.md` must have YAML frontmatter with `name` and `description`. After a
 | Command | What it does |
 |---------|-------------|
 | `mage SyncSkills` | Pull latest upstream skills into `ghcp4a-skills/` (smart merge — keeps your changes) |
-| `mage SyncSkills /path/to/clone` | Sync from a local clone instead of cloning remotely |
-| `mage SyncSkills url@branch` | Sync from a custom repo/branch (e.g. a fork) |
+| `mage SyncSkillsFrom /path/to/clone` | Sync from a local clone instead of cloning remotely |
+| `mage SyncSkillsFrom url@branch` | Sync from a custom repo/branch (e.g. a fork) |
 | `mage ContributeSkills` | Create a branch with your `ghcp4a-skills/` changes for a PR to upstream |
 
 ## MCP Server Configuration

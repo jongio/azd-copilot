@@ -115,7 +115,7 @@ func listSessions(cmd *cobra.Command, args []string) error {
 		// Try to detect agent from checkpoints
 		checkpointsDir := filepath.Join(sessionPath, "checkpoints")
 		if cpEntries, err := os.ReadDir(checkpointsDir); err == nil && len(cpEntries) > 0 {
-			session.Agent = "azure-manager" // Default assumption
+			session.Agent = "squad" // Default assumption
 		}
 
 		sessions = append(sessions, session)

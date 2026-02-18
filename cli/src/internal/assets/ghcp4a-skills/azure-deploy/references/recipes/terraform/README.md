@@ -5,16 +5,16 @@ Deploy to Azure using Terraform.
 ## Prerequisites
 
 - Terraform CLI installed
-- `.azure/preparation-manifest.md` exists with status `Validated`
+- `.azure/plan.md` exists with status `Validated`
 - Terraform initialized (`terraform init`)
 - Plan validated (`terraform plan`)
-- **Subscription and location confirmed** → See [pre-deploy-checklist.md](../pre-deploy-checklist.md)
+- **Subscription and location confirmed** → See [Pre-Deploy Checklist](../../pre-deploy-checklist.md)
 
 ## Workflow
 
 | Step | Task | Command |
 |------|------|---------|
-| 1 | **[Pre-deploy checklist](../pre-deploy-checklist.md)** | Confirm subscription/location with user |
+| 1 | **[Pre-deploy checklist](../../pre-deploy-checklist.md)** | Confirm subscription/location with user |
 | 2 | Select workspace | `terraform workspace select <env>` |
 | 3 | Apply | `terraform apply tfplan` |
 | 4 | Get outputs | `terraform output` |
@@ -77,5 +77,5 @@ az containerapp update \
 
 ## References
 
-- [Verification steps](mdc:verify.md)
-- [Error handling](mdc:errors.md)
+- [Verification steps](./verify.md)
+- [Error handling](./errors.md)

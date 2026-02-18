@@ -6,6 +6,9 @@ package commands
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/jongio/azd-copilot/cli/src/internal/copilot"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -88,7 +91,7 @@ func registerMCPTools(s *server.MCPServer) {
 		),
 		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 			agents := []string{
-				"azure-manager - Orchestrates all agents, main entry point",
+				"squad - Azure Squad coordinator, routes work to specialized agents",
 				"azure-architect - Infrastructure design, Bicep, networking",
 				"azure-dev - Application code, APIs, frontend",
 				"azure-data - Database schema, queries, migrations",
@@ -162,6 +165,95 @@ func registerMCPTools(s *server.MCPServer) {
 			return mcp.NewToolResultText(result), nil
 		},
 	)
+
+	// Tool: list_squad_members
+	s.AddTool(
+		mcp.NewTool("list_squad_members",
+			mcp.WithDescription("List all members of the Azure Squad team"),
+		),
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			projectDir := getSquadProjectDir()
+			teamFile := filepath.Join(projectDir, ".ai-team", "team.md")
+			data, err := os.ReadFile(teamFile)
+			if err != nil {
+				return mcp.NewToolResultText("No Squad team found. Run 'azd copilot squad init' to create one."), nil
+			}
+			return mcp.NewToolResultText(string(data)), nil
+		},
+	)
+
+	// Tool: get_squad_decisions
+	s.AddTool(
+		mcp.NewTool("get_squad_decisions",
+			mcp.WithDescription("Get the shared decisions log for the Azure Squad team"),
+		),
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			projectDir := getSquadProjectDir()
+			decisionsFile := filepath.Join(projectDir, ".ai-team", "decisions.md")
+			data, err := os.ReadFile(decisionsFile)
+			if err != nil {
+				return mcp.NewToolResultText("No decisions file found. The Squad team may not be initialized."), nil
+			}
+			return mcp.NewToolResultText(string(data)), nil
+		},
+	)
+
+	// Tool: create_squad_decision
+	s.AddTool(
+		mcp.NewTool("create_squad_decision",
+			mcp.WithDescription("Write a decision to the Squad team's shared decision inbox"),
+			mcp.WithString("author", mcp.Required(), mcp.Description("Name of the agent or user making the decision")),
+			mcp.WithString("summary", mcp.Required(), mcp.Description("Brief summary of the decision")),
+			mcp.WithString("detail", mcp.Description("Detailed explanation of the decision and rationale")),
+		),
+		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			args, ok := req.Params.Arguments.(map[string]interface{})
+			if !ok {
+				return mcp.NewToolResultText("Error: invalid arguments"), nil
+			}
+			author, _ := args["author"].(string)
+			summary, _ := args["summary"].(string)
+			detail, _ := args["detail"].(string)
+
+			projectDir := getSquadProjectDir()
+
+			inboxDir := filepath.Join(projectDir, ".ai-team", "decisions", "inbox")
+			if err := os.MkdirAll(inboxDir, 0755); err != nil {
+				return mcp.NewToolResultText(fmt.Sprintf("Error creating inbox directory: %v", err)), nil
+			}
+
+			// Create a slug from the summary
+			slug := strings.ToLower(strings.ReplaceAll(summary, " ", "-"))
+			if len(slug) > 50 {
+				slug = slug[:50]
+			}
+
+			filename := filepath.Join(inboxDir, fmt.Sprintf("%s-%s.md", strings.ToLower(author), slug))
+			content := fmt.Sprintf("### %s\n**By:** %s\n**What:** %s\n", summary, author, summary)
+			if detail != "" {
+				content += fmt.Sprintf("**Why:** %s\n", detail)
+			}
+
+			if err := os.WriteFile(filename, []byte(content), 0644); err != nil {
+				return mcp.NewToolResultText(fmt.Sprintf("Error writing decision: %v", err)), nil
+			}
+
+			return mcp.NewToolResultText(fmt.Sprintf("Decision written to: %s", filename)), nil
+		},
+	)
+}
+
+// getSquadProjectDir resolves the project directory for Squad operations.
+func getSquadProjectDir() string {
+	if dir := os.Getenv("AZD_SQUAD_DIR"); dir != "" {
+		// AZD_SQUAD_DIR points to .ai-team/ dir, return parent
+		return filepath.Dir(dir)
+	}
+	if dir := os.Getenv("AZD_COPILOT_PROJECT_DIR"); dir != "" {
+		return dir
+	}
+	cwd, _ := os.Getwd()
+	return cwd
 }
 
 func registerMCPResources(s *server.MCPServer) {
@@ -178,7 +270,7 @@ func registerMCPResources(s *server.MCPServer) {
 
 The following specialized agents are available:
 
-1. **azure-manager** - Orchestrates all agents, main entry point
+1. **squad** - Azure Squad coordinator, routes work to specialized agents
 2. **azure-architect** - Infrastructure design, Bicep, networking
 3. **azure-dev** - Application code, APIs, frontend
 4. **azure-data** - Database schema, queries, migrations

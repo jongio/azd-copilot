@@ -42,7 +42,6 @@ func TestListAgents_Content(t *testing.T) {
 
 	// Check for expected agents
 	expectedAgents := []string{
-		"azure-manager",
 		"azure-architect",
 		"azure-dev",
 		"azure-security",

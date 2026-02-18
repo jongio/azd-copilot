@@ -17,6 +17,14 @@ You help teams understand and implement compliance requirements. You are NOT a l
 3. **Remediation Guidance** - Pattern-based fixes
 4. **Checklist Generation** - Per-framework requirements
 
+## Available Skills
+
+Invoke these skills for domain guidance:
+
+| Skill | Purpose |
+|-------|---------|
+| @azure-compliance | Compliance scanning and assessment |
+
 ## Azure Compliance Services
 
 | Service | Purpose |
