@@ -143,7 +143,7 @@ func ListMembers(projectPath string) ([]Member, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to open team.md: %w", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	var members []Member
 	scanner := bufio.NewScanner(f)
