@@ -69,10 +69,9 @@ func TestSaveAndLoad(t *testing.T) {
 
 	// Override the manager to use temp dir
 	oldManager := manager
-	oldMu := managerMu
 	defer func() {
 		manager = oldManager
-		managerMu = oldMu
+		managerMu = sync.Mutex{}
 	}()
 
 	manager = nil
@@ -128,10 +127,9 @@ func TestClear(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	oldManager := manager
-	oldMu := managerMu
 	defer func() {
 		manager = oldManager
-		managerMu = oldMu
+		managerMu = sync.Mutex{}
 	}()
 
 	manager = nil

@@ -9,9 +9,9 @@ import (
 	"github.com/jongio/azd-copilot/cli/src/cmd/copilot/commands"
 	"github.com/jongio/azd-copilot/cli/src/internal/assets"
 	"github.com/jongio/azd-copilot/cli/src/internal/copilot"
-	"github.com/jongio/azd-core/logutil"
 	selfskills "github.com/jongio/azd-copilot/cli/src/internal/skills"
 	"github.com/jongio/azd-core/cliout"
+	"github.com/jongio/azd-core/logutil"
 
 	"github.com/common-nighthawk/go-figure"
 	"github.com/spf13/cobra"
