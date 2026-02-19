@@ -6,6 +6,7 @@ package cache
 import (
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 )
 
@@ -68,9 +69,17 @@ func TestSaveAndLoad(t *testing.T) {
 
 	// Override the manager to use temp dir
 	oldManager := manager
-	defer func() { manager = nil; manager = oldManager }()
+	oldOnce := managerOnce
+	oldErr := managerErr
+	defer func() {
+		manager = oldManager
+		managerOnce = oldOnce
+		managerErr = oldErr
+	}()
 
 	manager = nil
+	managerOnce = sync.Once{}
+	managerErr = nil
 	// We need to set the manager manually for testing
 	t.Setenv("HOME", tmpDir)
 	t.Setenv("USERPROFILE", tmpDir)
@@ -122,9 +131,17 @@ func TestClear(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	oldManager := manager
-	defer func() { manager = nil; manager = oldManager }()
+	oldOnce := managerOnce
+	oldErr := managerErr
+	defer func() {
+		manager = oldManager
+		managerOnce = oldOnce
+		managerErr = oldErr
+	}()
 
 	manager = nil
+	managerOnce = sync.Once{}
+	managerErr = nil
 	t.Setenv("HOME", tmpDir)
 	t.Setenv("USERPROFILE", tmpDir)
 

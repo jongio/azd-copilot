@@ -6,6 +6,7 @@ package cache
 import (
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	corecache "github.com/jongio/azd-core/cache"
@@ -24,21 +25,26 @@ type SetupCache struct {
 	ExtensionsChecked bool `json:"extensionsChecked"`
 }
 
-var manager *corecache.Manager
+var (
+	manager     *corecache.Manager
+	managerOnce sync.Once
+	managerErr  error
+)
 
 func getManager() (*corecache.Manager, error) {
-	if manager != nil {
-		return manager, nil
-	}
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return nil, err
-	}
-	manager = corecache.NewManager(corecache.Options{
-		Dir: filepath.Join(home, ".azd"),
-		TTL: cacheDuration,
+	managerOnce.Do(func() {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			managerErr = err
+			return
+		}
+		manager = corecache.NewManager(corecache.Options{
+			Dir:     filepath.Join(home, ".azd"),
+			TTL:     cacheDuration,
+			Version: "1",
+		})
 	})
-	return manager, nil
+	return manager, managerErr
 }
 
 // Load reads the cache from disk
