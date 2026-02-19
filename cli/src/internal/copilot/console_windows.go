@@ -25,7 +25,7 @@ const (
 // consoleHandles holds CONIN$/CONOUT$ file handles and the original
 // process standard handles so they can be restored after the child exits.
 type consoleHandles struct {
-	conin, conout       *os.File
+	conin, conout            *os.File
 	origIn, origOut, origErr uintptr
 }
 
@@ -45,7 +45,7 @@ func attachConsole() (*consoleHandles, error) {
 
 	conin, err := os.OpenFile("CONIN$", os.O_RDWR, 0)
 	if err != nil {
-		conout.Close()
+		_ = conout.Close()
 		return nil, err
 	}
 
@@ -57,18 +57,18 @@ func attachConsole() (*consoleHandles, error) {
 	h.origErr, _, _ = procGetStdHandle.Call(stdErrorHandle)
 
 	// Redirect to console
-	procSetStdHandle.Call(stdInputHandle, uintptr(conin.Fd()))
-	procSetStdHandle.Call(stdOutputHandle, uintptr(conout.Fd()))
-	procSetStdHandle.Call(stdErrorHandle, uintptr(conout.Fd()))
+	_, _, _ = procSetStdHandle.Call(stdInputHandle, uintptr(conin.Fd()))
+	_, _, _ = procSetStdHandle.Call(stdOutputHandle, uintptr(conout.Fd()))
+	_, _, _ = procSetStdHandle.Call(stdErrorHandle, uintptr(conout.Fd()))
 
 	return h, nil
 }
 
 // restore puts the original standard handles back and closes the console files.
 func (h *consoleHandles) restore() {
-	procSetStdHandle.Call(stdInputHandle, h.origIn)
-	procSetStdHandle.Call(stdOutputHandle, h.origOut)
-	procSetStdHandle.Call(stdErrorHandle, h.origErr)
-	h.conin.Close()
-	h.conout.Close()
+	_, _, _ = procSetStdHandle.Call(stdInputHandle, h.origIn)
+	_, _, _ = procSetStdHandle.Call(stdOutputHandle, h.origOut)
+	_, _, _ = procSetStdHandle.Call(stdErrorHandle, h.origErr)
+	_ = h.conin.Close()
+	_ = h.conout.Close()
 }

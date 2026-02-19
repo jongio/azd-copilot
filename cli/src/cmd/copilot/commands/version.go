@@ -1,10 +1,7 @@
 package commands
 
 import (
-	"encoding/json"
-	"os"
-
-	"github.com/jongio/azd-core/cliout"
+	coreversion "github.com/jongio/azd-core/version"
 	"github.com/spf13/cobra"
 )
 
@@ -17,46 +14,16 @@ var BuildTime = "unknown"
 // Commit is set at build time via -ldflags.
 var Commit = "unknown"
 
-// VersionInfo represents version information for JSON output.
-type VersionInfo struct {
-	Version   string `json:"version"`
-	BuildTime string `json:"buildTime"`
-	Commit    string `json:"commit"`
+// VersionInfo provides the shared version information for this extension.
+var VersionInfo = coreversion.New("jongio.azd.copilot", "azd copilot")
+
+func init() {
+	VersionInfo.Version = Version
+	VersionInfo.BuildDate = BuildTime
+	VersionInfo.GitCommit = Commit
 }
 
 // NewVersionCommand creates the version command.
-func NewVersionCommand() *cobra.Command {
-	var jsonOutput bool
-
-	cmd := &cobra.Command{
-		Use:          "version",
-		Short:        "Show version information",
-		Long:         `Display the version of the azd copilot extension.`,
-		SilenceUsage: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if jsonOutput {
-				info := VersionInfo{
-					Version:   Version,
-					BuildTime: BuildTime,
-					Commit:    Commit,
-				}
-				encoder := json.NewEncoder(os.Stdout)
-				encoder.SetIndent("", "  ")
-				return encoder.Encode(info)
-			}
-
-			cliout.Section("🤖", "Azure Copilot CLI Extension")
-			cliout.Newline()
-			cliout.Label("Version", Version)
-			cliout.Label("Built", BuildTime)
-			if Commit != "unknown" {
-				cliout.Label("Commit", Commit)
-			}
-			return nil
-		},
-	}
-
-	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Output version as JSON")
-
-	return cmd
+func NewVersionCommand(outputFormat *string) *cobra.Command {
+	return coreversion.NewCommand(VersionInfo, outputFormat)
 }

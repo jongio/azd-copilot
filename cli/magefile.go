@@ -65,7 +65,7 @@ func getVersion() (string, error) {
 
 // All runs lint, test, and build in dependency order.
 func All() error {
-	mg.Deps(Fmt, Lint, Test)
+	mg.SerialDeps(Fmt, Lint, Test)
 	return Build()
 }
 

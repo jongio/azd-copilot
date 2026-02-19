@@ -9,9 +9,9 @@ import (
 	"github.com/jongio/azd-copilot/cli/src/cmd/copilot/commands"
 	"github.com/jongio/azd-copilot/cli/src/internal/assets"
 	"github.com/jongio/azd-copilot/cli/src/internal/copilot"
-	"github.com/jongio/azd-copilot/cli/src/internal/logging"
 	selfskills "github.com/jongio/azd-copilot/cli/src/internal/skills"
 	"github.com/jongio/azd-core/cliout"
+	"github.com/jongio/azd-core/logutil"
 
 	"github.com/common-nighthawk/go-figure"
 	"github.com/spf13/cobra"
@@ -82,7 +82,7 @@ When run without subcommands, starts an interactive Copilot session with Azure c
 			}
 
 			// Configure logging
-			logging.SetupLogger(debugMode, structuredLogs)
+			logutil.SetupLogger(debugMode, structuredLogs)
 
 			// Install azd-copilot self-skill
 			if err := selfskills.InstallSkill(); err != nil {
@@ -93,7 +93,7 @@ When run without subcommands, starts an interactive Copilot session with Azure c
 
 			// Log startup in debug mode
 			if debugMode {
-				logging.Debug("Starting azd copilot extension",
+				logutil.Debug("Starting azd copilot extension",
 					"version", commands.Version,
 					"command", cmd.Name(),
 					"args", args,
@@ -128,7 +128,7 @@ When run without subcommands, starts an interactive Copilot session with Azure c
 
 	// Register all commands
 	rootCmd.AddCommand(
-		commands.NewVersionCommand(),
+		commands.NewVersionCommand(&outputFormat),
 		commands.NewListenCommand(),
 		commands.NewAgentsCommand(),
 		commands.NewSkillsCommand(),

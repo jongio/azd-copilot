@@ -6,99 +6,85 @@ package cache
 import (
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
-	"github.com/jongio/azd-core/fileutil"
+	corecache "github.com/jongio/azd-core/cache"
 )
 
 const (
-	cacheFile     = "copilot-setup-cache.json"
+	cacheKey      = "copilot-setup-cache"
 	cacheDuration = 24 * time.Hour
 )
 
 // SetupCache stores the results of one-time setup checks
 type SetupCache struct {
-	Metadata          fileutil.CacheMetadata `json:"_cache"`
-	AgentsInstalled   bool                   `json:"agentsInstalled"`
-	SkillsInstalled   bool                   `json:"skillsInstalled"`
-	MCPConfigured     bool                   `json:"mcpConfigured"`
-	ExtensionsChecked bool                   `json:"extensionsChecked"`
+	AgentsInstalled   bool `json:"agentsInstalled"`
+	SkillsInstalled   bool `json:"skillsInstalled"`
+	MCPConfigured     bool `json:"mcpConfigured"`
+	ExtensionsChecked bool `json:"extensionsChecked"`
 }
 
-// getCachePath returns the path to the cache file
-func getCachePath() (string, error) {
+var (
+	manager   *corecache.Manager
+	managerMu sync.Mutex
+)
+
+// getManager returns the cache manager singleton, initializing it on first call.
+// Uses sync.Mutex instead of sync.Once to allow retry on transient failures.
+func getManager() (*corecache.Manager, error) {
+	managerMu.Lock()
+	defer managerMu.Unlock()
+
+	if manager != nil {
+		return manager, nil
+	}
+
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return filepath.Join(home, ".azd", cacheFile), nil
+	manager = corecache.NewManager(corecache.Options{
+		Dir:     filepath.Join(home, ".azd"),
+		TTL:     cacheDuration,
+		Version: "1",
+	})
+	return manager, nil
 }
 
 // Load reads the cache from disk
 func Load() (*SetupCache, error) {
-	path, err := getCachePath()
+	m, err := getManager()
 	if err != nil {
 		return nil, err
 	}
-
-	var cache SetupCache
-	valid, err := fileutil.LoadCacheJSON(path, &cache, fileutil.CacheOptions{
-		TTL: cacheDuration,
-	})
+	var c SetupCache
+	ok, err := m.Get(cacheKey, &c)
 	if err != nil {
 		return nil, err
 	}
-	if !valid {
+	if !ok {
 		return nil, nil // Cache doesn't exist or is expired
 	}
-
-	return &cache, nil
+	return &c, nil
 }
 
 // Save writes the cache to disk
-func Save(cache *SetupCache) error {
-	path, err := getCachePath()
+func Save(c *SetupCache) error {
+	m, err := getManager()
 	if err != nil {
 		return err
 	}
-
-	// Ensure directory exists
-	if err := fileutil.EnsureDir(filepath.Dir(path)); err != nil {
-		return err
-	}
-
-	// Update metadata
-	cache.Metadata.CachedAt = time.Now()
-
-	return fileutil.AtomicWriteJSON(path, cache)
+	return m.Set(cacheKey, c)
 }
 
 // Clear removes the cache file
 func Clear() error {
-	path, err := getCachePath()
+	m, err := getManager()
 	if err != nil {
 		return err
 	}
-	return fileutil.ClearCache(path)
-}
-
-// IsValid checks if the cache is still valid
-func (c *SetupCache) IsValid(currentVersion string) bool {
-	if c == nil {
-		return false
-	}
-
-	// Invalidate if version changed
-	if c.Metadata.Version != currentVersion {
-		return false
-	}
-
-	// Invalidate if cache is too old
-	if time.Since(c.Metadata.CachedAt) > cacheDuration {
-		return false
-	}
-
-	return true
+	return m.Invalidate(cacheKey)
 }
 
 // NeedsSetup returns true if any setup step needs to run
