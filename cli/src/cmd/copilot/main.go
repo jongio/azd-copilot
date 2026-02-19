@@ -128,7 +128,7 @@ When run without subcommands, starts an interactive Copilot session with Azure c
 
 	// Register all commands
 	rootCmd.AddCommand(
-		commands.NewVersionCommand(),
+		commands.NewVersionCommand(&outputFormat),
 		commands.NewListenCommand(),
 		commands.NewAgentsCommand(),
 		commands.NewSkillsCommand(),

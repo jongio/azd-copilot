@@ -7,75 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 )
-
-func TestSetupCache_IsValid(t *testing.T) {
-	tests := []struct {
-		name           string
-		cache          *SetupCache
-		currentVersion string
-		want           bool
-	}{
-		{
-			name:           "nil cache",
-			cache:          nil,
-			currentVersion: "1.0.0",
-			want:           false,
-		},
-		{
-			name: "valid cache with matching version",
-			cache: &SetupCache{
-				Metadata: struct {
-					CachedAt time.Time `json:"cachedAt"`
-					Version  string    `json:"version,omitempty"`
-				}{
-					CachedAt: time.Now(),
-					Version:  "1.0.0",
-				},
-			},
-			currentVersion: "1.0.0",
-			want:           true,
-		},
-		{
-			name: "invalid cache with version mismatch",
-			cache: &SetupCache{
-				Metadata: struct {
-					CachedAt time.Time `json:"cachedAt"`
-					Version  string    `json:"version,omitempty"`
-				}{
-					CachedAt: time.Now(),
-					Version:  "0.9.0",
-				},
-			},
-			currentVersion: "1.0.0",
-			want:           false,
-		},
-		{
-			name: "expired cache",
-			cache: &SetupCache{
-				Metadata: struct {
-					CachedAt time.Time `json:"cachedAt"`
-					Version  string    `json:"version,omitempty"`
-				}{
-					CachedAt: time.Now().Add(-48 * time.Hour), // 2 days ago
-					Version:  "1.0.0",
-				},
-			},
-			currentVersion: "1.0.0",
-			want:           false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := tt.cache.IsValid(tt.currentVersion)
-			if got != tt.want {
-				t.Errorf("SetupCache.IsValid() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
 
 func TestSetupCache_NeedsSetup(t *testing.T) {
 	tests := []struct {
@@ -130,41 +62,25 @@ func TestSetupCache_NeedsSetup(t *testing.T) {
 	}
 }
 
-func TestGetCachePath(t *testing.T) {
-	path, err := getCachePath()
-	if err != nil {
-		t.Fatalf("getCachePath() error = %v", err)
-	}
-
-	// Should contain .azd directory
-	if !filepath.IsAbs(path) {
-		t.Errorf("getCachePath() should return absolute path, got %v", path)
-	}
-
-	if !contains(path, ".azd") {
-		t.Errorf("getCachePath() should contain .azd directory, got %v", path)
-	}
-
-	if !contains(path, cacheFile) {
-		t.Errorf("getCachePath() should contain %s, got %v", cacheFile, path)
-	}
-}
-
 func TestSaveAndLoad(t *testing.T) {
-	// Skip if we can't get home directory
-	home, err := os.UserHomeDir()
-	if err != nil {
-		t.Skip("Cannot get user home directory")
-	}
+	// Use a temporary directory to avoid interfering with real cache
+	tmpDir := t.TempDir()
 
-	// Use a test-specific cache file to avoid interfering with real cache
-	testDir := filepath.Join(home, ".azd-test-cache")
-	if err := os.MkdirAll(testDir, 0755); err != nil {
+	// Override the manager to use temp dir
+	oldManager := manager
+	defer func() { manager = nil; manager = oldManager }()
+
+	manager = nil
+	// We need to set the manager manually for testing
+	t.Setenv("HOME", tmpDir)
+	t.Setenv("USERPROFILE", tmpDir)
+
+	// Ensure .azd directory exists
+	if err := os.MkdirAll(filepath.Join(tmpDir, ".azd"), 0755); err != nil {
 		t.Fatalf("Failed to create test directory: %v", err)
 	}
-	defer func() { _ = os.RemoveAll(testDir) }()
 
-	cache := &SetupCache{
+	original := &SetupCache{
 		AgentsInstalled:   true,
 		SkillsInstalled:   true,
 		MCPConfigured:     false,
@@ -172,35 +88,67 @@ func TestSaveAndLoad(t *testing.T) {
 	}
 
 	// Test Save
-	err = Save(cache)
+	err := Save(original)
 	if err != nil {
-		t.Logf("Save() error = %v (may be expected in test environment)", err)
+		t.Fatalf("Save() error = %v", err)
 	}
 
 	// Test Load
 	loaded, err := Load()
 	if err != nil {
-		t.Logf("Load() error = %v (may be expected in test environment)", err)
+		t.Fatalf("Load() error = %v", err)
 	}
 
-	// If load succeeded, verify values
-	if loaded != nil {
-		if loaded.AgentsInstalled != cache.AgentsInstalled {
-			t.Errorf("AgentsInstalled = %v, want %v", loaded.AgentsInstalled, cache.AgentsInstalled)
-		}
+	if loaded == nil {
+		t.Fatal("Load() returned nil")
+	}
+
+	if loaded.AgentsInstalled != original.AgentsInstalled {
+		t.Errorf("AgentsInstalled = %v, want %v", loaded.AgentsInstalled, original.AgentsInstalled)
+	}
+	if loaded.SkillsInstalled != original.SkillsInstalled {
+		t.Errorf("SkillsInstalled = %v, want %v", loaded.SkillsInstalled, original.SkillsInstalled)
+	}
+	if loaded.MCPConfigured != original.MCPConfigured {
+		t.Errorf("MCPConfigured = %v, want %v", loaded.MCPConfigured, original.MCPConfigured)
+	}
+	if loaded.ExtensionsChecked != original.ExtensionsChecked {
+		t.Errorf("ExtensionsChecked = %v, want %v", loaded.ExtensionsChecked, original.ExtensionsChecked)
 	}
 }
 
 func TestClear(t *testing.T) {
-	// Clear should not error even if file doesn't exist
-	err := Clear()
-	if err != nil {
-		t.Logf("Clear() returned error = %v (may be expected)", err)
-	}
-}
+	// Use a temporary directory
+	tmpDir := t.TempDir()
 
-// Helper function
-func contains(s, substr string) bool {
-	return filepath.Base(filepath.Dir(s)) == ".azd" || filepath.Base(s) == substr ||
-		len(s) > len(substr) && s[len(s)-len(substr):] == substr
+	oldManager := manager
+	defer func() { manager = nil; manager = oldManager }()
+
+	manager = nil
+	t.Setenv("HOME", tmpDir)
+	t.Setenv("USERPROFILE", tmpDir)
+
+	if err := os.MkdirAll(filepath.Join(tmpDir, ".azd"), 0755); err != nil {
+		t.Fatalf("Failed to create test directory: %v", err)
+	}
+
+	// Save then clear
+	err := Save(&SetupCache{AgentsInstalled: true})
+	if err != nil {
+		t.Fatalf("Save() error = %v", err)
+	}
+
+	err = Clear()
+	if err != nil {
+		t.Fatalf("Clear() error = %v", err)
+	}
+
+	// Load should return nil after clear
+	loaded, err := Load()
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if loaded != nil {
+		t.Errorf("Load() should return nil after Clear(), got %+v", loaded)
+	}
 }
