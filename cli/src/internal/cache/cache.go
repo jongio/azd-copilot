@@ -26,25 +26,30 @@ type SetupCache struct {
 }
 
 var (
-	manager     *corecache.Manager
-	managerOnce sync.Once
-	managerErr  error
+	manager   *corecache.Manager
+	managerMu sync.Mutex
 )
 
+// getManager returns the cache manager singleton, initializing it on first call.
+// Uses sync.Mutex instead of sync.Once to allow retry on transient failures.
 func getManager() (*corecache.Manager, error) {
-	managerOnce.Do(func() {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			managerErr = err
-			return
-		}
-		manager = corecache.NewManager(corecache.Options{
-			Dir:     filepath.Join(home, ".azd"),
-			TTL:     cacheDuration,
-			Version: "1",
-		})
+	managerMu.Lock()
+	defer managerMu.Unlock()
+
+	if manager != nil {
+		return manager, nil
+	}
+
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+	manager = corecache.NewManager(corecache.Options{
+		Dir:     filepath.Join(home, ".azd"),
+		TTL:     cacheDuration,
+		Version: "1",
 	})
-	return manager, managerErr
+	return manager, nil
 }
 
 // Load reads the cache from disk

@@ -69,17 +69,14 @@ func TestSaveAndLoad(t *testing.T) {
 
 	// Override the manager to use temp dir
 	oldManager := manager
-	oldOnce := managerOnce
-	oldErr := managerErr
+	oldMu := managerMu
 	defer func() {
 		manager = oldManager
-		managerOnce = oldOnce
-		managerErr = oldErr
+		managerMu = oldMu
 	}()
 
 	manager = nil
-	managerOnce = sync.Once{}
-	managerErr = nil
+	managerMu = sync.Mutex{}
 	// We need to set the manager manually for testing
 	t.Setenv("HOME", tmpDir)
 	t.Setenv("USERPROFILE", tmpDir)
@@ -131,17 +128,14 @@ func TestClear(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	oldManager := manager
-	oldOnce := managerOnce
-	oldErr := managerErr
+	oldMu := managerMu
 	defer func() {
 		manager = oldManager
-		managerOnce = oldOnce
-		managerErr = oldErr
+		managerMu = oldMu
 	}()
 
 	manager = nil
-	managerOnce = sync.Once{}
-	managerErr = nil
+	managerMu = sync.Mutex{}
 	t.Setenv("HOME", tmpDir)
 	t.Setenv("USERPROFILE", tmpDir)
 
