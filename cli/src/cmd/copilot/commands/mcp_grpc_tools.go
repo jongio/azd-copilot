@@ -4,386 +4,421 @@
 package commands
 
 import (
-	"context"
-	"encoding/json"
-	"fmt"
+"context"
+"encoding/json"
+"fmt"
 
-	"github.com/azure/azure-dev/cli/azd/pkg/azdext"
-	"github.com/mark3labs/mcp-go/mcp"
-	"github.com/mark3labs/mcp-go/server"
+"github.com/azure/azure-dev/cli/azd/pkg/azdext"
+"github.com/jongio/azd-core/azdextutil"
+"github.com/mark3labs/mcp-go/mcp"
+"github.com/mark3labs/mcp-go/server"
 )
+
+var grpcRateLimiter = azdextutil.NewRateLimiter(10, 1.0)
 
 // registerGRPCTools registers MCP tools that wrap azd gRPC services.
 func registerGRPCTools(s *server.MCPServer) {
-	registerEnvironmentTools(s)
-	registerDeploymentTools(s)
-	registerAccountTools(s)
-	registerWorkflowTools(s)
-	registerComposeTools(s)
+registerEnvironmentTools(s)
+registerDeploymentTools(s)
+registerAccountTools(s)
+registerWorkflowTools(s)
+registerComposeTools(s)
 }
 
 // newAzdClient creates a new azd gRPC client and returns it along with a context
 // that includes the access token for authentication.
 func newAzdClient(ctx context.Context) (context.Context, *azdext.AzdClient, error) {
-	client, err := azdext.NewAzdClient()
-	if err != nil {
-		return ctx, nil, fmt.Errorf("failed to create azd client: %w", err)
-	}
-	return azdext.WithAccessToken(ctx), client, nil
+client, err := azdext.NewAzdClient()
+if err != nil {
+return ctx, nil, fmt.Errorf("failed to create azd client: %w", err)
+}
+return azdext.WithAccessToken(ctx), client, nil
 }
 
 func registerEnvironmentTools(s *server.MCPServer) {
-	// Tool: list_environments
-	s.AddTool(
-		mcp.NewTool("list_environments",
-			mcp.WithDescription("List all azd environments"),
-			mcp.WithReadOnlyHintAnnotation(true),
-		),
-		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			ctx, client, err := newAzdClient(ctx)
-			if err != nil {
-				return mcp.NewToolResultText(fmt.Sprintf("Error: %s", err)), nil
-			}
-			defer client.Close()
+// Tool: list_environments
+s.AddTool(
+mcp.NewTool("list_environments",
+mcp.WithDescription("List all azd environments"),
+mcp.WithReadOnlyHintAnnotation(true),
+),
+func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+if err := grpcRateLimiter.CheckRateLimit("list_environments"); err != nil {
+return mcp.NewToolResultError(err.Error()), nil
+}
 
-			resp, err := client.Environment().List(ctx, &azdext.EmptyRequest{})
-			if err != nil {
-				return mcp.NewToolResultText(fmt.Sprintf("Error listing environments: %s", err)), nil
-			}
+ctx, client, err := newAzdClient(ctx)
+if err != nil {
+return mcp.NewToolResultError(err.Error()), nil
+}
+defer client.Close()
 
-			type envInfo struct {
-				Name    string `json:"name"`
-				Local   bool   `json:"local"`
-				Remote  bool   `json:"remote"`
-				Default bool   `json:"default"`
-			}
+resp, err := client.Environment().List(ctx, &azdext.EmptyRequest{})
+if err != nil {
+return mcp.NewToolResultError(fmt.Sprintf("listing environments: %s", err)), nil
+}
 
-			envs := make([]envInfo, 0, len(resp.Environments))
-			for _, e := range resp.Environments {
-				envs = append(envs, envInfo{
-					Name:    e.Name,
-					Local:   e.Local,
-					Remote:  e.Remote,
-					Default: e.Default,
-				})
-			}
+type envInfo struct {
+Name    string `json:"name"`
+Local   bool   `json:"local"`
+Remote  bool   `json:"remote"`
+Default bool   `json:"default"`
+}
 
-			data, err := json.MarshalIndent(envs, "", "  ")
-			if err != nil {
-				return mcp.NewToolResultText(fmt.Sprintf("Error marshaling response: %s", err)), nil
-			}
-			return mcp.NewToolResultText(string(data)), nil
-		},
-	)
+envs := make([]envInfo, 0, len(resp.Environments))
+for _, e := range resp.Environments {
+envs = append(envs, envInfo{
+Name:    e.Name,
+Local:   e.Local,
+Remote:  e.Remote,
+Default: e.Default,
+})
+}
 
-	// Tool: get_environment_values
-	s.AddTool(
-		mcp.NewTool("get_environment_values",
-			mcp.WithDescription("Get all key-value pairs for an azd environment"),
-			mcp.WithString("environment_name", mcp.Required(), mcp.Description("Name of the environment")),
-			mcp.WithReadOnlyHintAnnotation(true),
-		),
-		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			args, ok := req.Params.Arguments.(map[string]interface{})
-			if !ok {
-				return mcp.NewToolResultText("Error: invalid arguments"), nil
-			}
-			name, _ := args["environment_name"].(string)
-			if name == "" {
-				return mcp.NewToolResultText("Error: environment_name is required"), nil
-			}
+data, err := json.MarshalIndent(envs, "", "  ")
+if err != nil {
+return mcp.NewToolResultError(fmt.Sprintf("marshaling response: %s", err)), nil
+}
+return mcp.NewToolResultText(string(data)), nil
+},
+)
 
-			ctx, client, err := newAzdClient(ctx)
-			if err != nil {
-				return mcp.NewToolResultText(fmt.Sprintf("Error: %s", err)), nil
-			}
-			defer client.Close()
+// Tool: get_environment_values
+s.AddTool(
+mcp.NewTool("get_environment_values",
+mcp.WithDescription("Get all key-value pairs for an azd environment"),
+mcp.WithString("environment_name", mcp.Required(), mcp.Description("Name of the environment")),
+mcp.WithReadOnlyHintAnnotation(true),
+),
+func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+if err := grpcRateLimiter.CheckRateLimit("get_environment_values"); err != nil {
+return mcp.NewToolResultError(err.Error()), nil
+}
 
-			resp, err := client.Environment().GetValues(ctx, &azdext.GetEnvironmentRequest{Name: name})
-			if err != nil {
-				return mcp.NewToolResultText(fmt.Sprintf("Error getting environment values: %s", err)), nil
-			}
+args, ok := req.Params.Arguments.(map[string]interface{})
+if !ok {
+return mcp.NewToolResultError("invalid arguments"), nil
+}
+name, _ := args["environment_name"].(string)
+if name == "" {
+return mcp.NewToolResultError("environment_name is required"), nil
+}
 
-			kvMap := make(map[string]string, len(resp.KeyValues))
-			for _, kv := range resp.KeyValues {
-				kvMap[kv.Key] = kv.Value
-			}
+ctx, client, err := newAzdClient(ctx)
+if err != nil {
+return mcp.NewToolResultError(err.Error()), nil
+}
+defer client.Close()
 
-			data, err := json.MarshalIndent(kvMap, "", "  ")
-			if err != nil {
-				return mcp.NewToolResultText(fmt.Sprintf("Error marshaling response: %s", err)), nil
-			}
-			return mcp.NewToolResultText(string(data)), nil
-		},
-	)
+resp, err := client.Environment().GetValues(ctx, &azdext.GetEnvironmentRequest{Name: name})
+if err != nil {
+return mcp.NewToolResultError(fmt.Sprintf("getting environment values: %s", err)), nil
+}
 
-	// Tool: set_environment_value
-	s.AddTool(
-		mcp.NewTool("set_environment_value",
-			mcp.WithDescription("Set a key-value pair in an azd environment"),
-			mcp.WithString("environment_name", mcp.Required(), mcp.Description("Name of the environment")),
-			mcp.WithString("key", mcp.Required(), mcp.Description("Key to set")),
-			mcp.WithString("value", mcp.Required(), mcp.Description("Value to set")),
-			mcp.WithDestructiveHintAnnotation(true),
-		),
-		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			args, ok := req.Params.Arguments.(map[string]interface{})
-			if !ok {
-				return mcp.NewToolResultText("Error: invalid arguments"), nil
-			}
-			envName, _ := args["environment_name"].(string)
-			key, _ := args["key"].(string)
-			value, _ := args["value"].(string)
-			if envName == "" || key == "" {
-				return mcp.NewToolResultText("Error: environment_name and key are required"), nil
-			}
+kvMap := make(map[string]string, len(resp.KeyValues))
+for _, kv := range resp.KeyValues {
+kvMap[kv.Key] = kv.Value
+}
 
-			ctx, client, err := newAzdClient(ctx)
-			if err != nil {
-				return mcp.NewToolResultText(fmt.Sprintf("Error: %s", err)), nil
-			}
-			defer client.Close()
+data, err := json.MarshalIndent(kvMap, "", "  ")
+if err != nil {
+return mcp.NewToolResultError(fmt.Sprintf("marshaling response: %s", err)), nil
+}
+return mcp.NewToolResultText(string(data)), nil
+},
+)
 
-			_, err = client.Environment().SetValue(ctx, &azdext.SetEnvRequest{
-				EnvName: envName,
-				Key:     key,
-				Value:   value,
-			})
-			if err != nil {
-				return mcp.NewToolResultText(fmt.Sprintf("Error setting environment value: %s", err)), nil
-			}
+// Tool: set_environment_value
+s.AddTool(
+mcp.NewTool("set_environment_value",
+mcp.WithDescription("Set a key-value pair in an azd environment"),
+mcp.WithString("environment_name", mcp.Required(), mcp.Description("Name of the environment")),
+mcp.WithString("key", mcp.Required(), mcp.Description("Key to set")),
+mcp.WithString("value", mcp.Required(), mcp.Description("Value to set")),
+mcp.WithDestructiveHintAnnotation(true),
+),
+func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+if err := grpcRateLimiter.CheckRateLimit("set_environment_value"); err != nil {
+return mcp.NewToolResultError(err.Error()), nil
+}
 
-			return mcp.NewToolResultText(fmt.Sprintf("Successfully set %s=%s in environment %s", key, value, envName)), nil
-		},
-	)
+args, ok := req.Params.Arguments.(map[string]interface{})
+if !ok {
+return mcp.NewToolResultError("invalid arguments"), nil
+}
+envName, _ := args["environment_name"].(string)
+key, _ := args["key"].(string)
+value, _ := args["value"].(string)
+if envName == "" || key == "" {
+return mcp.NewToolResultError("environment_name and key are required"), nil
+}
+
+ctx, client, err := newAzdClient(ctx)
+if err != nil {
+return mcp.NewToolResultError(err.Error()), nil
+}
+defer client.Close()
+
+_, err = client.Environment().SetValue(ctx, &azdext.SetEnvRequest{
+EnvName: envName,
+Key:     key,
+Value:   value,
+})
+if err != nil {
+return mcp.NewToolResultError(fmt.Sprintf("setting environment value: %s", err)), nil
+}
+
+return mcp.NewToolResultText(fmt.Sprintf("Successfully set %s in environment %s", key, envName)), nil
+},
+)
 }
 
 func registerDeploymentTools(s *server.MCPServer) {
-	// Tool: get_deployment_info
-	s.AddTool(
-		mcp.NewTool("get_deployment_info",
-			mcp.WithDescription("Get the latest Azure deployment info including ID, location, outputs, and resources"),
-			mcp.WithReadOnlyHintAnnotation(true),
-		),
-		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			ctx, client, err := newAzdClient(ctx)
-			if err != nil {
-				return mcp.NewToolResultText(fmt.Sprintf("Error: %s", err)), nil
-			}
-			defer client.Close()
+// Tool: get_deployment_info
+s.AddTool(
+mcp.NewTool("get_deployment_info",
+mcp.WithDescription("Get the latest Azure deployment info including ID, location, outputs, and resources"),
+mcp.WithReadOnlyHintAnnotation(true),
+),
+func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+if err := grpcRateLimiter.CheckRateLimit("get_deployment_info"); err != nil {
+return mcp.NewToolResultError(err.Error()), nil
+}
 
-			resp, err := client.Deployment().GetDeployment(ctx, &azdext.EmptyRequest{})
-			if err != nil {
-				return mcp.NewToolResultText(fmt.Sprintf("Error getting deployment: %s", err)), nil
-			}
+ctx, client, err := newAzdClient(ctx)
+if err != nil {
+return mcp.NewToolResultError(err.Error()), nil
+}
+defer client.Close()
 
-			d := resp.Deployment
-			info := map[string]interface{}{
-				"id":            d.Id,
-				"deployment_id": d.DeploymentId,
-				"name":          d.Name,
-				"type":          d.Type,
-				"location":      d.Location,
-				"tags":          d.Tags,
-				"outputs":       d.Outputs,
-				"resources":     d.Resources,
-			}
+resp, err := client.Deployment().GetDeployment(ctx, &azdext.EmptyRequest{})
+if err != nil {
+return mcp.NewToolResultError(fmt.Sprintf("getting deployment: %s", err)), nil
+}
 
-			data, err := json.MarshalIndent(info, "", "  ")
-			if err != nil {
-				return mcp.NewToolResultText(fmt.Sprintf("Error marshaling response: %s", err)), nil
-			}
-			return mcp.NewToolResultText(string(data)), nil
-		},
-	)
+d := resp.Deployment
+info := map[string]interface{}{
+"id":            d.Id,
+"deployment_id": d.DeploymentId,
+"name":          d.Name,
+"type":          d.Type,
+"location":      d.Location,
+"tags":          d.Tags,
+"outputs":       d.Outputs,
+"resources":     d.Resources,
+}
 
-	// Tool: get_deployment_context
-	s.AddTool(
-		mcp.NewTool("get_deployment_context",
-			mcp.WithDescription("Get current Azure deployment context including subscription, tenant, location, resource group, and resources"),
-			mcp.WithReadOnlyHintAnnotation(true),
-		),
-		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			ctx, client, err := newAzdClient(ctx)
-			if err != nil {
-				return mcp.NewToolResultText(fmt.Sprintf("Error: %s", err)), nil
-			}
-			defer client.Close()
+data, err := json.MarshalIndent(info, "", "  ")
+if err != nil {
+return mcp.NewToolResultError(fmt.Sprintf("marshaling response: %s", err)), nil
+}
+return mcp.NewToolResultText(string(data)), nil
+},
+)
 
-			resp, err := client.Deployment().GetDeploymentContext(ctx, &azdext.EmptyRequest{})
-			if err != nil {
-				return mcp.NewToolResultText(fmt.Sprintf("Error getting deployment context: %s", err)), nil
-			}
+// Tool: get_deployment_context
+s.AddTool(
+mcp.NewTool("get_deployment_context",
+mcp.WithDescription("Get current Azure deployment context including subscription, tenant, location, resource group, and resources"),
+mcp.WithReadOnlyHintAnnotation(true),
+),
+func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+if err := grpcRateLimiter.CheckRateLimit("get_deployment_context"); err != nil {
+return mcp.NewToolResultError(err.Error()), nil
+}
 
-			info := map[string]interface{}{}
-			if resp.AzureContext != nil {
-				info["resources"] = resp.AzureContext.Resources
-				if resp.AzureContext.Scope != nil {
-					info["subscription_id"] = resp.AzureContext.Scope.SubscriptionId
-					info["tenant_id"] = resp.AzureContext.Scope.TenantId
-					info["location"] = resp.AzureContext.Scope.Location
-					info["resource_group"] = resp.AzureContext.Scope.ResourceGroup
-				}
-			}
+ctx, client, err := newAzdClient(ctx)
+if err != nil {
+return mcp.NewToolResultError(err.Error()), nil
+}
+defer client.Close()
 
-			data, err := json.MarshalIndent(info, "", "  ")
-			if err != nil {
-				return mcp.NewToolResultText(fmt.Sprintf("Error marshaling response: %s", err)), nil
-			}
-			return mcp.NewToolResultText(string(data)), nil
-		},
-	)
+resp, err := client.Deployment().GetDeploymentContext(ctx, &azdext.EmptyRequest{})
+if err != nil {
+return mcp.NewToolResultError(fmt.Sprintf("getting deployment context: %s", err)), nil
+}
+
+info := map[string]interface{}{}
+if resp.AzureContext != nil {
+info["resources"] = resp.AzureContext.Resources
+if resp.AzureContext.Scope != nil {
+info["subscription_id"] = resp.AzureContext.Scope.SubscriptionId
+info["tenant_id"] = resp.AzureContext.Scope.TenantId
+info["location"] = resp.AzureContext.Scope.Location
+info["resource_group"] = resp.AzureContext.Scope.ResourceGroup
+}
+}
+
+data, err := json.MarshalIndent(info, "", "  ")
+if err != nil {
+return mcp.NewToolResultError(fmt.Sprintf("marshaling response: %s", err)), nil
+}
+return mcp.NewToolResultText(string(data)), nil
+},
+)
 }
 
 func registerAccountTools(s *server.MCPServer) {
-	// Tool: list_subscriptions
-	s.AddTool(
-		mcp.NewTool("list_subscriptions",
-			mcp.WithDescription("List Azure subscriptions accessible to the current account"),
-			mcp.WithReadOnlyHintAnnotation(true),
-		),
-		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			ctx, client, err := newAzdClient(ctx)
-			if err != nil {
-				return mcp.NewToolResultText(fmt.Sprintf("Error: %s", err)), nil
-			}
-			defer client.Close()
+// Tool: list_subscriptions
+s.AddTool(
+mcp.NewTool("list_subscriptions",
+mcp.WithDescription("List Azure subscriptions accessible to the current account"),
+mcp.WithReadOnlyHintAnnotation(true),
+),
+func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+if err := grpcRateLimiter.CheckRateLimit("list_subscriptions"); err != nil {
+return mcp.NewToolResultError(err.Error()), nil
+}
 
-			resp, err := client.Account().ListSubscriptions(ctx, &azdext.ListSubscriptionsRequest{})
-			if err != nil {
-				return mcp.NewToolResultText(fmt.Sprintf("Error listing subscriptions: %s", err)), nil
-			}
+ctx, client, err := newAzdClient(ctx)
+if err != nil {
+return mcp.NewToolResultError(err.Error()), nil
+}
+defer client.Close()
 
-			type subInfo struct {
-				ID        string `json:"id"`
-				Name      string `json:"name"`
-				TenantID  string `json:"tenant_id"`
-				IsDefault bool   `json:"is_default"`
-			}
+resp, err := client.Account().ListSubscriptions(ctx, &azdext.ListSubscriptionsRequest{})
+if err != nil {
+return mcp.NewToolResultError(fmt.Sprintf("listing subscriptions: %s", err)), nil
+}
 
-			subs := make([]subInfo, 0, len(resp.Subscriptions))
-			for _, s := range resp.Subscriptions {
-				subs = append(subs, subInfo{
-					ID:        s.Id,
-					Name:      s.Name,
-					TenantID:  s.TenantId,
-					IsDefault: s.IsDefault,
-				})
-			}
+type subInfo struct {
+ID        string `json:"id"`
+Name      string `json:"name"`
+TenantID  string `json:"tenant_id"`
+IsDefault bool   `json:"is_default"`
+}
 
-			data, err := json.MarshalIndent(subs, "", "  ")
-			if err != nil {
-				return mcp.NewToolResultText(fmt.Sprintf("Error marshaling response: %s", err)), nil
-			}
-			return mcp.NewToolResultText(string(data)), nil
-		},
-	)
+subs := make([]subInfo, 0, len(resp.Subscriptions))
+for _, s := range resp.Subscriptions {
+subs = append(subs, subInfo{
+ID:        s.Id,
+Name:      s.Name,
+TenantID:  s.TenantId,
+IsDefault: s.IsDefault,
+})
+}
+
+data, err := json.MarshalIndent(subs, "", "  ")
+if err != nil {
+return mcp.NewToolResultError(fmt.Sprintf("marshaling response: %s", err)), nil
+}
+return mcp.NewToolResultText(string(data)), nil
+},
+)
 }
 
 func registerWorkflowTools(s *server.MCPServer) {
-	// Tool: run_workflow
-	s.AddTool(
-		mcp.NewTool("run_workflow",
-			mcp.WithDescription("Execute an azd workflow with the given name and steps"),
-			mcp.WithString("workflow_name", mcp.Required(), mcp.Description("Name of the workflow to run")),
-			mcp.WithArray("steps", mcp.Required(), mcp.Description("Array of step objects, each with an 'args' array of command arguments")),
-			mcp.WithDestructiveHintAnnotation(true),
-		),
-		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			args, ok := req.Params.Arguments.(map[string]interface{})
-			if !ok {
-				return mcp.NewToolResultText("Error: invalid arguments"), nil
-			}
-			workflowName, _ := args["workflow_name"].(string)
-			if workflowName == "" {
-				return mcp.NewToolResultText("Error: workflow_name is required"), nil
-			}
+// Tool: run_workflow
+s.AddTool(
+mcp.NewTool("run_workflow",
+mcp.WithDescription("Execute an azd workflow with the given name and steps"),
+mcp.WithString("workflow_name", mcp.Required(), mcp.Description("Name of the workflow to run")),
+mcp.WithArray("steps", mcp.Required(), mcp.Description("Array of step objects, each with an 'args' array of command arguments")),
+mcp.WithDestructiveHintAnnotation(true),
+),
+func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+if err := grpcRateLimiter.CheckRateLimit("run_workflow"); err != nil {
+return mcp.NewToolResultError(err.Error()), nil
+}
 
-			stepsRaw, ok := args["steps"].([]interface{})
-			if !ok || len(stepsRaw) == 0 {
-				return mcp.NewToolResultText("Error: steps array is required and must not be empty"), nil
-			}
+args, ok := req.Params.Arguments.(map[string]interface{})
+if !ok {
+return mcp.NewToolResultError("invalid arguments"), nil
+}
+workflowName, _ := args["workflow_name"].(string)
+if workflowName == "" {
+return mcp.NewToolResultError("workflow_name is required"), nil
+}
 
-			var steps []*azdext.WorkflowStep
-			for _, stepRaw := range stepsRaw {
-				stepMap, ok := stepRaw.(map[string]interface{})
-				if !ok {
-					continue
-				}
-				argsRaw, _ := stepMap["args"].([]interface{})
-				cmdArgs := make([]string, 0, len(argsRaw))
-				for _, a := range argsRaw {
-					if s, ok := a.(string); ok {
-						cmdArgs = append(cmdArgs, s)
-					}
-				}
-				steps = append(steps, &azdext.WorkflowStep{
-					Command: &azdext.WorkflowCommand{Args: cmdArgs},
-				})
-			}
+stepsRaw, ok := args["steps"].([]interface{})
+if !ok || len(stepsRaw) == 0 {
+return mcp.NewToolResultError("steps array is required and must not be empty"), nil
+}
 
-			ctx, client, err := newAzdClient(ctx)
-			if err != nil {
-				return mcp.NewToolResultText(fmt.Sprintf("Error: %s", err)), nil
-			}
-			defer client.Close()
+var steps []*azdext.WorkflowStep
+for _, stepRaw := range stepsRaw {
+stepMap, ok := stepRaw.(map[string]interface{})
+if !ok {
+continue
+}
+argsRaw, _ := stepMap["args"].([]interface{})
+cmdArgs := make([]string, 0, len(argsRaw))
+for _, a := range argsRaw {
+if s, ok := a.(string); ok {
+cmdArgs = append(cmdArgs, s)
+}
+}
+steps = append(steps, &azdext.WorkflowStep{
+Command: &azdext.WorkflowCommand{Args: cmdArgs},
+})
+}
 
-			_, err = client.Workflow().Run(ctx, &azdext.RunWorkflowRequest{
-				Workflow: &azdext.Workflow{
-					Name:  workflowName,
-					Steps: steps,
-				},
-			})
-			if err != nil {
-				return mcp.NewToolResultText(fmt.Sprintf("Error running workflow: %s", err)), nil
-			}
+ctx, client, err := newAzdClient(ctx)
+if err != nil {
+return mcp.NewToolResultError(err.Error()), nil
+}
+defer client.Close()
 
-			return mcp.NewToolResultText(fmt.Sprintf("Workflow '%s' completed successfully", workflowName)), nil
-		},
-	)
+_, err = client.Workflow().Run(ctx, &azdext.RunWorkflowRequest{
+Workflow: &azdext.Workflow{
+Name:  workflowName,
+Steps: steps,
+},
+})
+if err != nil {
+return mcp.NewToolResultError(fmt.Sprintf("running workflow: %s", err)), nil
+}
+
+return mcp.NewToolResultText(fmt.Sprintf("Workflow '%s' completed successfully", workflowName)), nil
+},
+)
 }
 
 func registerComposeTools(s *server.MCPServer) {
-	// Tool: list_compose_resources
-	s.AddTool(
-		mcp.NewTool("list_compose_resources",
-			mcp.WithDescription("List composability resources defined in the azd project"),
-			mcp.WithReadOnlyHintAnnotation(true),
-		),
-		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			ctx, client, err := newAzdClient(ctx)
-			if err != nil {
-				return mcp.NewToolResultText(fmt.Sprintf("Error: %s", err)), nil
-			}
-			defer client.Close()
+// Tool: list_compose_resources
+s.AddTool(
+mcp.NewTool("list_compose_resources",
+mcp.WithDescription("List composability resources defined in the azd project"),
+mcp.WithReadOnlyHintAnnotation(true),
+),
+func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+if err := grpcRateLimiter.CheckRateLimit("list_compose_resources"); err != nil {
+return mcp.NewToolResultError(err.Error()), nil
+}
 
-			resp, err := client.Compose().ListResources(ctx, &azdext.EmptyRequest{})
-			if err != nil {
-				return mcp.NewToolResultText(fmt.Sprintf("Error listing compose resources: %s", err)), nil
-			}
+ctx, client, err := newAzdClient(ctx)
+if err != nil {
+return mcp.NewToolResultError(err.Error()), nil
+}
+defer client.Close()
 
-			type resourceInfo struct {
-				Name       string   `json:"name"`
-				Type       string   `json:"type"`
-				Uses       []string `json:"uses,omitempty"`
-				ResourceID string   `json:"resource_id,omitempty"`
-			}
+resp, err := client.Compose().ListResources(ctx, &azdext.EmptyRequest{})
+if err != nil {
+return mcp.NewToolResultError(fmt.Sprintf("listing compose resources: %s", err)), nil
+}
 
-			resources := make([]resourceInfo, 0, len(resp.Resources))
-			for _, r := range resp.Resources {
-				resources = append(resources, resourceInfo{
-					Name:       r.Name,
-					Type:       r.Type,
-					Uses:       r.Uses,
-					ResourceID: r.ResourceId,
-				})
-			}
+type resourceInfo struct {
+Name       string   `json:"name"`
+Type       string   `json:"type"`
+Uses       []string `json:"uses,omitempty"`
+ResourceID string   `json:"resource_id,omitempty"`
+}
 
-			data, err := json.MarshalIndent(resources, "", "  ")
-			if err != nil {
-				return mcp.NewToolResultText(fmt.Sprintf("Error marshaling response: %s", err)), nil
-			}
-			return mcp.NewToolResultText(string(data)), nil
-		},
-	)
+resources := make([]resourceInfo, 0, len(resp.Resources))
+for _, r := range resp.Resources {
+resources = append(resources, resourceInfo{
+Name:       r.Name,
+Type:       r.Type,
+Uses:       r.Uses,
+ResourceID: r.ResourceId,
+})
+}
+
+data, err := json.MarshalIndent(resources, "", "  ")
+if err != nil {
+return mcp.NewToolResultError(fmt.Sprintf("marshaling response: %s", err)), nil
+}
+return mcp.NewToolResultText(string(data)), nil
+},
+)
 }
