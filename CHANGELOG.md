@@ -1,3 +1,9 @@
+## [0.1.8] - 2026-02-22
+
+- fix: add working-directory defaults and fix paths in release workflow (2c46746)
+- refactor: use azd-core shared packages, remove wrappers (#13) (238fa92)
+- chore: update registry for v0.1.7 (f8ff654)
+
 ## [0.1.7] - 2026-02-18
 
 - Update azd-core to v0.5.0 (43fc720)
