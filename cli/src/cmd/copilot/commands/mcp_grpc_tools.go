@@ -197,6 +197,9 @@ return mcp.NewToolResultError(fmt.Sprintf("getting deployment: %s", err)), nil
 }
 
 d := resp.Deployment
+if d == nil {
+return mcp.NewToolResultError("no deployment found"), nil
+}
 info := map[string]interface{}{
 "id":            d.Id,
 "deployment_id": d.DeploymentId,
@@ -344,8 +347,11 @@ return mcp.NewToolResultError(fmt.Sprintf("step %d is not a valid object", i)), 
 argsRaw, _ := stepMap["args"].([]interface{})
 cmdArgs := make([]string, 0, len(argsRaw))
 for _, a := range argsRaw {
-if s, ok := a.(string); ok {
-cmdArgs = append(cmdArgs, s)
+switch v := a.(type) {
+case string:
+cmdArgs = append(cmdArgs, v)
+default:
+cmdArgs = append(cmdArgs, fmt.Sprint(v))
 }
 }
 if len(cmdArgs) == 0 {
