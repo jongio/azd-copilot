@@ -346,7 +346,10 @@ return mcp.NewToolResultError(fmt.Sprintf("step %d is not a valid object", i)), 
 }
 argsRaw, _ := stepMap["args"].([]interface{})
 cmdArgs := make([]string, 0, len(argsRaw))
-for _, a := range argsRaw {
+for j, a := range argsRaw {
+if a == nil {
+return mcp.NewToolResultError(fmt.Sprintf("step %d arg %d: null values not allowed", i, j)), nil
+}
 switch v := a.(type) {
 case string:
 cmdArgs = append(cmdArgs, v)
