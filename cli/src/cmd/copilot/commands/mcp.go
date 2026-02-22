@@ -81,6 +81,9 @@ func serveMCP(ctx context.Context) error {
 }
 
 func registerMCPTools(s *server.MCPServer) {
+	// Register gRPC service tools (environments, deployments, accounts, workflows, compose)
+	registerGRPCTools(s)
+
 	// Tool: list_agents
 	s.AddTool(
 		mcp.NewTool("list_agents",
