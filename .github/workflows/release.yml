@@ -12,6 +12,10 @@ on:
           - minor
           - major
 
+defaults:
+  run:
+    working-directory: cli
+
 env:
   GO_VERSION: '1.26.0'
 
@@ -62,20 +66,19 @@ jobs:
 
       - name: Format check
         run: |
-          if [ -n "$(gofmt -l ./cli/src/...)" ]; then
+          if [ -n "$(gofmt -l ./src/)" ]; then
             echo "Go files need formatting:"
-            gofmt -l ./cli/src/...
+            gofmt -l ./src/
             exit 1
           fi
 
       - name: Lint
-        run: golangci-lint run --timeout=5m ./cli/src/...
+        run: golangci-lint run --timeout=5m ./src/...
 
       - name: Security scan
-        run: gosec -quiet -exclude=G204,G304 ./cli/src/...
+        run: gosec -quiet -exclude=G204,G304 ./src/...
 
       - name: Vulnerability check
-        working-directory: cli
         run: govulncheck ./src/...
 
   test:
@@ -122,11 +125,11 @@ jobs:
       - name: Run tests
         shell: bash
         run: |
-          mkdir -p coverage
+          mkdir -p ../coverage
           if [ "${{ matrix.os }}" = "macos-latest" ]; then
-            go test -short -v -coverprofile=coverage/coverage.out ./cli/src/...
+            go test -short -v -coverprofile=../coverage/coverage.out ./src/...
           else
-            go test -short -v -race -coverprofile=coverage/coverage.out ./cli/src/...
+            go test -short -v -race -coverprofile=../coverage/coverage.out ./src/...
           fi
 
       - name: Upload coverage to Codecov
@@ -168,7 +171,7 @@ jobs:
         run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
 
       - name: Run golangci-lint
-        run: golangci-lint run --timeout=5m ./cli/src/...
+        run: golangci-lint run --timeout=5m ./src/...
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -196,16 +199,16 @@ jobs:
 
       - name: Build for multiple platforms
         run: |
-          GOOS=windows GOARCH=amd64 go build -o bin/windows-amd64/copilot.exe ./cli/src/cmd/copilot
-          GOOS=linux GOARCH=amd64 go build -o bin/linux-amd64/copilot ./cli/src/cmd/copilot
-          GOOS=darwin GOARCH=amd64 go build -o bin/darwin-amd64/copilot ./cli/src/cmd/copilot
-          GOOS=darwin GOARCH=arm64 go build -o bin/darwin-arm64/copilot ./cli/src/cmd/copilot
+          GOOS=windows GOARCH=amd64 go build -o bin/windows-amd64/copilot.exe ./src/cmd/copilot
+          GOOS=linux GOARCH=amd64 go build -o bin/linux-amd64/copilot ./src/cmd/copilot
+          GOOS=darwin GOARCH=amd64 go build -o bin/darwin-amd64/copilot ./src/cmd/copilot
+          GOOS=darwin GOARCH=arm64 go build -o bin/darwin-arm64/copilot ./src/cmd/copilot
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: binaries
-          path: bin/
+          path: cli/bin/
 
   release:
     name: Release
@@ -240,7 +243,7 @@ jobs:
       - name: Calculate next version
         id: version
         run: |
-          CURRENT=$(grep '^version:' cli/extension.yaml | awk '{print $2}')
+          CURRENT=$(grep '^version:' extension.yaml | awk '{print $2}')
           IFS='.' read -r major minor patch <<< "$CURRENT"
           
           case "${{ inputs.bump }}" in
@@ -265,6 +268,7 @@ jobs:
 
       - name: Update version files and create PR
         id: version_pr
+        working-directory: .
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -321,6 +325,7 @@ jobs:
           echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
 
       - name: Enable auto-merge and wait for merge
+        working-directory: .
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -389,6 +394,7 @@ jobs:
           fi
 
       - name: Checkout main and create tag
+        working-directory: .
         run: |
           VERSION="${{ steps.version.outputs.next }}"
           
@@ -409,24 +415,22 @@ jobs:
           azd extension install microsoft.azd.extensions --source azd
 
       - name: Update version in extension.yaml
-        working-directory: cli
         run: |
           sed -i "s/^version: .*/version: ${{ steps.version.outputs.next }}/" extension.yaml
           cat extension.yaml | grep version
 
       - name: Build binaries
-        working-directory: cli
         run: |
           export EXTENSION_ID="jongio.azd.copilot"
           export EXTENSION_VERSION="${{ steps.version.outputs.next }}"
           azd x build --all
 
       - name: Package
-        working-directory: cli
         run: azd x pack
 
       - name: Extract release notes
         id: release_notes
+        working-directory: .
         run: |
           VERSION="${{ steps.version.outputs.next }}"
           
@@ -441,7 +445,6 @@ jobs:
           cat /tmp/release-notes.md
 
       - name: Release
-        working-directory: cli
         run: |
           azd x release \
             --repo "${{ github.repository }}" \
@@ -452,7 +455,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update registry
-        working-directory: cli
         run: |
           cd ..
           git pull
@@ -477,6 +479,7 @@ jobs:
 
       - name: Notify azd-extensions
         if: success()
+        working-directory: .
         run: |
           curl -X POST \
             -H "Accept: application/vnd.github.v3+json" \
