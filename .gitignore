@@ -30,9 +30,9 @@ testcov.txt
 COVERAGE_IMPROVEMENT_SUMMARY.md
 COVERAGE_REPORT.md
 
-# Go workspace files are committed (needed for module resolution)
-# go.work
-# go.work.sum
+# Go workspace files (local dev only, not for CI)
+go.work
+go.work.sum
 
 # IDE
 .vscode/
