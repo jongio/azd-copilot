@@ -336,10 +336,10 @@ return mcp.NewToolResultError("steps array is required and must not be empty"), 
 }
 
 var steps []*azdext.WorkflowStep
-for _, stepRaw := range stepsRaw {
+for i, stepRaw := range stepsRaw {
 stepMap, ok := stepRaw.(map[string]interface{})
 if !ok {
-continue
+return mcp.NewToolResultError(fmt.Sprintf("step %d is not a valid object", i)), nil
 }
 argsRaw, _ := stepMap["args"].([]interface{})
 cmdArgs := make([]string, 0, len(argsRaw))
@@ -348,9 +348,16 @@ if s, ok := a.(string); ok {
 cmdArgs = append(cmdArgs, s)
 }
 }
+if len(cmdArgs) == 0 {
+return mcp.NewToolResultError(fmt.Sprintf("step %d has no command arguments", i)), nil
+}
 steps = append(steps, &azdext.WorkflowStep{
 Command: &azdext.WorkflowCommand{Args: cmdArgs},
 })
+}
+
+if len(steps) == 0 {
+return mcp.NewToolResultError("no valid workflow steps found"), nil
 }
 
 ctx, client, err := newAzdClient(ctx)

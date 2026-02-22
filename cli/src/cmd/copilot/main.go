@@ -1,12 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
 	"strings"
 
-	"github.com/azure/azure-dev/cli/azd/pkg/azdext"
 	"github.com/jongio/azd-copilot/cli/src/cmd/copilot/commands"
 	"github.com/jongio/azd-copilot/cli/src/internal/assets"
 	"github.com/jongio/azd-copilot/cli/src/internal/copilot"
@@ -16,6 +16,7 @@ import (
 
 	"github.com/common-nighthawk/go-figure"
 	"github.com/spf13/cobra"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 var (
@@ -71,8 +72,19 @@ When run without subcommands, starts an interactive Copilot session with Azure c
   # Auto-approve mode (careful!)
   azd copilot --yolo`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			// Hydrate context with TRACEPARENT for distributed trace correlation
-			cmd.SetContext(azdext.NewContext())
+			// Inject OTel trace context from env vars while preserving cobra's signal handling
+			ctx := cmd.Context()
+			if ctx == nil {
+				ctx = context.Background()
+			}
+			if parent := os.Getenv("TRACEPARENT"); parent != "" {
+				tc := propagation.TraceContext{}
+				ctx = tc.Extract(ctx, propagation.MapCarrier{
+					"traceparent": parent,
+					"tracestate":  os.Getenv("TRACESTATE"),
+				})
+			}
+			cmd.SetContext(ctx)
 
 			// Change working directory if --cwd is specified
 			if cwdFlag != "" {
