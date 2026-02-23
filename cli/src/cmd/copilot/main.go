@@ -163,7 +163,7 @@ When run without subcommands, starts an interactive Copilot session with Azure c
 		commands.NewBuildCommand(),
 		commands.NewSpecCommand(),
 		commands.NewMCPCommand(),
-		commands.NewMetadataCommand(func() *cobra.Command { return newRootCmd() }),
+		commands.NewMetadataCommand(newRootCmd),
 		// Quick actions
 		commands.NewInitCommand(),
 		commands.NewReviewCommand(),
