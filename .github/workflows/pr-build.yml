@@ -286,24 +286,24 @@ jobs:
           
           **PowerShell (Windows):**
           \`\`\`powershell
-          iex "& { \$(irm https://raw.githubusercontent.com/$REPO/$BRANCH/scripts/install-pr.ps1) } -PrNumber $PR_NUM -Version $VERSION"
+          iex "& { \$(irm https://raw.githubusercontent.com/$REPO/$BRANCH/cli/scripts/install-pr.ps1) } -PrNumber $PR_NUM -Version $VERSION"
           \`\`\`
           
           **Bash (macOS/Linux):**
           \`\`\`bash
-          curl -fsSL https://raw.githubusercontent.com/$REPO/$BRANCH/scripts/install-pr.sh | bash -s $PR_NUM $VERSION
+          curl -fsSL https://raw.githubusercontent.com/$REPO/$BRANCH/cli/scripts/install-pr.sh | bash -s $PR_NUM $VERSION
           \`\`\`
           
           ### Uninstall
           
           **PowerShell (Windows):**
           \`\`\`powershell
-          iex "& { \$(irm https://raw.githubusercontent.com/$REPO/$BRANCH/scripts/uninstall-pr.ps1) } -PrNumber $PR_NUM"
+          iex "& { \$(irm https://raw.githubusercontent.com/$REPO/$BRANCH/cli/scripts/uninstall-pr.ps1) } -PrNumber $PR_NUM"
           \`\`\`
           
           **Bash (macOS/Linux):**
           \`\`\`bash
-          curl -fsSL https://raw.githubusercontent.com/$REPO/$BRANCH/scripts/uninstall-pr.sh | bash -s $PR_NUM
+          curl -fsSL https://raw.githubusercontent.com/$REPO/$BRANCH/cli/scripts/uninstall-pr.sh | bash -s $PR_NUM
           \`\`\`
           
           ---
