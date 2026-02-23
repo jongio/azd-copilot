@@ -6,10 +6,11 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.21.0
 	github.com/azure/azure-dev/cli/azd v0.0.0-20260205194320-e04533f58fa7
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
-	github.com/jongio/azd-core v0.5.1
+	github.com/jongio/azd-core v0.5.2-0.20260223042348-df3319c65059
 	github.com/magefile/mage v1.15.0
 	github.com/mark3labs/mcp-go v0.43.2
 	github.com/spf13/cobra v1.10.2
+	go.opentelemetry.io/otel v1.40.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -76,7 +77,6 @@ require (
 	github.com/yuin/goldmark v1.7.16 // indirect
 	github.com/yuin/goldmark-emoji v1.0.6 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
-	go.opentelemetry.io/otel v1.40.0 // indirect
 	go.opentelemetry.io/otel/metric v1.40.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.40.0 // indirect
 	go.opentelemetry.io/otel/trace v1.40.0 // indirect
