@@ -17,6 +17,10 @@ on:
         required: false
         type: number
 
+defaults:
+  run:
+    working-directory: cli
+
 env:
   GO_VERSION: '1.26.0'
 
@@ -311,7 +315,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const instructions = fs.readFileSync('instructions.md', 'utf8');
+            const instructions = fs.readFileSync('cli/instructions.md', 'utf8');
             const prNumber = '${{ steps.pr.outputs.number }}';
             
             const comments = await github.rest.issues.listComments({
