@@ -1,3 +1,11 @@
+## [0.1.9] - 2026-02-23
+
+- Fix PR Build workflow: add working-directory: cli (#10) (768c09e)
+- feat: full azd extension framework adoption - metadata, gRPC MCP tools, security fixes (#15) (7a997c3)
+- fix: add explicit working-directory: cli to pr-build steps (462142f)
+- fix: add working-directory: cli to pr-build workflow (be838fd)
+- chore: update registry for v0.1.8 (cf999d6)
+
 ## [0.1.8] - 2026-02-22
 
 - fix: add working-directory defaults and fix paths in release workflow (2c46746)
