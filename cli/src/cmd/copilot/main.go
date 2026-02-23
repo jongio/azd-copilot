@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -15,6 +16,7 @@ import (
 
 	"github.com/common-nighthawk/go-figure"
 	"github.com/spf13/cobra"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 var (
@@ -39,6 +41,15 @@ func main() {
 	// Set version in copilot package
 	copilot.Version = commands.Version
 
+	rootCmd := newRootCmd()
+
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+func newRootCmd() *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   "copilot",
 		Short: "Azure Copilot CLI - AI-powered Azure development assistant",
@@ -61,6 +72,20 @@ When run without subcommands, starts an interactive Copilot session with Azure c
   # Auto-approve mode (careful!)
   azd copilot --yolo`,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			// Inject OTel trace context from env vars while preserving cobra's signal handling
+			ctx := cmd.Context()
+			if ctx == nil {
+				ctx = context.Background()
+			}
+			if parent := os.Getenv("TRACEPARENT"); parent != "" {
+				tc := propagation.TraceContext{}
+				ctx = tc.Extract(ctx, propagation.MapCarrier{
+					"traceparent": parent,
+					"tracestate":  os.Getenv("TRACESTATE"),
+				})
+			}
+			cmd.SetContext(ctx)
+
 			// Change working directory if --cwd is specified
 			if cwdFlag != "" {
 				if err := os.Chdir(cwdFlag); err != nil {
@@ -138,7 +163,7 @@ When run without subcommands, starts an interactive Copilot session with Azure c
 		commands.NewBuildCommand(),
 		commands.NewSpecCommand(),
 		commands.NewMCPCommand(),
-		commands.NewMetadataCommand(),
+		commands.NewMetadataCommand(newRootCmd),
 		// Quick actions
 		commands.NewInitCommand(),
 		commands.NewReviewCommand(),
@@ -147,10 +172,7 @@ When run without subcommands, starts an interactive Copilot session with Azure c
 		commands.NewDiagnoseCommand(),
 	)
 
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+	return rootCmd
 }
 
 func runCopilotSession(cmd *cobra.Command) error {

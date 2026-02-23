@@ -3,6 +3,8 @@
   "language": "en",
   "words": [
     "azd",
+    "azdext",
+    "azdextutil",
     "copilot",
     "coverprofile",
     "errcheck",
@@ -20,6 +22,8 @@
     "staticcheck",
     "testall",
     "testcoverage",
+    "traceparent",
+    "tracestate",
     "typecheck",
     "unusedparams",
     "unusedwrite",
