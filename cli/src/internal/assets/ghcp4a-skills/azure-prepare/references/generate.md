@@ -2,16 +2,31 @@
 
 Generate infrastructure and configuration files based on selected recipe.
 
-## CRITICAL: Research Before Generating
+## CRITICAL: Check for Special Patterns First
 
-**DO NOT generate any files without first researching best practices.**
+**Before manual generation, check if the project uses patterns that require `azd init --from-code -e <environment-name>`:**
 
-### Research Checklist
+| Pattern | Detection | Action |
+|---------|-----------|--------|
+| **.NET Aspire** | `*.AppHost.csproj` or `Aspire.Hosting` package | Use `azd init --from-code -e <environment-name>` → [aspire.md](aspire.md) |
+| **Complex existing codebase** | Multiple services, existing structure | Consider `azd init --from-code -e <environment-name>` |
 
-1. Load the selected recipe's README.md
-2. Follow the recipe's "Before Generation" checklist
-3. Apply all researched rules to generated files
-4. Document which best practices were applied
+> ⚠️ **For .NET Aspire projects:** Do NOT manually create azure.yaml. Use `azd init --from-code -e <environment-name>` instead to auto-detect the AppHost. **The `-e` flag is required for non-interactive environments.** See [aspire.md](aspire.md) for details.
+>
+> **CRITICAL:** After running `azd init --from-code`, you **MUST** immediately set the user-confirmed subscription with `azd env set AZURE_SUBSCRIPTION_ID <id>`. Do NOT skip this step. See [aspire.md](aspire.md) Step 3 for the complete sequence.
+
+## CRITICAL: Research Must Be Complete
+
+**DO NOT generate any files without first completing the [Research Components](research.md) step.**
+
+The research step loads service-specific references and invokes related skills to gather best practices. Apply all research findings to generated artifacts.
+
+## Research Checklist
+
+1. ✅ Completed [Research Components](research.md) step
+2. ✅ Loaded all relevant `services/*.md` references
+3. ✅ Invoked related skills for specialized guidance
+4. ✅ Documented findings in `.azure/plan.md`
 
 ## Generation Order
 
@@ -27,12 +42,12 @@ Generate infrastructure and configuration files based on selected recipe.
 
 Load the appropriate recipe for detailed generation steps:
 
-| Recipe | Reference |
-|--------|-----------|
-| AZD | [recipes/azd/](recipes/azd/) |
-| AZCLI | [recipes/azcli/](recipes/azcli/) |
-| Bicep | [recipes/bicep/](recipes/bicep/) |
-| Terraform | [recipes/terraform/](recipes/terraform/) |
+| Recipe | Guide |
+|--------|-------|
+| AZD | [AZD Recipe](recipes/azd/README.md) |
+| AZCLI | [AZCLI Recipe](recipes/azcli/README.md) |
+| Bicep | [Bicep Recipe](recipes/bicep/README.md) |
+| Terraform | [Terraform Recipe](recipes/terraform/README.md) |
 
 ## Common Standards
 
@@ -41,7 +56,7 @@ Load the appropriate recipe for detailed generation steps:
 ```
 project-root/
 ├── .azure/
-│   └── preparation-manifest.md
+│   └── plan.md
 ├── infra/
 │   ├── main.bicep (or main.tf)
 │   └── modules/
@@ -68,6 +83,6 @@ Apply language-specific production settings for containerized apps:
 
 ## After Generation
 
-1. Update manifest with generated file list
+1. Update `.azure/plan.md` with generated file list
 2. Run validation checks
 3. Proceed to **azure-validate** skill

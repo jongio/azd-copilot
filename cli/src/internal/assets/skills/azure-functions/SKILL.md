@@ -239,7 +239,7 @@ app.timer('TimerTrigger', {
 - User explicitly requests `az` CLI
 - Querying or inspecting existing resources
 
-> ⚠️ **IMPORTANT: For automation and agent scenarios**, always use the `--no-prompt` flag with azd commands to prevent interactive prompts from blocking execution.
+> ⚠️ **IMPORTANT: For automation and agent scenarios**, always use the `--no-prompt` flag with azd commands to prevent azd's own interactive prompts from blocking execution. However, you **MUST still use `ask_user` to confirm with the user** before running any provisioning or deployment command (`azd up`, `azd provision`, `azd deploy`). The `--no-prompt` flag prevents azd CLI prompts — it does NOT replace user confirmation.
 
 ### MCP Tools for azd Workflows
 

@@ -4,6 +4,8 @@ Create `azure.yaml` in project root for AZD.
 
 ## Structure
 
+### Basic (Bicep - default)
+
 ```yaml
 name: <project-name>
 metadata:
@@ -15,6 +17,27 @@ services:
     language: <python|js|ts|java|dotnet|go>
     host: <containerapp|appservice|function|staticwebapp|aks>
 ```
+
+### With Terraform Provider
+
+```yaml
+name: <project-name>
+metadata:
+  template: azd-init
+
+# Specify Terraform as IaC provider
+infra:
+  provider: terraform
+  path: ./infra
+
+services:
+  <service-name>:
+    project: <path-to-source>
+    language: <python|js|ts|java|dotnet|go>
+    host: <containerapp|appservice|function|staticwebapp|aks>
+```
+
+> 💡 **Tip:** Omit `infra` section to use Bicep (default). Add `infra.provider: terraform` to use Terraform. See [terraform.md](terraform.md) for details.
 
 ## Host Types
 
@@ -28,9 +51,11 @@ services:
 
 ## Examples
 
-### Container App
+### Container App with Bicep (default)
 
 ```yaml
+name: myapp
+
 services:
   api:
     project: ./src/api
@@ -39,6 +64,54 @@ services:
     docker:
       path: ./src/api/Dockerfile
 ```
+
+### Container App with Terraform
+
+```yaml
+name: myapp
+
+infra:
+  provider: terraform
+  path: ./infra
+
+services:
+  api:
+    project: ./src/api
+    language: python
+    host: containerapp
+    docker:
+      path: ./src/api/Dockerfile
+```
+
+### Container App with Custom Docker Context
+
+When the Dockerfile expects files relative to a specific directory (e.g., Aspire `AddDockerfile` with custom context):
+
+```yaml
+name: myapp
+
+services:
+  ginapp:
+    project: .
+    host: containerapp
+    image: ginapp
+    docker:
+      path: ginapp/Dockerfile
+      context: ginapp
+```
+
+> 💡 **Tip:** The `context` field specifies the Docker build context directory. This is crucial for:
+> - **Aspire apps** using `AddDockerfile("service", "./path")` - use the second parameter as `context`
+> - Dockerfiles with `COPY` commands expecting files relative to a subdirectory
+> - Multi-service repos where each service has its own context
+
+> ⚠️ **Important:** For Aspire apps, extract the Docker context from:
+> 1. AppHost code: Second parameter of `AddDockerfile("name", "./context")`
+> 2. Aspire manifest: `build.context` field (generated via `dotnet run apphost.cs -- --publisher manifest`)
+>
+> 📖 **See [aspire.md](aspire.md) for complete .NET Aspire deployment guide**
+
+> ⚠️ **Language Field:** When using the `docker` section, the `language` field should be **omitted** or set to the language that azd will use for framework-specific behaviors. For containerized apps with custom Dockerfiles (including Aspire `AddDockerfile`), the language is not used by azd since the build is handled by Docker. Only include `language` if you need azd to perform additional framework-specific actions beyond Docker build.
 
 ### Azure Functions
 
@@ -155,6 +228,10 @@ hooks:
 |-------|---------|
 | `language` | python, js, ts, java, dotnet, go (omit for staticwebapp without build) |
 | `host` | containerapp, appservice, function, staticwebapp, aks |
+| `docker.path` | Path to Dockerfile (relative to project root) |
+| `docker.context` | Docker build context directory (optional, defaults to directory containing Dockerfile) |
+
+> 💡 **Docker Context:** When `docker.context` is omitted, azd uses the directory containing the Dockerfile as the build context. Specify `context` explicitly when the Dockerfile expects files from a different directory.
 
 ## Output
 

@@ -1,6 +1,6 @@
 ---
 name: azure-aigateway
-description: |
+description: >-
   Configure Azure API Management (APIM) as AI Gateway to secure, observe, control AI models, MCP servers, agents. Helps with rate limiting, semantic caching, content safety, load balancing.
   USE FOR: AI Gateway, APIM, setup gateway, configure gateway, add gateway, model gateway, MCP server, rate limit, token limit, semantic cache, content safety, load balance, OpenAPI import, convert API to MCP.
   DO NOT USE FOR: deploy models (use microsoft-foundry), Azure Functions (use azure-functions), databases (use azure-postgres).
@@ -80,7 +80,7 @@ Deploy APIM with Basicv2 SKU for AI workloads.
 
 ```bash
 # Create resource group
-az group create --name rg-aigateway --location eastus
+az group create --name rg-aigateway --location eastus2
 
 # Deploy APIM with Bicep
 az deployment group create \
@@ -741,6 +741,11 @@ When converting API operations to MCP tools, use this schema:
 | **Content blocked** | False positives | Increase category thresholds |
 | **Backend auth fails** | 401 from Azure OpenAI | Assign Cognitive Services User role to APIM managed identity |
 | **Rate limit too strict** | Legitimate requests blocked | Increase `calls` or `renewal-period` |
+
+## SDK Quick References
+
+- **Content Safety**: [Python](references/sdk/azure-ai-contentsafety-py.md) | [TypeScript](references/sdk/azure-ai-contentsafety-ts.md)
+- **API Management**: [Python](references/sdk/azure-mgmt-apimanagement-py.md) | [.NET](references/sdk/azure-mgmt-apimanagement-dotnet.md)
 
 ## Additional Resources
 

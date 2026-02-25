@@ -68,7 +68,7 @@ az bicep lint --file ./infra/main.bicep
 
 ### 6. Azure Policy Validation
 
-See [Policy Validation Guide](../policy-validation.md) for instructions on retrieving and validating Azure policies for your subscription.
+See [Policy Validation Guide](../../policy-validation.md) for instructions on retrieving and validating Azure policies for your subscription.
 
 ## Checklist
 
@@ -82,7 +82,7 @@ See [Policy Validation Guide](../policy-validation.md) for instructions on retri
 
 ## References
 
-- [Error handling](mdc:errors.md)
+- [Error handling](./errors.md)
 
 ## Next
 

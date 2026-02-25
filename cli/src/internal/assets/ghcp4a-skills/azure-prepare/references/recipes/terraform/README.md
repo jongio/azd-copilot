@@ -2,12 +2,37 @@
 
 Terraform workflow for Azure deployments.
 
-## When to Use
+> **⚠️ IMPORTANT: Consider azd+Terraform First**
+>
+> If you're deploying to Azure, you should **default to [azd with Terraform](../azd/terraform.md)** instead of pure Terraform. azd+Terraform gives you:
+> - Terraform's IaC capabilities
+> - Simple `azd up` deployment workflow
+> - Built-in environment management
+> - Automatic CI/CD pipeline generation
+> - Service orchestration from azure.yaml
+>
+> → **See [azd+Terraform documentation](../azd/terraform.md)** ←
 
-- Multi-cloud requirements
-- Existing Terraform expertise
-- State management features needed
-- Organization mandate for Terraform
+## When to Use Pure Terraform (Without azd)
+
+Only use pure Terraform workflow when you have specific requirements that prevent using azd:
+
+- **Multi-cloud deployments** where Azure is not the primary target
+- **Complex Terraform modules/workspaces** that are incompatible with azd conventions
+- **Existing Terraform CI/CD** pipelines that are hard to migrate
+- **Organization mandate** for pure Terraform workflow without any wrapper tools
+- **Explicitly requested** by the user to use Terraform without azd
+
+## When to Use azd+Terraform Instead
+
+Use azd+Terraform (the default) when:
+
+- **Azure-first deployment** (even if you want multi-cloud IaC)
+- Want **`azd up` simplicity** with Terraform IaC
+- **Multi-service apps** needing orchestration
+- Team wants to learn Terraform with a simpler workflow
+
+→ See [azd+Terraform documentation](../azd/terraform.md)
 
 ## Before Generation
 
@@ -60,8 +85,8 @@ Manual Dockerfile creation required.
 
 ## References
 
-- [Terraform patterns](mdc:patterns.md)
+- [Terraform Patterns](patterns.md)
 
 ## Next
 
-→ Update manifest → **azure-validate**
+→ Update `.azure/plan.md` → **azure-validate**

@@ -1,6 +1,6 @@
 ---
 name: azure-diagnostics
-description: |
+description: >-
   Debug and troubleshoot production issues on Azure. Covers Container Apps diagnostics, log analysis with KQL, health checks, and common issue resolution for image pulls, cold starts, and health probes.
   USE FOR: debug production issues, troubleshoot container apps, analyze logs with KQL, fix image pull failures, resolve cold start issues, investigate health probe failures, check resource health, view application logs, find root cause of errors
   DO NOT USE FOR: deploying applications (use azure-deploy), creating new resources (use azure-prepare), setting up monitoring (use azure-observability), cost optimization (use azure-cost-optimization)
@@ -46,7 +46,7 @@ Activate this skill when user wants to:
 
 | Service | Common Issues | Reference |
 |---------|---------------|-----------|
-| **Container Apps** | Image pull failures, cold starts, health probes, port mismatches | [container-apps/](references/container-apps/) |
+| **Container Apps** | Image pull failures, cold starts, health probes, port mismatches | [container-apps/](references/container-apps/README.md) |
 
 ---
 
@@ -124,3 +124,4 @@ az monitor activity-log list -g RG --max-events 20
 ## References
 
 - [KQL Query Library](references/kql-queries.md)
+- [Azure Resource Graph Queries](references/azure-resource-graph.md)
