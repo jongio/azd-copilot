@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/azure/azure-dev/cli/azd/pkg/azdext"
 	"github.com/jongio/azd-copilot/cli/src/internal/copilot"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -62,34 +63,28 @@ func newMCPConfigureCommand() *cobra.Command {
 
 // serveMCP starts the MCP server for azd-copilot extension
 func serveMCP(ctx context.Context) error {
-	// Create MCP server
-	s := server.NewMCPServer(
-		"azd-copilot",
-		Version,
-		server.WithToolCapabilities(true),
-		server.WithResourceCapabilities(true, false),
-	)
+	builder := azdext.NewMCPServerBuilder("azd-copilot", Version).
+		WithRateLimit(10, 1.0).
+		WithResourceCapabilities(true, false)
 
 	// Register tools
-	registerMCPTools(s)
+	registerMCPTools(builder)
 
 	// Register resources
-	registerMCPResources(s)
+	registerMCPResources(builder)
 
-	// Start stdio server
+	// Build and start stdio server
+	s := builder.Build()
 	return server.ServeStdio(s)
 }
 
-func registerMCPTools(s *server.MCPServer) {
+func registerMCPTools(builder *azdext.MCPServerBuilder) {
 	// Register gRPC service tools (environments, deployments, accounts, workflows, compose)
-	registerGRPCTools(s)
+	registerGRPCTools(builder)
 
 	// Tool: list_agents
-	s.AddTool(
-		mcp.NewTool("list_agents",
-			mcp.WithDescription("List all available Azure agents"),
-		),
-		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	builder.AddTool("list_agents",
+		func(ctx context.Context, args azdext.ToolArgs) (*mcp.CallToolResult, error) {
 			agents := []string{
 				"azure-manager - Orchestrates all agents, main entry point",
 				"azure-architect - Infrastructure design, Bicep, networking",
@@ -106,14 +101,15 @@ func registerMCPTools(s *server.MCPServer) {
 			}
 			return mcp.NewToolResultText(result), nil
 		},
+		azdext.MCPToolOptions{
+			Description: "List all available Azure agents",
+			ReadOnly:    true,
+		},
 	)
 
 	// Tool: list_skills
-	s.AddTool(
-		mcp.NewTool("list_skills",
-			mcp.WithDescription("List all available Azure skills"),
-		),
-		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	builder.AddTool("list_skills",
+		func(ctx context.Context, args azdext.ToolArgs) (*mcp.CallToolResult, error) {
 			skills := []string{
 				"azure-prepare - Initialize project for Azure hosting",
 				"azure-deploy - Deployment patterns and best practices",
@@ -128,56 +124,58 @@ func registerMCPTools(s *server.MCPServer) {
 			}
 			return mcp.NewToolResultText(result), nil
 		},
+		azdext.MCPToolOptions{
+			Description: "List all available Azure skills",
+			ReadOnly:    true,
+		},
 	)
 
 	// Tool: get_project_context
-	s.AddTool(
-		mcp.NewTool("get_project_context",
-			mcp.WithDescription("Get current azd project context including services and environment"),
-		),
-		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			// This would normally query the azd client
+	builder.AddTool("get_project_context",
+		func(ctx context.Context, args azdext.ToolArgs) (*mcp.CallToolResult, error) {
 			result := `Project Context:
 - Check azure.yaml for project configuration
 - Check .azure/ folder for environment settings
 - Run 'azd context' for full details`
 			return mcp.NewToolResultText(result), nil
 		},
+		azdext.MCPToolOptions{
+			Description: "Get current azd project context including services and environment",
+			ReadOnly:    true,
+		},
 	)
 
 	// Tool: create_checkpoint
-	s.AddTool(
-		mcp.NewTool("create_checkpoint",
-			mcp.WithDescription("Create a checkpoint to save current build state"),
-			mcp.WithString("description", mcp.Required(), mcp.Description("Description of the checkpoint")),
-			mcp.WithString("phase", mcp.Description("Build phase (spec, design, develop, quality, deploy)")),
-		),
-		func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-			// Extract arguments from the map
-			args, ok := req.Params.Arguments.(map[string]interface{})
-			if !ok {
-				return mcp.NewToolResultText("Error: invalid arguments"), nil
+	builder.AddTool("create_checkpoint",
+		func(ctx context.Context, args azdext.ToolArgs) (*mcp.CallToolResult, error) {
+			description, err := args.RequireString("description")
+			if err != nil {
+				return azdext.MCPErrorResult("missing description: %s", err), nil
 			}
-			description, _ := args["description"].(string)
-			phase, _ := args["phase"].(string)
+			phase := args.OptionalString("phase", "")
 
 			result := fmt.Sprintf("Checkpoint created:\n- Description: %s\n- Phase: %s\n- Use 'azd copilot checkpoints' to list all checkpoints", description, phase)
 			return mcp.NewToolResultText(result), nil
 		},
+		azdext.MCPToolOptions{
+			Description: "Create a checkpoint to save current build state",
+		},
+		mcp.WithString("description", mcp.Required(), mcp.Description("Description of the checkpoint")),
+		mcp.WithString("phase", mcp.Description("Build phase (spec, design, develop, quality, deploy)")),
 	)
 }
 
-func registerMCPResources(s *server.MCPServer) {
-	// Resource: agents
-	s.AddResource(
-		mcp.NewResource(
-			"azd-copilot://agents",
-			"Azure Agents",
-			mcp.WithResourceDescription("List of available Azure agents"),
-			mcp.WithMIMEType("text/plain"),
-		),
-		func(ctx context.Context, req mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-			content := `# Azure Agents
+func registerMCPResources(builder *azdext.MCPServerBuilder) {
+	builder.AddResources(
+		server.ServerResource{
+			Resource: mcp.NewResource(
+				"azd-copilot://agents",
+				"Azure Agents",
+				mcp.WithResourceDescription("List of available Azure agents"),
+				mcp.WithMIMEType("text/plain"),
+			),
+			Handler: func(ctx context.Context, req mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+				content := `# Azure Agents
 
 The following specialized agents are available:
 
@@ -194,26 +192,24 @@ The following specialized agents are available:
 
 Use 'azd copilot agents' for full details.`
 
-			return []mcp.ResourceContents{
-				mcp.TextResourceContents{
-					URI:      req.Params.URI,
-					MIMEType: "text/plain",
-					Text:     content,
-				},
-			}, nil
+				return []mcp.ResourceContents{
+					mcp.TextResourceContents{
+						URI:      req.Params.URI,
+						MIMEType: "text/plain",
+						Text:     content,
+					},
+				}, nil
+			},
 		},
-	)
-
-	// Resource: skills
-	s.AddResource(
-		mcp.NewResource(
-			"azd-copilot://skills",
-			"Azure Skills",
-			mcp.WithResourceDescription("List of available Azure skills"),
-			mcp.WithMIMEType("text/plain"),
-		),
-		func(ctx context.Context, req mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
-			content := `# Azure Skills
+		server.ServerResource{
+			Resource: mcp.NewResource(
+				"azd-copilot://skills",
+				"Azure Skills",
+				mcp.WithResourceDescription("List of available Azure skills"),
+				mcp.WithMIMEType("text/plain"),
+			),
+			Handler: func(ctx context.Context, req mcp.ReadResourceRequest) ([]mcp.ResourceContents, error) {
+				content := `# Azure Skills
 
 Skills provide focused expertise for specific tasks:
 
@@ -230,13 +226,14 @@ Skills provide focused expertise for specific tasks:
 
 Use 'azd copilot skills' for full details.`
 
-			return []mcp.ResourceContents{
-				mcp.TextResourceContents{
-					URI:      req.Params.URI,
-					MIMEType: "text/plain",
-					Text:     content,
-				},
-			}, nil
+				return []mcp.ResourceContents{
+					mcp.TextResourceContents{
+						URI:      req.Params.URI,
+						MIMEType: "text/plain",
+						Text:     content,
+					},
+				}, nil
+			},
 		},
 	)
 }

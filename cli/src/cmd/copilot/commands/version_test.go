@@ -38,7 +38,7 @@ func TestVersionInfo(t *testing.T) {
 
 func TestNewVersionCommand(t *testing.T) {
 	outputFormat := "default"
-	cmd := NewVersionCommand(&outputFormat)
+	cmd := NewVersionCommand("jongio.azd.copilot", Version, &outputFormat)
 
 	if cmd == nil {
 		t.Fatal("NewVersionCommand() returned nil")
@@ -49,16 +49,11 @@ func TestNewVersionCommand(t *testing.T) {
 	if cmd.Short == "" {
 		t.Error("cmd.Short should not be empty")
 	}
-
-	flag := cmd.Flags().Lookup("quiet")
-	if flag == nil {
-		t.Error("--quiet flag should exist")
-	}
 }
 
 func TestVersionCommand_DefaultOutput(t *testing.T) {
 	outputFormat := "default"
-	cmd := NewVersionCommand(&outputFormat)
+	cmd := NewVersionCommand("jongio.azd.copilot", Version, &outputFormat)
 
 	var stdout bytes.Buffer
 	cmd.SetOut(&stdout)

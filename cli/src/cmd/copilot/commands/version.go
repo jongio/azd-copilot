@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"github.com/azure/azure-dev/cli/azd/pkg/azdext"
 	coreversion "github.com/jongio/azd-core/version"
 	"github.com/spf13/cobra"
 )
@@ -24,6 +25,6 @@ func init() {
 }
 
 // NewVersionCommand creates the version command.
-func NewVersionCommand(outputFormat *string) *cobra.Command {
-	return coreversion.NewCommand(VersionInfo, outputFormat)
+func NewVersionCommand(extensionId, version string, outputFormat *string) *cobra.Command {
+	return azdext.NewVersionCommand(extensionId, version, outputFormat)
 }

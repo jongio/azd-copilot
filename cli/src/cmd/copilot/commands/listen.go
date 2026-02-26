@@ -15,43 +15,16 @@ import (
 // NewListenCommand creates a new listen command that establishes
 // a connection with azd for extension framework operations.
 func NewListenCommand() *cobra.Command {
-	return &cobra.Command{
-		Use:          "listen",
-		Short:        "Start the extension server (required by azd framework)",
-		Long:         `Internal command used by the azd CLI to communicate with this extension via JSON-RPC over stdio.`,
-		Hidden:       true,
-		SilenceUsage: true,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			// Create a context with the AZD access token
-			ctx := azdext.WithAccessToken(cmd.Context())
-
-			// Create a new AZD client
-			azdClient, err := azdext.NewAzdClient()
-			if err != nil {
-				return fmt.Errorf("failed to create azd client: %w", err)
-			}
-			defer azdClient.Close()
-
-			// Create an extension host with lifecycle event handlers
-			host := azdext.NewExtensionHost(azdClient).
-				// Project-level events
-				WithProjectEventHandler("preinit", handlePreInit).
-				WithProjectEventHandler("preprovision", handlePreProvision).
-				WithProjectEventHandler("postprovision", handlePostProvision).
-				// Service-level events
-				WithServiceEventHandler("predeploy", handlePreDeploy, &azdext.ServiceEventOptions{}).
-				WithServiceEventHandler("postdeploy", handlePostDeploy, &azdext.ServiceEventOptions{})
-
-			// Start the extension host
-			// This blocks until azd closes the connection
-			if err := host.Run(ctx); err != nil {
-				fmt.Fprintf(os.Stderr, "Extension host error: %v\n", err)
-				return fmt.Errorf("failed to run extension: %w", err)
-			}
-
-			return nil
-		},
-	}
+	return azdext.NewListenCommand(func(host *azdext.ExtensionHost) {
+		host.
+			// Project-level events
+			WithProjectEventHandler("preinit", handlePreInit).
+			WithProjectEventHandler("preprovision", handlePreProvision).
+			WithProjectEventHandler("postprovision", handlePostProvision).
+			// Service-level events
+			WithServiceEventHandler("predeploy", handlePreDeploy, &azdext.ServiceEventOptions{}).
+			WithServiceEventHandler("postdeploy", handlePostDeploy, &azdext.ServiceEventOptions{})
+	})
 }
 
 // handlePreInit is called before azd init completes
