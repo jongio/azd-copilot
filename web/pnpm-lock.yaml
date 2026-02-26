@@ -12,8 +12,8 @@ importers:
         specifier: ^4.3.13
         version: 4.3.13(astro@5.17.1(@types/node@25.2.1)(jiti@2.6.1)(lightningcss@1.30.2)(rollup@4.57.1)(tsx@4.21.0)(typescript@5.9.3))
       '@jongio/azd-web-core':
-        specifier: ^2.3.0
-        version: 2.3.0(astro@5.17.1(@types/node@25.2.1)(jiti@2.6.1)(lightningcss@1.30.2)(rollup@4.57.1)(tsx@4.21.0)(typescript@5.9.3))(tailwindcss@4.1.18)
+        specifier: ^2.4.0
+        version: 2.4.0(astro@5.17.1(@types/node@25.2.1)(jiti@2.6.1)(lightningcss@1.30.2)(rollup@4.57.1)(tsx@4.21.0)(typescript@5.9.3))(tailwindcss@4.1.18)
       '@tailwindcss/vite':
         specifier: ^4.1.18
         version: 4.1.18(vite@6.4.1(@types/node@25.2.1)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0))
@@ -529,8 +529,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@jongio/azd-web-core@2.3.0':
-    resolution: {integrity: sha512-S7X2pyegsLHFnYYP+W1g5Imu+o3gDYdkm1WRioXIaEMUm/kLWiQbf1Me15bCqZMUMlWQIlP9fDDkSRWPByoz8A==, tarball: https://npm.pkg.github.com/download/@jongio/azd-web-core/2.3.0/71faae323c3d77501ee25c05c32081156407c1f7}
+  '@jongio/azd-web-core@2.4.0':
+    resolution: {integrity: sha512-qxT3l/Uf1wMwbOuClXDX4oHRGzvSHrWy+PpDkoAgQZvIoAQwxIDZTvwSYqMCLRRTQGePjiEzLNEVpl7tTwHKBg==, tarball: https://npm.pkg.github.com/download/@jongio/azd-web-core/2.4.0/a48699c64efe80f3645d6931a0635b3a9ee4e6a8}
     peerDependencies:
       astro: '>=5.0.0'
       tailwindcss: '>=4.0.0'
@@ -2369,7 +2369,7 @@ snapshots:
   '@img/sharp-win32-x64@0.34.5':
     optional: true
 
-  '@jongio/azd-web-core@2.3.0(astro@5.17.1(@types/node@25.2.1)(jiti@2.6.1)(lightningcss@1.30.2)(rollup@4.57.1)(tsx@4.21.0)(typescript@5.9.3))(tailwindcss@4.1.18)':
+  '@jongio/azd-web-core@2.4.0(astro@5.17.1(@types/node@25.2.1)(jiti@2.6.1)(lightningcss@1.30.2)(rollup@4.57.1)(tsx@4.21.0)(typescript@5.9.3))(tailwindcss@4.1.18)':
     dependencies:
       astro: 5.17.1(@types/node@25.2.1)(jiti@2.6.1)(lightningcss@1.30.2)(rollup@4.57.1)(tsx@4.21.0)(typescript@5.9.3)
       tailwindcss: 4.1.18
