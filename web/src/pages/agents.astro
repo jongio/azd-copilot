@@ -1,22 +1,17 @@
 ---
 import Layout from '../components/Layout.astro';
+import HeroBanner from '@jongio/azd-web-core/components/HeroBanner.astro';
 import AgentCard from '../components/AgentCard.astro';
 import { agents } from '../data/agents';
 ---
 
 <Layout title="Meet the Agents" description="Meet the 16 specialized AI agents that power azd-copilot">
   <!-- Hero Section -->
-  <section class="agents-hero" aria-labelledby="agents-heading">
-    <div class="agents-hero-container">
-      <h1 id="agents-heading" class="agents-hero-title animate-fade-up">
-        Meet the <span class="text-gradient-animated">Agents</span>
-      </h1>
-      <p class="agents-hero-description animate-fade-up" style="animation-delay: 0.1s">
-        <strong>16 specialized AI agents</strong> work together to help you build, secure, and deploy Azure applications.
-        Each agent brings deep domain expertise — click any agent to learn more.
-      </p>
-    </div>
-  </section>
+  <HeroBanner
+    title='Meet the <span class="gradient-text">Agents</span>'
+    subtitle="16 specialized AI agents work together to help you build, secure, and deploy Azure applications. Each agent brings deep domain expertise — click any agent to learn more."
+    primaryCta={{ label: "Get Started", href: "/azd-copilot/getting-started/" }}
+  />
 
   <!-- Agent Grid -->
   <section class="agents-grid-section" aria-label="Agent profiles">
@@ -157,22 +152,22 @@ import { agents } from '../data/agents';
   let currentIndex = 0;
 
   const colorMap: Record<string, string> = {
-    azure: 'var(--color-glow-cyan)',
-    purple: 'var(--color-glow-violet)',
-    indigo: 'var(--color-glow-violet)',
-    blue: 'var(--color-glow-cyan)',
-    red: '#ef4444',
-    sky: 'var(--color-glow-cyan)',
-    orange: '#f97316',
-    amber: '#f59e0b',
-    neutral: 'var(--color-muted-foreground)',
-    gold: '#eab308',
-    stone: '#78716c',
-    teal: 'var(--color-glow-emerald)',
-    fuchsia: '#d946ef',
-    cyan: 'var(--color-glow-cyan)',
-    pink: '#ec4899',
-    emerald: 'var(--color-glow-emerald)',
+    azure: 'var(--color-primary)',
+    purple: 'var(--color-accent)',
+    indigo: 'var(--color-accent)',
+    blue: 'var(--color-primary)',
+    red: 'var(--color-danger)',
+    sky: 'var(--color-primary)',
+    orange: 'var(--color-warning)',
+    amber: 'var(--color-warning)',
+    neutral: 'var(--color-text-muted)',
+    gold: 'var(--color-warning)',
+    stone: 'var(--color-text-muted)',
+    teal: 'var(--color-success)',
+    fuchsia: 'var(--color-accent)',
+    cyan: 'var(--color-primary)',
+    pink: 'var(--color-accent)',
+    emerald: 'var(--color-success)',
   };
 
   function updatePlayPauseIcon(playing: boolean) {
@@ -188,7 +183,7 @@ import { agents } from '../data/agents';
   function showAgent(index: number) {
     currentIndex = index;
     const agent = agents[index];
-    const accent = colorMap[agent.color] || 'var(--color-glow-cyan)';
+    const accent = colorMap[agent.color] || 'var(--color-primary)';
 
     modal.style.setProperty('--modal-accent', accent);
 
@@ -296,47 +291,6 @@ import { agents } from '../data/agents';
 </script>
 
 <style>
-  /* Hero */
-  .agents-hero {
-    padding: 4rem 1.5rem 2rem;
-    background:
-      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(6, 182, 212, 0.15), transparent),
-      radial-gradient(ellipse 60% 40% at 80% 50%, rgba(139, 92, 246, 0.1), transparent);
-  }
-
-  @media (min-width: 768px) {
-    .agents-hero { padding: 6rem 2rem 3rem; }
-  }
-
-  .agents-hero-container {
-    max-width: 56rem;
-    margin: 0 auto;
-    text-align: center;
-  }
-
-  .agents-hero-title {
-    font-size: 2.5rem;
-    font-weight: 800;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-    margin-bottom: 1.5rem;
-  }
-
-  @media (min-width: 640px) { .agents-hero-title { font-size: 3.5rem; } }
-  @media (min-width: 1024px) { .agents-hero-title { font-size: 4rem; } }
-
-  .agents-hero-description {
-    max-width: 36rem;
-    margin: 0 auto;
-    font-size: 1.125rem;
-    line-height: 1.7;
-    color: var(--color-muted-foreground);
-  }
-
-  .agents-hero-description strong {
-    color: var(--color-foreground);
-  }
-
   /* Grid */
   .agents-grid-section {
     padding: 3rem 1.5rem 5rem;
@@ -378,8 +332,8 @@ import { agents } from '../data/agents';
   .agents-cta-card {
     text-align: center;
     padding: 3rem 2rem;
-    border-radius: 1.5rem;
-    border-color: rgba(6, 182, 212, 0.2);
+    border-radius: var(--radius-lg);
+    border-color: color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
   }
 
   .agents-cta-title {
@@ -389,7 +343,7 @@ import { agents } from '../data/agents';
   }
 
   .agents-cta-description {
-    color: var(--color-muted-foreground);
+    color: var(--color-text-muted);
     margin-bottom: 1.5rem;
   }
 
@@ -428,9 +382,9 @@ import { agents } from '../data/agents';
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
-    border-radius: 1.5rem;
+    border-radius: var(--radius-lg);
     padding: 2rem;
-    border-color: color-mix(in srgb, var(--modal-accent, var(--color-glow-cyan)) 30%, transparent);
+    border-color: color-mix(in srgb, var(--modal-accent, var(--color-primary)) 30%, transparent);
     animation: fade-up 0.3s ease-out;
   }
 
@@ -440,7 +394,7 @@ import { agents } from '../data/agents';
     right: 1rem;
     background: none;
     border: none;
-    color: var(--color-muted-foreground);
+    color: var(--color-text-muted);
     font-size: 1.75rem;
     cursor: pointer;
     width: 2.25rem;
@@ -448,13 +402,13 @@ import { agents } from '../data/agents';
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 0.5rem;
+    border-radius: var(--radius-md);
     transition: color 0.2s;
     z-index: 1;
   }
 
   .modal-close:hover {
-    color: var(--color-foreground);
+    color: var(--color-text);
   }
 
   .modal-body {
@@ -492,10 +446,10 @@ import { agents } from '../data/agents';
   .modal-video {
     width: 100%;
     height: 100%;
-    border-radius: 1rem;
+    border-radius: var(--radius-lg);
     object-fit: cover;
-    border: 2px solid var(--modal-accent, var(--color-glow-cyan));
-    box-shadow: 0 0 30px color-mix(in srgb, var(--modal-accent, var(--color-glow-cyan)) 30%, transparent);
+    border: 2px solid var(--modal-accent, var(--color-primary));
+    box-shadow: 0 0 30px color-mix(in srgb, var(--modal-accent, var(--color-primary)) 30%, transparent);
   }
 
   .modal-video-controls {
@@ -537,22 +491,22 @@ import { agents } from '../data/agents';
   .modal-photo {
     width: 100%;
     height: 100%;
-    border-radius: 1rem;
+    border-radius: var(--radius-lg);
     object-fit: cover;
-    border: 2px solid var(--modal-accent, var(--color-glow-cyan));
-    box-shadow: 0 0 30px color-mix(in srgb, var(--modal-accent, var(--color-glow-cyan)) 30%, transparent);
+    border: 2px solid var(--modal-accent, var(--color-primary));
+    box-shadow: 0 0 30px color-mix(in srgb, var(--modal-accent, var(--color-primary)) 30%, transparent);
   }
 
   .modal-emoji-fallback {
     display: none;
     width: 100%;
     height: 100%;
-    border-radius: 1rem;
+    border-radius: var(--radius-lg);
     align-items: center;
     justify-content: center;
     font-size: 4rem;
-    background: var(--color-secondary);
-    border: 2px solid var(--modal-accent, var(--color-glow-cyan));
+    background: var(--color-surface);
+    border: 2px solid var(--modal-accent, var(--color-primary));
   }
 
   .modal-details {
@@ -580,14 +534,14 @@ import { agents } from '../data/agents';
   .modal-role {
     font-size: 0.9375rem;
     font-weight: 500;
-    color: var(--modal-accent, var(--color-glow-cyan));
+    color: var(--modal-accent, var(--color-primary));
     margin: 0 0 0.75rem;
   }
 
   .modal-description {
     font-size: 0.9375rem;
     line-height: 1.6;
-    color: var(--color-muted-foreground);
+    color: var(--color-text-muted);
     margin: 0 0 1rem;
   }
 
@@ -600,19 +554,19 @@ import { agents } from '../data/agents';
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--color-muted-foreground);
+    color: var(--color-text-muted);
     margin: 0 0 0.375rem;
   }
 
   .modal-focus-text {
     font-size: 0.875rem;
     line-height: 1.5;
-    color: var(--color-foreground);
+    color: var(--color-text);
     margin: 0;
     padding: 0.75rem;
-    border-radius: 0.75rem;
-    background: color-mix(in srgb, var(--modal-accent, var(--color-glow-cyan)) 8%, transparent);
-    border: 1px solid color-mix(in srgb, var(--modal-accent, var(--color-glow-cyan)) 15%, transparent);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--modal-accent, var(--color-primary)) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--modal-accent, var(--color-primary)) 15%, transparent);
   }
 
   .modal-skills {
@@ -654,17 +608,17 @@ import { agents } from '../data/agents';
     gap: 0.5rem;
     background: none;
     border: none;
-    color: var(--color-muted-foreground);
+    color: var(--color-text-muted);
     font-size: 0.875rem;
     cursor: pointer;
     padding: 0.5rem 0.75rem;
-    border-radius: 0.5rem;
+    border-radius: var(--radius-md);
     transition: all 0.2s;
   }
 
   .modal-nav-btn:hover {
-    color: var(--color-foreground);
-    background: var(--color-secondary);
+    color: var(--color-text);
+    background: var(--color-surface);
   }
 
   .modal-nav-label {

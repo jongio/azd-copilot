@@ -46,30 +46,30 @@ const uniqueId = `terminal-${Math.random().toString(36).substring(2, 9)}`;
     align-items: center;
     gap: 0.75rem;
     padding: 0.75rem 1rem;
-    border-radius: 0.75rem;
+    border-radius: var(--radius-md);
     font-family: var(--font-mono);
     font-size: 0.875rem;
-    background: rgba(15, 23, 42, 0.6);
+    background: var(--color-surface);
     border: 1px solid var(--color-border);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
 
   .terminal-code:hover {
-    border-color: rgba(148, 163, 184, 0.2);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    border-color: color-mix(in srgb, var(--color-primary) 30%, var(--color-border));
+    box-shadow: var(--shadow-hover);
   }
 
   .terminal-icon {
     width: 1rem;
     height: 1rem;
     flex-shrink: 0;
-    color: var(--color-glow-cyan);
+    color: var(--color-primary);
   }
 
   .terminal-text {
     flex: 1;
     overflow-x: auto;
-    color: var(--color-foreground);
+    color: var(--color-text);
     background: none;
     padding: 0;
     white-space: nowrap;
@@ -96,7 +96,7 @@ const uniqueId = `terminal-${Math.random().toString(36).substring(2, 9)}`;
 
   .copy-btn:focus-visible {
     opacity: 1;
-    outline: 2px solid var(--color-ring);
+    outline: 2px solid var(--color-primary);
     outline-offset: 2px;
   }
 
@@ -104,17 +104,17 @@ const uniqueId = `terminal-${Math.random().toString(36).substring(2, 9)}`;
   .check-icon {
     width: 1rem;
     height: 1rem;
-    color: var(--color-muted-foreground);
+    color: var(--color-text-muted);
     transition: color 0.2s ease;
   }
 
   .copy-btn:hover .copy-icon {
-    color: var(--color-foreground);
+    color: var(--color-text);
   }
 
   .check-icon {
     display: none;
-    color: var(--color-glow-emerald);
+    color: var(--color-success);
   }
 
   .copy-btn.copied .copy-icon {

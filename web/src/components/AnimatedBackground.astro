@@ -3,14 +3,14 @@
  * AnimatedBackground Component
  * 
  * Floating, glowing orbs that create a modern startup aesthetic.
- * Matching the style from azd-extensions.
+ * Uses shared design token colors.
  */
 ---
 
 <div class="animated-bg" aria-hidden="true">
-  <div class="orb orb-cyan"></div>
-  <div class="orb orb-violet"></div>
-  <div class="orb orb-emerald"></div>
+  <div class="orb orb-primary"></div>
+  <div class="orb orb-accent"></div>
+  <div class="orb orb-success"></div>
   <div class="floating-dot dot-1"></div>
   <div class="floating-dot dot-2"></div>
   <div class="floating-dot dot-3"></div>
@@ -32,32 +32,32 @@
     animation: pulse-glow 4s ease-in-out infinite;
   }
 
-  .orb-cyan {
+  .orb-primary {
     top: -10rem;
     left: -10rem;
     width: 20rem;
     height: 20rem;
-    background: var(--color-glow-cyan);
+    background: var(--color-primary);
     opacity: 0.2;
   }
 
-  .orb-violet {
+  .orb-accent {
     top: 33%;
     right: -10rem;
     width: 24rem;
     height: 24rem;
-    background: var(--color-glow-violet);
+    background: var(--color-accent);
     opacity: 0.15;
     animation-delay: 2s;
     filter: blur(120px);
   }
 
-  .orb-emerald {
+  .orb-success {
     bottom: -10rem;
     left: 33%;
     width: 18rem;
     height: 18rem;
-    background: var(--color-glow-emerald);
+    background: var(--color-success);
     opacity: 0.1;
     animation-delay: 4s;
   }
@@ -73,7 +73,7 @@
     left: 2.5rem;
     width: 0.5rem;
     height: 0.5rem;
-    background: var(--color-glow-cyan);
+    background: var(--color-primary);
     opacity: 0.6;
   }
 
@@ -82,7 +82,7 @@
     right: 5rem;
     width: 0.75rem;
     height: 0.75rem;
-    background: var(--color-glow-violet);
+    background: var(--color-accent);
     opacity: 0.5;
     animation-delay: 2s;
     animation-duration: 8s;
@@ -93,7 +93,7 @@
     left: 15%;
     width: 0.5rem;
     height: 0.5rem;
-    background: var(--color-glow-emerald);
+    background: var(--color-success);
     opacity: 0.4;
     animation-delay: 1s;
     animation-duration: 7s;
