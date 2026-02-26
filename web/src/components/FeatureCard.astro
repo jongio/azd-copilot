@@ -3,7 +3,7 @@
  * FeatureCard Component
  * 
  * Card for displaying features with icon, title, and description.
- * Has hover glow effects matching azd-extensions style.
+ * Uses shared design token variables.
  */
 interface Props {
   icon: string;
@@ -16,9 +16,9 @@ interface Props {
 const { icon, title, description, href, glowColor = 'cyan' } = Astro.props;
 
 const glowColorMap = {
-  cyan: 'var(--color-glow-cyan)',
-  violet: 'var(--color-glow-violet)',
-  emerald: 'var(--color-glow-emerald)',
+  cyan: 'var(--color-primary)',
+  violet: 'var(--color-accent)',
+  emerald: 'var(--color-success)',
 };
 
 const color = glowColorMap[glowColor];
@@ -54,8 +54,8 @@ const Tag = href ? 'a' : 'div';
     position: relative;
     display: block;
     padding: 1.5rem;
-    border-radius: 1rem;
-    background: var(--color-card);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-2);
     backdrop-filter: blur(16px);
     border: 1px solid var(--color-border);
     text-decoration: none;
@@ -66,8 +66,8 @@ const Tag = href ? 'a' : 'div';
 
   .feature-card:hover {
     transform: translateY(-4px) scale(1.01);
-    border-color: rgba(148, 163, 184, 0.2);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    border-color: color-mix(in srgb, var(--glow-color) 30%, var(--color-border));
+    box-shadow: 0 20px 40px color-mix(in srgb, var(--glow-color) 15%, transparent);
     text-decoration: none;
   }
 
@@ -101,8 +101,8 @@ const Tag = href ? 'a' : 'div';
     width: 3rem;
     height: 3rem;
     margin-bottom: 1rem;
-    border-radius: 0.75rem;
-    background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(139, 92, 246, 0.1));
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 20%, transparent), color-mix(in srgb, var(--color-accent) 10%, transparent));
     transition: transform 0.3s ease;
   }
 
@@ -118,12 +118,12 @@ const Tag = href ? 'a' : 'div';
     font-size: 1.125rem;
     font-weight: 600;
     margin-bottom: 0.5rem;
-    color: var(--color-foreground);
+    color: var(--color-text);
   }
 
   .feature-description {
     font-size: 0.875rem;
-    color: var(--color-muted-foreground);
+    color: var(--color-text-muted);
     line-height: 1.6;
     margin: 0;
   }

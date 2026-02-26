@@ -1,25 +1,15 @@
 ---
 import Layout from '../components/Layout.astro';
+import HeroBanner from '@jongio/azd-web-core/components/HeroBanner.astro';
 import TerminalCode from '../components/TerminalCode.astro';
 ---
 
 <Layout title="Getting Started" description="Get up and running with azd-copilot in under 5 minutes">
   <!-- Hero -->
-  <section class="gs-hero" aria-labelledby="gs-heading">
-    <div class="gs-hero-container">
-      <h1 id="gs-heading" class="gs-hero-title animate-fade-up">
-        Getting <span class="text-gradient-animated">Started</span>
-      </h1>
-      <p class="gs-hero-description animate-fade-up" style="animation-delay: 0.1s">
-        Get up and running with azd-copilot in under 5 minutes.<br />
-        Install the Azure Developer CLI, add the extension, and launch your AI-powered Azure experience.
-      </p>
-      <div class="gs-time-badge animate-fade-up" style="animation-delay: 0.2s">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        ~5 minutes
-      </div>
-    </div>
-  </section>
+  <HeroBanner
+    title='Getting <span class="gradient-text">Started</span>'
+    subtitle="Get up and running with azd-copilot in under 5 minutes. Install the Azure Developer CLI, add the extension, and launch your AI-powered Azure experience."
+  />
 
   <!-- Step Navigation -->
   <nav class="step-nav" aria-label="Quick start steps">
@@ -187,55 +177,6 @@ import TerminalCode from '../components/TerminalCode.astro';
 </Layout>
 
 <style>
-  /* Hero */
-  .gs-hero {
-    padding: 4rem 1.5rem 2rem;
-    background:
-      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(6, 182, 212, 0.15), transparent),
-      radial-gradient(ellipse 60% 40% at 80% 50%, rgba(139, 92, 246, 0.1), transparent);
-  }
-
-  @media (min-width: 768px) {
-    .gs-hero { padding: 6rem 2rem 3rem; }
-  }
-
-  .gs-hero-container {
-    max-width: 56rem;
-    margin: 0 auto;
-    text-align: center;
-  }
-
-  .gs-hero-title {
-    font-size: 2.5rem;
-    font-weight: 800;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-    margin-bottom: 1.5rem;
-  }
-
-  @media (min-width: 640px) { .gs-hero-title { font-size: 3.5rem; } }
-
-  .gs-hero-description {
-    max-width: 36rem;
-    margin: 0 auto 1.5rem;
-    font-size: 1.125rem;
-    line-height: 1.7;
-    color: var(--color-muted-foreground);
-  }
-
-  .gs-time-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.375rem 1rem;
-    border-radius: 9999px;
-    background: rgba(16, 185, 129, 0.1);
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    color: var(--color-glow-emerald);
-    font-size: 0.875rem;
-    font-weight: 600;
-  }
-
   /* Step Navigation */
   .step-nav {
     position: sticky;
@@ -243,15 +184,7 @@ import TerminalCode from '../components/TerminalCode.astro';
     z-index: 40;
     padding: 0.75rem 1.5rem;
     border-bottom: 1px solid var(--color-border);
-  }
-
-  .dark .step-nav {
-    background: rgba(10, 10, 15, 0.9);
-    backdrop-filter: blur(16px);
-  }
-
-  .light .step-nav {
-    background: rgba(255, 255, 255, 0.9);
+    background: color-mix(in srgb, var(--color-surface) 90%, transparent);
     backdrop-filter: blur(16px);
   }
 
@@ -276,16 +209,16 @@ import TerminalCode from '../components/TerminalCode.astro';
     padding: 0.5rem 0.75rem;
     font-size: 0.8125rem;
     font-weight: 500;
-    color: var(--color-muted-foreground);
+    color: var(--color-text-muted);
     text-decoration: none;
-    border-radius: 0.5rem;
+    border-radius: var(--radius-md);
     white-space: nowrap;
     transition: all 0.2s;
   }
 
   .step-nav-list li a:hover {
-    color: var(--color-foreground);
-    background: var(--color-secondary);
+    color: var(--color-text);
+    background: var(--color-surface-2);
     text-decoration: none;
   }
 
@@ -357,7 +290,7 @@ import TerminalCode from '../components/TerminalCode.astro';
 
   .step-subtitle {
     font-size: 0.9375rem;
-    color: var(--color-muted-foreground);
+    color: var(--color-text-muted);
     margin: 0.25rem 0 0;
   }
 
@@ -382,7 +315,7 @@ import TerminalCode from '../components/TerminalCode.astro';
 
   .substep-desc {
     font-size: 0.875rem;
-    color: var(--color-muted-foreground);
+    color: var(--color-text-muted);
     margin-bottom: 0.75rem;
     line-height: 1.6;
   }
@@ -393,8 +326,8 @@ import TerminalCode from '../components/TerminalCode.astro';
     gap: 0.25rem;
     margin-bottom: 1rem;
     padding: 0.25rem;
-    border-radius: 0.75rem;
-    background: var(--color-secondary);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-2);
     width: fit-content;
   }
 
@@ -403,9 +336,9 @@ import TerminalCode from '../components/TerminalCode.astro';
     font-size: 0.8125rem;
     font-weight: 500;
     border: none;
-    border-radius: 0.5rem;
+    border-radius: var(--radius-md);
     background: transparent;
-    color: var(--color-muted-foreground);
+    color: var(--color-text-muted);
     cursor: pointer;
     transition: all 0.2s;
   }
@@ -416,7 +349,7 @@ import TerminalCode from '../components/TerminalCode.astro';
   }
 
   .platform-tab:hover:not(.active) {
-    color: var(--color-foreground);
+    color: var(--color-text);
   }
 
   .platform-content {
@@ -435,16 +368,16 @@ import TerminalCode from '../components/TerminalCode.astro';
     gap: 1rem;
     padding: 1.25rem 2rem;
     margin-bottom: 2rem;
-    border-radius: 1rem;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid rgba(6, 182, 212, 0.3);
-    box-shadow: 0 0 40px rgba(6, 182, 212, 0.15), 0 0 80px rgba(139, 92, 246, 0.1);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    border: 1px solid color-mix(in srgb, var(--color-primary) 30%, var(--color-border));
+    box-shadow: 0 0 40px color-mix(in srgb, var(--color-primary) 15%, transparent), 0 0 80px color-mix(in srgb, var(--color-accent) 10%, transparent);
   }
 
   .hero-cmd-prompt-gs {
     font-family: var(--font-mono);
     font-size: 2rem;
-    color: var(--color-glow-cyan);
+    color: var(--color-primary);
     line-height: 1;
   }
 
@@ -453,7 +386,7 @@ import TerminalCode from '../components/TerminalCode.astro';
     font-size: 2.5rem;
     font-weight: 700;
     letter-spacing: -0.02em;
-    color: var(--color-foreground);
+    color: var(--color-text);
     line-height: 1;
   }
 
@@ -466,9 +399,9 @@ import TerminalCode from '../components/TerminalCode.astro';
   .expected-output {
     margin-top: 0.75rem;
     padding: 0.75rem 1rem;
-    border-radius: 0.75rem;
-    background: rgba(16, 185, 129, 0.06);
-    border: 1px solid rgba(16, 185, 129, 0.15);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--color-success) 6%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-success) 15%, transparent);
   }
 
   .expected-label {
@@ -477,7 +410,7 @@ import TerminalCode from '../components/TerminalCode.astro';
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--color-glow-emerald);
+    color: var(--color-success);
     margin-bottom: 0.375rem;
   }
 
@@ -491,7 +424,7 @@ import TerminalCode from '../components/TerminalCode.astro';
 
   .expected-output pre code {
     font-size: 0.8125rem;
-    color: var(--color-muted-foreground);
+    color: var(--color-text-muted);
     background: none;
     padding: 0;
   }
@@ -502,11 +435,11 @@ import TerminalCode from '../components/TerminalCode.astro';
     align-items: flex-start;
     gap: 0.75rem;
     padding: 1rem 1.25rem;
-    border-radius: 0.75rem;
-    background: rgba(6, 182, 212, 0.06);
-    border: 1px solid rgba(6, 182, 212, 0.15);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--color-primary) 6%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-primary) 15%, transparent);
     font-size: 0.875rem;
-    color: var(--color-muted-foreground);
+    color: var(--color-text-muted);
     line-height: 1.6;
   }
 
@@ -524,7 +457,7 @@ import TerminalCode from '../components/TerminalCode.astro';
   .next-steps {
     padding: 4rem 1.5rem 5rem;
     border-top: 1px solid var(--color-border);
-    background: var(--color-secondary);
+    background: var(--color-surface);
   }
 
   @media (min-width: 768px) {
@@ -556,7 +489,7 @@ import TerminalCode from '../components/TerminalCode.astro';
     display: flex;
     flex-direction: column;
     padding: 1.5rem;
-    border-radius: 1rem;
+    border-radius: var(--radius-lg);
     text-decoration: none;
     color: inherit;
     transition: all 0.3s ease;
@@ -565,7 +498,7 @@ import TerminalCode from '../components/TerminalCode.astro';
   .next-card:hover {
     transform: translateY(-4px);
     border-color: var(--color-primary);
-    box-shadow: 0 8px 30px rgba(6, 182, 212, 0.15);
+    box-shadow: 0 8px 30px color-mix(in srgb, var(--color-primary) 15%, transparent);
     text-decoration: none;
   }
 
@@ -582,7 +515,7 @@ import TerminalCode from '../components/TerminalCode.astro';
 
   .next-card p {
     font-size: 0.8125rem;
-    color: var(--color-muted-foreground);
+    color: var(--color-text-muted);
     line-height: 1.5;
     margin: 0;
     flex: 1;

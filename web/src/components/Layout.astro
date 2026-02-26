@@ -1,4 +1,8 @@
 ---
+import SharedLayout from '@jongio/azd-web-core/components/Layout.astro';
+import Header from '@jongio/azd-web-core/components/Header.astro';
+import Footer from '@jongio/azd-web-core/components/Footer.astro';
+import SuiteNav from '@jongio/azd-web-core/components/SuiteNav.astro';
 import AnimatedBackground from './AnimatedBackground.astro';
 
 interface Props {
@@ -9,415 +13,56 @@ interface Props {
 
 const { title, description = 'GitHub Copilot integration for Azure Developer CLI', variant = 'landing' } = Astro.props;
 
-const siteUrl = 'https://jongio.github.io/azd-copilot';
 const fullTitle = title === 'Home' ? 'Azure Copilot CLI' : `${title} | Azure Copilot CLI`;
-const ogImage = `${siteUrl}/social-preview.png`;
+
+const navLinks = [
+  { label: 'Getting Started', href: '/azd-copilot/getting-started/' },
+  { label: 'Agents', href: '/azd-copilot/agents/' },
+  { label: 'Reference', href: '/azd-copilot/reference/cli/' },
+];
 ---
 
-<!DOCTYPE html>
-<html lang="en" class="dark">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content={description} />
+<SharedLayout
+  title={fullTitle}
+  description={description}
+  extensionName="copilot"
+>
+  <Fragment slot="head">
     <link rel="icon" type="image/svg+xml" href="/azd-copilot/favicon.svg" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <title>{fullTitle}</title>
+  </Fragment>
 
-    <!-- Open Graph -->
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content={fullTitle} />
-    <meta property="og:description" content={description} />
-    <meta property="og:image" content={ogImage} />
-    <meta property="og:url" content={siteUrl} />
-    <meta property="og:site_name" content="Azure Copilot CLI" />
+  <SuiteNav
+    currentExtension="copilot"
+    hubUrl="https://jongio.github.io/azd-extensions/"
+  />
 
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={fullTitle} />
-    <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={ogImage} />
+  <Header
+    extensionName="copilot"
+    navLinks={navLinks}
+    githubUrl="https://github.com/jongio/azd-copilot"
+    hubUrl="https://jongio.github.io/azd-extensions/"
+  />
 
-    <script is:inline>
-      // Theme initialization - check localStorage before render to prevent flash
-      (function() {
-        const stored = localStorage.getItem('azd-copilot-theme');
-        if (stored === 'light') {
-          document.documentElement.classList.remove('dark');
-          document.documentElement.classList.add('light');
-        }
-      })();
-    </script>
-  </head>
-  <body>
-    <AnimatedBackground />
-    
-    <div class="page-wrapper">
-      <header class="glass-strong header">
-        <div class="header-container">
-          <div class="logo-group">
-            <a href="/azd-copilot/" class="logo-icon-wrapper">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>
-              </svg>
-            </a>
-            <span class="logo-text">
-              <span class="logo-full">Azure Copilot CLI</span>
-              <span class="logo-short">azd copilot</span>
-              <span class="logo-by"> by </span>
-              <a href="https://github.com/jongio" target="_blank" rel="noopener noreferrer" class="logo-author text-gradient">Jon Gallant</a>
-            </span>
-          </div>
-          <div class="header-actions">
-            <a href="/azd-copilot/agents/" class="nav-link">Agents</a>
-            <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
-              <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
-              </svg>
-              <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
-              </svg>
-            </button>
-            <a href="https://x.com/jongallant" target="_blank" rel="noopener noreferrer" aria-label="Jon Gallant on X" class="social-link">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-              </svg>
-            </a>
-            <a href="https://github.com/jongio/azd-copilot" class="github-link glass" target="_blank" rel="noopener">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.164 6.839 9.49.5.09.682-.218.682-.484 0-.237-.009-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.268 2.75 1.026A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.026 2.747-1.026.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .269.18.579.688.481C19.138 20.161 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
-              </svg>
-              <span class="github-text">jongio</span>
-            </a>
-          </div>
-        </div>
-      </header>
+  <AnimatedBackground />
 
-      <main class="main">
-        <slot />
-      </main>
+  <main class="main-content">
+    <slot />
+  </main>
 
-      <footer class="footer">
-        <div class="footer-container">
-          <div class="footer-content">
-            <p class="footer-love">
-              Built with 
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--color-glow-violet)" stroke="none" class="heart-icon" aria-label="love">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-              </svg>
-              by <a href="https://github.com/jongio" target="_blank" rel="noopener">Jon Gallant</a>
-            </p>
-            <div class="footer-links">
-              <a href="https://learn.microsoft.com/azure/developer/azure-developer-cli/overview" target="_blank" rel="noopener">Azure Developer CLI</a>
-              <a href="https://github.com/jongio/azd-copilot" target="_blank" rel="noopener">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.164 6.839 9.49.5.09.682-.218.682-.484 0-.237-.009-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.268 2.75 1.026A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.026 2.747-1.026.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .269.18.579.688.481C19.138 20.161 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
-                </svg>
-                Source
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
-    </div>
-  </body>
-</html>
+  <Footer
+    extensionName="copilot"
+    githubUrl="https://github.com/jongio/azd-copilot"
+    hubUrl="https://jongio.github.io/azd-extensions/"
+  />
+</SharedLayout>
 
 <style is:global>
   @import "../styles/global.css";
 </style>
 
 <style>
-  .page-wrapper {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-  }
-
-  .header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 50;
-  }
-
-  .header-container {
-    max-width: 80rem;
-    margin: 0 auto;
-    padding: 0 1rem;
-    height: 4rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .logo-group {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .logo-icon-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    flex-shrink: 0;
-    border-radius: 0.75rem;
-    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-    text-decoration: none;
-    transition: opacity 0.2s ease;
-  }
-
-  .logo-icon-wrapper:hover {
-    opacity: 0.8;
-    text-decoration: none;
-  }
-
-  .logo-text {
-    font-size: 0.875rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: var(--color-foreground);
-  }
-
-  @media (min-width: 640px) {
-    .logo-text {
-      font-size: 1rem;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .logo-text {
-      font-size: 1.125rem;
-    }
-  }
-
-  .logo-full {
-    display: none;
-  }
-
-  .logo-short {
-    display: inline;
-  }
-
-  @media (min-width: 640px) {
-    .logo-full {
-      display: inline;
-    }
-    .logo-short {
-      display: none;
-    }
-  }
-
-  .logo-by {
-    color: var(--color-muted-foreground);
-    font-weight: 400;
-  }
-
-  .logo-author {
-    text-decoration: none;
-  }
-
-  .logo-author:hover {
-    opacity: 0.8;
-    text-decoration: none;
-  }
-
-  .header-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .nav-link {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--color-muted-foreground);
-    text-decoration: none;
-    padding: 0.375rem 0.5rem;
-    border-radius: 0.375rem;
-    transition: color 0.2s ease;
-  }
-
-  .nav-link:hover {
-    color: var(--color-foreground);
-    text-decoration: none;
-  }
-
-  .theme-toggle {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    padding: 0;
-    border: none;
-    border-radius: 0.5rem;
-    background: transparent;
-    color: var(--color-muted-foreground);
-    cursor: pointer;
-    transition: color 0.2s ease;
-  }
-
-  .theme-toggle:hover {
-    color: var(--color-foreground);
-  }
-
-  /* Show moon in dark mode, sun in light mode */
-  .sun-icon {
-    display: none;
-  }
-  .moon-icon {
-    display: block;
-  }
-
-  .light .sun-icon {
-    display: block;
-  }
-  .light .moon-icon {
-    display: none;
-  }
-
-  .social-link {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    padding: 0.5rem;
-    border-radius: 0.5rem;
-    color: var(--color-muted-foreground);
-    text-decoration: none;
-    transition: color 0.2s ease;
-  }
-
-  .social-link:hover {
-    color: var(--color-foreground);
-    text-decoration: none;
-  }
-
-  .github-link {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    border-radius: 0.5rem;
-    color: var(--color-foreground);
-    text-decoration: none;
-    border-color: rgba(6, 182, 212, 0.2);
-    transition: all 0.2s ease;
-  }
-
-  .github-link:hover {
-    border-color: rgba(6, 182, 212, 0.5);
-    box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);
-    text-decoration: none;
-  }
-
-  .github-text {
-    display: none;
-  }
-
-  @media (min-width: 640px) {
-    .github-text {
-      display: inline;
-    }
-  }
-
-  .main {
+  .main-content {
     flex: 1;
-    padding-top: 4rem;
-  }
-
-  .footer {
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 2rem 0;
-  }
-
-  .footer-container {
-    max-width: 80rem;
-    margin: 0 auto;
-    padding: 0 1rem;
-  }
-
-  .footer-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-  }
-
-  @media (min-width: 640px) {
-    .footer-content {
-      flex-direction: row;
-    }
-  }
-
-  .footer-love {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    margin: 0;
-    font-size: 0.875rem;
-    color: var(--color-muted-foreground);
-  }
-
-  .footer-love a {
-    font-weight: 500;
-    color: var(--color-foreground);
-  }
-
-  .footer-love a:hover {
-    color: var(--color-primary);
-    text-decoration: none;
-  }
-
-  .heart-icon {
-    margin: 0 0.25rem;
-  }
-
-  .footer-links {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-  }
-
-  .footer-links a {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-    font-size: 0.875rem;
-    color: var(--color-muted-foreground);
-    transition: color 0.2s ease;
-  }
-
-  .footer-links a:hover {
-    color: var(--color-foreground);
-    text-decoration: none;
+    min-height: 0;
   }
 </style>
-
-<script>
-  // Theme toggle functionality
-  const toggle = document.getElementById('theme-toggle');
-  if (toggle) {
-    toggle.addEventListener('click', () => {
-      const html = document.documentElement;
-      const isDark = html.classList.contains('dark');
-      html.classList.remove('dark', 'light');
-      html.classList.add(isDark ? 'light' : 'dark');
-      localStorage.setItem('azd-copilot-theme', isDark ? 'light' : 'dark');
-    });
-  }
-</script>

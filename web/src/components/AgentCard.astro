@@ -13,25 +13,25 @@ interface Props {
 const { id, emoji, name, role, description, skills, color, index } = Astro.props;
 
 const colorMap: Record<string, string> = {
-  azure: 'var(--color-glow-cyan)',
-  purple: 'var(--color-glow-violet)',
-  indigo: 'var(--color-glow-violet)',
-  blue: 'var(--color-glow-cyan)',
-  red: '#ef4444',
-  sky: 'var(--color-glow-cyan)',
-  orange: '#f97316',
-  amber: '#f59e0b',
-  neutral: 'var(--color-muted-foreground)',
-  gold: '#eab308',
-  stone: '#78716c',
-  teal: 'var(--color-glow-emerald)',
-  fuchsia: '#d946ef',
-  cyan: 'var(--color-glow-cyan)',
-  pink: '#ec4899',
-  emerald: 'var(--color-glow-emerald)',
+  azure: 'var(--color-primary)',
+  purple: 'var(--color-accent)',
+  indigo: 'var(--color-accent)',
+  blue: 'var(--color-primary)',
+  red: 'var(--color-danger)',
+  sky: 'var(--color-primary)',
+  orange: 'var(--color-warning)',
+  amber: 'var(--color-warning)',
+  neutral: 'var(--color-text-muted)',
+  gold: 'var(--color-warning)',
+  stone: 'var(--color-text-muted)',
+  teal: 'var(--color-success)',
+  fuchsia: 'var(--color-accent)',
+  cyan: 'var(--color-primary)',
+  pink: 'var(--color-accent)',
+  emerald: 'var(--color-success)',
 };
 
-const accentColor = colorMap[color] || 'var(--color-glow-cyan)';
+const accentColor = colorMap[color] || 'var(--color-primary)';
 ---
 
 <button
@@ -79,13 +79,13 @@ const accentColor = colorMap[color] || 'var(--color-glow-cyan)';
     align-items: center;
     text-align: center;
     padding: 1.5rem;
-    border-radius: 1.25rem;
+    border-radius: var(--radius-lg);
     cursor: pointer;
     transition: all 0.3s ease;
     animation: fade-up 0.6s ease-out forwards;
     opacity: 0;
-    border-color: transparent;
-    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface-2);
   }
 
   .agent-card:hover {
@@ -140,7 +140,7 @@ const accentColor = colorMap[color] || 'var(--color-glow-cyan)';
     align-items: center;
     justify-content: center;
     font-size: 2.5rem;
-    background: var(--color-secondary);
+    background: var(--color-surface);
     border: 2px solid var(--accent);
   }
 
@@ -170,7 +170,7 @@ const accentColor = colorMap[color] || 'var(--color-glow-cyan)';
     font-size: 1.125rem;
     font-weight: 700;
     margin: 0;
-    color: var(--color-foreground);
+    color: var(--color-text);
   }
 
   .agent-role {
@@ -183,7 +183,7 @@ const accentColor = colorMap[color] || 'var(--color-glow-cyan)';
   .agent-desc {
     font-size: 0.8125rem;
     line-height: 1.5;
-    color: var(--color-muted-foreground);
+    color: var(--color-text-muted);
     margin: 0 0 0.75rem;
     display: -webkit-box;
     -webkit-line-clamp: 3;
