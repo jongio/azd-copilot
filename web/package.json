@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.13",
-    "@jongio/azd-web-core": "^2.1.0",
+    "@jongio/azd-web-core": "^2.2.0",
     "@tailwindcss/vite": "^4.1.18",
     "astro": "^5.17.1",
     "tailwindcss": "^4.1.18"
