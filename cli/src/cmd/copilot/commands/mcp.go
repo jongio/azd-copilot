@@ -218,7 +218,7 @@ func registerMCPTools(s *server.MCPServer) {
 			projectDir := getSquadProjectDir()
 
 			inboxDir := filepath.Join(projectDir, ".ai-team", "decisions", "inbox")
-			if err := os.MkdirAll(inboxDir, 0755); err != nil {
+			if err := os.MkdirAll(inboxDir, 0750); err != nil {
 				return mcp.NewToolResultText(fmt.Sprintf("Error creating inbox directory: %v", err)), nil
 			}
 
@@ -234,7 +234,7 @@ func registerMCPTools(s *server.MCPServer) {
 				content += fmt.Sprintf("**Why:** %s\n", detail)
 			}
 
-			if err := os.WriteFile(filename, []byte(content), 0644); err != nil {
+			if err := os.WriteFile(filename, []byte(content), 0600); err != nil {
 				return mcp.NewToolResultText(fmt.Sprintf("Error writing decision: %v", err)), nil
 			}
 
