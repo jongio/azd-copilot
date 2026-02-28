@@ -141,7 +141,7 @@ When run without subcommands, starts an interactive Copilot session with Azure c
 
 	// Register all commands
 	rootCmd.AddCommand(
-		commands.NewVersionCommand("jongio.azd.copilot", commands.Version, &extCtx.OutputFormat),
+		commands.NewVersionCommand(&extCtx.OutputFormat),
 		commands.NewListenCommand(),
 		commands.NewAgentsCommand(),
 		commands.NewSkillsCommand(),

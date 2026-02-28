@@ -74,7 +74,7 @@ func registerEnvironmentTools(builder *azdext.MCPServerBuilder) {
 	builder.AddTool("get_environment_values",
 		func(ctx context.Context, args azdext.ToolArgs) (*mcp.CallToolResult, error) {
 			name, err := args.RequireString("environment_name")
-			if err != nil {
+			if err != nil || name == "" {
 				return azdext.MCPErrorResult("environment_name is required"), nil
 			}
 
@@ -107,11 +107,11 @@ func registerEnvironmentTools(builder *azdext.MCPServerBuilder) {
 	builder.AddTool("set_environment_value",
 		func(ctx context.Context, args azdext.ToolArgs) (*mcp.CallToolResult, error) {
 			envName, err := args.RequireString("environment_name")
-			if err != nil {
+			if err != nil || envName == "" {
 				return azdext.MCPErrorResult("environment_name is required"), nil
 			}
 			key, err := args.RequireString("key")
-			if err != nil {
+			if err != nil || key == "" {
 				return azdext.MCPErrorResult("key is required"), nil
 			}
 			value, err := args.RequireString("value")
@@ -264,7 +264,7 @@ func registerWorkflowTools(builder *azdext.MCPServerBuilder) {
 	builder.AddTool("run_workflow",
 		func(ctx context.Context, args azdext.ToolArgs) (*mcp.CallToolResult, error) {
 			workflowName, err := args.RequireString("workflow_name")
-			if err != nil {
+			if err != nil || workflowName == "" {
 				return azdext.MCPErrorResult("workflow_name is required"), nil
 			}
 
