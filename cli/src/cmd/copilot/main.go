@@ -1,12 +1,12 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"os"
 	"strings"
 
+	"github.com/azure/azure-dev/cli/azd/pkg/azdext"
 	"github.com/jongio/azd-copilot/cli/src/cmd/copilot/commands"
 	"github.com/jongio/azd-copilot/cli/src/internal/assets"
 	"github.com/jongio/azd-copilot/cli/src/internal/copilot"
@@ -16,14 +16,10 @@ import (
 
 	"github.com/common-nighthawk/go-figure"
 	"github.com/spf13/cobra"
-	"go.opentelemetry.io/otel/propagation"
 )
 
 var (
-	outputFormat   string
-	debugMode      bool
 	structuredLogs bool
-	cwdFlag        string
 
 	// Root command flags for copilot session
 	prompt     string
@@ -35,6 +31,9 @@ var (
 	verbose    bool
 	noBanner   bool
 	forceColor bool
+
+	// SDK extension context
+	extCtx *azdext.ExtensionContext
 )
 
 func main() {
@@ -50,14 +49,18 @@ func main() {
 }
 
 func newRootCmd() *cobra.Command {
-	rootCmd := &cobra.Command{
-		Use:   "copilot",
-		Short: "Azure Copilot CLI - AI-powered Azure development assistant",
+	rootCmd, ec := azdext.NewExtensionRootCommand(azdext.ExtensionCommandOptions{
+		Name:    "copilot",
+		Version: commands.Version,
+		Short:   "Azure Copilot CLI - AI-powered Azure development assistant",
 		Long: fmt.Sprintf(`Azure Copilot CLI is an Azure Developer CLI extension that integrates GitHub Copilot CLI
 with %d specialized Azure agents and %d focused skills for Azure development.
 
 When run without subcommands, starts an interactive Copilot session with Azure context.`, assets.AgentCount(), assets.SkillCount()),
-		Example: `  # Start interactive session
+	})
+	extCtx = ec
+
+	rootCmd.Example = `  # Start interactive session
   azd copilot
 
   # Start with a specific prompt
@@ -70,75 +73,60 @@ When run without subcommands, starts an interactive Copilot session with Azure c
   azd copilot --agent azure-architect
 
   # Auto-approve mode (careful!)
-  azd copilot --yolo`,
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			// Inject OTel trace context from env vars while preserving cobra's signal handling
-			ctx := cmd.Context()
-			if ctx == nil {
-				ctx = context.Background()
-			}
-			if parent := os.Getenv("TRACEPARENT"); parent != "" {
-				tc := propagation.TraceContext{}
-				ctx = tc.Extract(ctx, propagation.MapCarrier{
-					"traceparent": parent,
-					"tracestate":  os.Getenv("TRACESTATE"),
-				})
-			}
-			cmd.SetContext(ctx)
+  azd copilot --yolo`
 
-			// Change working directory if --cwd is specified
-			if cwdFlag != "" {
-				if err := os.Chdir(cwdFlag); err != nil {
-					return fmt.Errorf("failed to change to directory '%s': %w", cwdFlag, err)
-				}
+	// Chain extension-specific PersistentPreRunE after the SDK's
+	sdkPreRunE := rootCmd.PersistentPreRunE
+	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
+		if sdkPreRunE != nil {
+			if err := sdkPreRunE(cmd, args); err != nil {
+				return err
 			}
+		}
 
-			// Handle force color
-			if forceColor {
-				cliout.ForceColor()
-				_ = os.Setenv("FORCE_COLOR", "1")
+		// Handle force color
+		if forceColor {
+			cliout.ForceColor()
+			_ = os.Setenv("FORCE_COLOR", "1")
+		}
+
+		// Set global output format and debug mode
+		if extCtx.Debug {
+			_ = os.Setenv("AZD_DEBUG", "true")
+			_ = os.Setenv("AZD_COPILOT_DEBUG", "true")
+			slog.SetLogLoggerLevel(slog.LevelDebug)
+		}
+
+		// Configure logging
+		logutil.SetupLogger(extCtx.Debug, structuredLogs)
+
+		// Install azd-copilot self-skill
+		if err := selfskills.InstallSkill(); err != nil {
+			if extCtx.Debug {
+				slog.Debug("Failed to install copilot self-skill", "error", err)
 			}
+		}
 
-			// Set global output format and debug mode
-			if debugMode {
-				_ = os.Setenv("AZD_DEBUG", "true")
-				_ = os.Setenv("AZD_COPILOT_DEBUG", "true")
-				slog.SetLogLoggerLevel(slog.LevelDebug)
-			}
+		// Log startup in debug mode
+		if extCtx.Debug {
+			logutil.Debug("Starting azd copilot extension",
+				"version", commands.Version,
+				"command", cmd.Name(),
+				"args", args,
+				"cwd", extCtx.Cwd,
+			)
+		}
 
-			// Configure logging
-			logutil.SetupLogger(debugMode, structuredLogs)
-
-			// Install azd-copilot self-skill
-			if err := selfskills.InstallSkill(); err != nil {
-				if debugMode {
-					slog.Debug("Failed to install copilot self-skill", "error", err)
-				}
-			}
-
-			// Log startup in debug mode
-			if debugMode {
-				logutil.Debug("Starting azd copilot extension",
-					"version", commands.Version,
-					"command", cmd.Name(),
-					"args", args,
-					"cwd", cwdFlag,
-				)
-			}
-
-			return nil
-		},
-		RunE: func(cmd *cobra.Command, args []string) error {
-			// Default behavior: start interactive Copilot session
-			return runCopilotSession(cmd)
-		},
+		return nil
 	}
 
-	// Add global flags
-	rootCmd.PersistentFlags().StringVarP(&outputFormat, "output", "o", "default", "Output format (default, json)")
-	rootCmd.PersistentFlags().BoolVar(&debugMode, "debug", false, "Enable debug logging")
+	rootCmd.RunE = func(cmd *cobra.Command, args []string) error {
+		// Default behavior: start interactive Copilot session
+		return runCopilotSession(cmd)
+	}
+
+	// Add extension-specific persistent flags
 	rootCmd.PersistentFlags().BoolVar(&structuredLogs, "structured-logs", false, "Enable structured JSON logging to stderr")
-	rootCmd.PersistentFlags().StringVarP(&cwdFlag, "cwd", "C", "", "Sets the current working directory")
 	rootCmd.PersistentFlags().BoolVar(&forceColor, "color", false, "Force colored output")
 
 	// Add root command flags for copilot session
@@ -153,7 +141,7 @@ When run without subcommands, starts an interactive Copilot session with Azure c
 
 	// Register all commands
 	rootCmd.AddCommand(
-		commands.NewVersionCommand(&outputFormat),
+		commands.NewVersionCommand(&extCtx.OutputFormat),
 		commands.NewListenCommand(),
 		commands.NewAgentsCommand(),
 		commands.NewSkillsCommand(),
@@ -163,7 +151,7 @@ When run without subcommands, starts an interactive Copilot session with Azure c
 		commands.NewBuildCommand(),
 		commands.NewSpecCommand(),
 		commands.NewMCPCommand(),
-		commands.NewMetadataCommand(newRootCmd),
+		commands.NewMetadataCommand("1.0", "jongio.azd.copilot", newRootCmd),
 		// Quick actions
 		commands.NewInitCommand(),
 		commands.NewReviewCommand(),
@@ -194,7 +182,7 @@ func runCopilotSession(cmd *cobra.Command) error {
 
 	// Configure MCP servers for Copilot CLI
 	if err := copilot.ConfigureMCPServer(); err != nil {
-		if debugMode {
+		if extCtx.Debug {
 			fmt.Fprintf(os.Stderr, "Warning: failed to configure MCP servers: %v\n", err)
 		}
 	}
@@ -202,7 +190,7 @@ func runCopilotSession(cmd *cobra.Command) error {
 	// Install agents and skills to ~/.azd/copilot/
 	assetDirs, err := setupAgentsAndSkills()
 	if err != nil {
-		if debugMode {
+		if extCtx.Debug {
 			fmt.Fprintf(os.Stderr, "Warning: failed to install agents/skills: %v\n", err)
 		}
 	}
@@ -219,7 +207,7 @@ func runCopilotSession(cmd *cobra.Command) error {
 		Model:          model,
 		AddDirs:        append(addDirs, assetDirs...),
 		Verbose:        verbose,
-		Debug:          debugMode,
+		Debug:          extCtx.Debug,
 		ProjectContext: projectContext,
 	})
 }
