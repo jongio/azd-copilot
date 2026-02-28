@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.21.0
-	github.com/azure/azure-dev/cli/azd v0.0.0-20260205194320-e04533f58fa7
+	github.com/azure/azure-dev/cli/azd v0.0.0-20260228002641-8f080b39d69b
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
 	github.com/jongio/azd-core v0.5.3-0.20260224175512-adb4c33ad704
 	github.com/magefile/mage v1.15.0
@@ -90,5 +90,3 @@ require (
 	google.golang.org/grpc v1.78.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
-
-replace github.com/azure/azure-dev/cli/azd => github.com/jongio/azure-dev/cli/azd v0.0.0-20260224163340-dd44e36d1cd2
