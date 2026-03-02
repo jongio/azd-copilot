@@ -103,19 +103,19 @@ func Launch(ctx context.Context, opts Options) error {
 	if copilotPath.IsNode {
 		// Run via node
 		nodeArgs := append([]string{copilotPath.Path}, args...)
-		cmd = exec.CommandContext(ctx, "node", nodeArgs...)
+		cmd = exec.CommandContext(ctx, "node", nodeArgs...) // #nosec G702 -- copilotPath is resolved from internal lookup, not user input
 		if opts.Debug || os.Getenv("AZD_COPILOT_DEBUG") == "true" {
 			fmt.Printf("DEBUG: Running via node\n")
 		}
 	} else if runtime.GOOS == "windows" && (strings.HasSuffix(copilotPath.Path, ".bat") || strings.HasSuffix(copilotPath.Path, ".cmd")) {
 		// On Windows, .bat/.cmd files need to be run via cmd.exe
 		cmdArgs := append([]string{"/c", copilotPath.Path}, args...)
-		cmd = exec.CommandContext(ctx, "cmd.exe", cmdArgs...)
+		cmd = exec.CommandContext(ctx, "cmd.exe", cmdArgs...) // #nosec G702 -- copilotPath is resolved from internal lookup, not user input
 		if opts.Debug || os.Getenv("AZD_COPILOT_DEBUG") == "true" {
 			fmt.Printf("DEBUG: Running via cmd.exe /c\n")
 		}
 	} else {
-		cmd = exec.CommandContext(ctx, copilotPath.Path, args...)
+		cmd = exec.CommandContext(ctx, copilotPath.Path, args...) // #nosec G702 -- copilotPath is resolved from internal lookup, not user input
 	}
 
 	cmd.Stdin = os.Stdin
@@ -152,12 +152,12 @@ func launchViaConsole(ctx context.Context, copilotPath *CopilotPath, args []stri
 
 	if copilotPath.IsNode {
 		nodeArgs := append([]string{copilotPath.Path}, args...)
-		cmd = exec.CommandContext(ctx, "node", nodeArgs...)
+		cmd = exec.CommandContext(ctx, "node", nodeArgs...) // #nosec G702 -- copilotPath is resolved from internal lookup, not user input
 	} else if runtime.GOOS == "windows" && (strings.HasSuffix(copilotPath.Path, ".bat") || strings.HasSuffix(copilotPath.Path, ".cmd")) {
 		cmdArgs := append([]string{"/c", copilotPath.Path}, args...)
-		cmd = exec.CommandContext(ctx, "cmd.exe", cmdArgs...)
+		cmd = exec.CommandContext(ctx, "cmd.exe", cmdArgs...) // #nosec G702 -- copilotPath is resolved from internal lookup, not user input
 	} else {
-		cmd = exec.CommandContext(ctx, copilotPath.Path, args...)
+		cmd = exec.CommandContext(ctx, copilotPath.Path, args...) // #nosec G702 -- copilotPath is resolved from internal lookup, not user input
 	}
 
 	if runtime.GOOS == "windows" {

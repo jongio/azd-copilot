@@ -23,7 +23,9 @@ func init() {
 	VersionInfo.GitCommit = Commit
 }
 
-// NewVersionCommand creates the version command.
+// NewVersionCommand creates the version command using azd-core's version
+// command which provides --quiet flag and full JSON output (version, buildDate,
+// gitCommit, extensionId, name) for backward compatibility.
 func NewVersionCommand(outputFormat *string) *cobra.Command {
 	return coreversion.NewCommand(VersionInfo, outputFormat)
 }

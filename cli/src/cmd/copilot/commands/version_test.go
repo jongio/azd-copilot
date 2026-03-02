@@ -49,7 +49,6 @@ func TestNewVersionCommand(t *testing.T) {
 	if cmd.Short == "" {
 		t.Error("cmd.Short should not be empty")
 	}
-
 	flag := cmd.Flags().Lookup("quiet")
 	if flag == nil {
 		t.Error("--quiet flag should exist")
