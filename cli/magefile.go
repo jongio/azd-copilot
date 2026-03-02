@@ -492,11 +492,27 @@ func parseRepoSource(source string) (repo, branch string) {
 			branch = source[idx+1:]
 		}
 	}
+
+	// Validate branch name to prevent command injection via git --branch.
+	// Git branch names may contain alphanumerics, hyphens, underscores, slashes, and dots.
+	validBranch := regexp.MustCompile(`^[a-zA-Z0-9._/-]+$`)
+	if !validBranch.MatchString(branch) {
+		fmt.Printf("  ⚠️  Invalid branch name %q, falling back to 'main'\n", branch)
+		branch = "main"
+	}
+
 	return repo, branch
 }
 
 // copyDir recursively copies a directory tree.
+// It validates that all relative paths stay within the destination directory
+// to prevent path traversal attacks.
 func copyDir(src, dst string) error {
+	absDst, err := filepath.Abs(dst)
+	if err != nil {
+		return fmt.Errorf("failed to resolve destination path: %w", err)
+	}
+
 	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -507,6 +523,15 @@ func copyDir(src, dst string) error {
 			return err
 		}
 		target := filepath.Join(dst, rel)
+
+		// Validate the target doesn't escape the destination directory
+		absTarget, err := filepath.Abs(target)
+		if err != nil {
+			return fmt.Errorf("failed to resolve target path: %w", err)
+		}
+		if !strings.HasPrefix(absTarget, absDst) {
+			return fmt.Errorf("path traversal detected: %s escapes destination %s", rel, dst)
+		}
 
 		if info.IsDir() {
 			return os.MkdirAll(target, 0755)

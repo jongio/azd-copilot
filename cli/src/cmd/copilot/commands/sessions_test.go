@@ -127,3 +127,34 @@ func TestNewSessionsCommand(t *testing.T) {
 		t.Errorf("--limit default = %q, want %q", flag.DefValue, "10")
 	}
 }
+
+func TestValidateSessionID(t *testing.T) {
+	tests := []struct {
+		name    string
+		id      string
+		wantErr bool
+	}{
+		{name: "valid UUID", id: "abc123-def456-789", wantErr: false},
+		{name: "valid hex", id: "a1b2c3d4e5f6", wantErr: false},
+		{name: "valid with underscores", id: "my_session_1", wantErr: false},
+		{name: "valid with hyphens", id: "my-session-1", wantErr: false},
+		{name: "empty string", id: "", wantErr: true},
+		{name: "path traversal dots", id: "../../../etc/passwd", wantErr: true},
+		{name: "path traversal backslash", id: `..\..\windows\system32`, wantErr: true},
+		{name: "contains slash", id: "foo/bar", wantErr: true},
+		{name: "contains backslash", id: `foo\bar`, wantErr: true},
+		{name: "contains spaces", id: "foo bar", wantErr: true},
+		{name: "contains dots only", id: "..", wantErr: true},
+		{name: "contains special chars", id: "foo;rm -rf /", wantErr: true},
+		{name: "null byte injection", id: "foo\x00bar", wantErr: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateSessionID(tt.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("validateSessionID(%q) error = %v, wantErr %v", tt.id, err, tt.wantErr)
+			}
+		})
+	}
+}
