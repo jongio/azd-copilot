@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -14,6 +15,23 @@ import (
 	"github.com/jongio/azd-core/cliout"
 	"github.com/spf13/cobra"
 )
+
+// validSessionID matches UUIDs, hex strings, and other safe session ID formats.
+// Prevents path traversal by rejecting slashes, backslashes, dots, and other
+// filesystem-sensitive characters.
+var validSessionID = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
+
+// validateSessionID checks that a session ID is safe for use in filesystem paths.
+// Returns an error if the ID contains path traversal characters or is otherwise invalid.
+func validateSessionID(id string) error {
+	if id == "" {
+		return fmt.Errorf("session ID cannot be empty")
+	}
+	if !validSessionID.MatchString(id) {
+		return fmt.Errorf("invalid session ID: %q (must contain only alphanumeric characters, hyphens, and underscores)", id)
+	}
+	return nil
+}
 
 func NewSessionsCommand() *cobra.Command {
 	cmd := &cobra.Command{
@@ -169,6 +187,10 @@ func listSessions(cmd *cobra.Command, args []string) error {
 }
 
 func showSession(sessionID string) error {
+	if err := validateSessionID(sessionID); err != nil {
+		return err
+	}
+
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return fmt.Errorf("failed to get home directory: %w", err)
@@ -219,6 +241,10 @@ func showSession(sessionID string) error {
 }
 
 func deleteSession(sessionID string, force bool) error {
+	if err := validateSessionID(sessionID); err != nil {
+		return err
+	}
+
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return fmt.Errorf("failed to get home directory: %w", err)

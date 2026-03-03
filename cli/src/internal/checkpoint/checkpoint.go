@@ -276,9 +276,12 @@ func SaveWithOptions(opts SaveOptions) (*Checkpoint, error) {
 		return nil, fmt.Errorf("failed to save checkpoint: %w", err)
 	}
 
-	// Update latest.json
+	// Update latest.json (best effort — don't fail the overall save)
 	latestPath := filepath.Join(checkpointDir, "latest.json")
-	_ = fileutil.AtomicWriteJSON(latestPath, checkpoint)
+	if writeErr := fileutil.AtomicWriteJSON(latestPath, checkpoint); writeErr != nil {
+		// Log but don't fail — the checkpoint itself is already saved
+		fmt.Fprintf(os.Stderr, "warning: failed to update latest.json: %v\n", writeErr)
+	}
 
 	return &checkpoint, nil
 }
@@ -386,7 +389,9 @@ func Delete(id string) error {
 			found = true
 			// Delete detail file
 			detailPath := filepath.Join(checkpointDir, cp.ID+".json")
-			_ = os.Remove(detailPath) // ignore error
+			if removeErr := os.Remove(detailPath); removeErr != nil && !os.IsNotExist(removeErr) {
+				fmt.Fprintf(os.Stderr, "warning: failed to remove checkpoint file %s: %v\n", detailPath, removeErr)
+			}
 		} else {
 			updated = append(updated, cp)
 		}
@@ -565,7 +570,9 @@ func KeepLatest(n int) error {
 	// Delete older checkpoints (list is already sorted newest first)
 	for i := n; i < len(checkpoints); i++ {
 		detailPath := filepath.Join(checkpointDir, checkpoints[i].ID+".json")
-		_ = os.Remove(detailPath)
+		if removeErr := os.Remove(detailPath); removeErr != nil && !os.IsNotExist(removeErr) {
+			fmt.Fprintf(os.Stderr, "warning: failed to remove checkpoint file %s: %v\n", detailPath, removeErr)
+		}
 	}
 
 	// Update index with only the kept checkpoints
