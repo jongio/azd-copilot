@@ -20,7 +20,7 @@ var credential = new DefaultAzureCredentialBuilder().build();
 ```
 
 ## Best Practices
-- Use DefaultAzureCredential — works seamlessly from dev to production
+- Use DefaultAzureCredential — works from dev to production
 - Managed identity in production — no secrets to manage, automatic rotation
 - Azure CLI for local dev — run `az login` before running your app
 - Least privilege — grant only required permissions to service principals
