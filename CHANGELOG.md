@@ -1,3 +1,9 @@
+## [0.2.2] - 2026-03-12
+
+- chore: update azd-core to v0.5.6 (#22) (01af379)
+- ci: optimize GitHub Actions workflows (#21) (4beb032)
+- chore: update registry for v0.2.1 (91c2a2f)
+
 ## [0.2.1] - 2026-03-03
 
 - fix: add packages:read permission to deploy-website job in release workflow (f31b965)
