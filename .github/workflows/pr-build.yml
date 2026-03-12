@@ -17,6 +17,10 @@ on:
         required: false
         type: number
 
+concurrency:
+  group: "pr-build-${{ github.event.pull_request.number || github.ref }}"
+  cancel-in-progress: true
+
 defaults:
   run:
     working-directory: cli
@@ -133,6 +137,7 @@ jobs:
   build-pr:
     name: Build PR Preview
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: check-permission
     if: needs.check-permission.outputs.allowed == 'true'
     permissions:
@@ -180,21 +185,12 @@ jobs:
         with:
           ref: ${{ steps.pr.outputs.sha }}
 
-      - name: Set up Go (bootstrap)
+      - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: 'stable'
-          cache: false
-
-      - name: Install Go ${{ env.GO_VERSION }}
-        run: |
-          go install golang.org/dl/go${{ env.GO_VERSION }}@latest
-          go${{ env.GO_VERSION }} download
-          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
-          ln -sf $(which go${{ env.GO_VERSION }}) $(go env GOPATH)/bin/go
-
-      - name: Verify Go version
-        run: go version
+          go-version: '${{ env.GO_VERSION }}'
+          cache: true
+          cache-dependency-path: cli/go.sum
 
       - name: Calculate PR version
         id: version
