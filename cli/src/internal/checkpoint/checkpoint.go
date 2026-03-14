@@ -22,6 +22,7 @@ import (
 // Phase represents a build phase
 type Phase string
 
+// PhaseSpec through PhaseDeploy represent the build phases.
 const (
 	PhaseSpec    Phase = "spec"
 	PhaseDesign  Phase = "design"
@@ -33,6 +34,7 @@ const (
 // CheckpointType indicates what triggered the checkpoint
 type CheckpointType string
 
+// TypePhase through TypeManual represent checkpoint types.
 const (
 	TypePhase    CheckpointType = "phase"    // After phase completion
 	TypeTask     CheckpointType = "task"     // After task completion
@@ -44,6 +46,7 @@ const (
 // Trigger indicates what caused the checkpoint to be created
 type Trigger string
 
+// TriggerPhaseCompleted through TriggerManual represent what caused a checkpoint.
 const (
 	TriggerPhaseCompleted    Trigger = "phase_completed"
 	TriggerTaskCompleted     Trigger = "task_completed"
@@ -129,7 +132,7 @@ func List() ([]Checkpoint, error) {
 		return []Checkpoint{}, nil
 	}
 
-	data, err := os.ReadFile(indexPath)
+	data, err := os.ReadFile(indexPath) //nolint:gosec // G304: indexPath is constructed from known checkpoint directory
 	if err != nil {
 		return nil, fmt.Errorf("failed to read checkpoint index: %w", err)
 	}
@@ -350,7 +353,7 @@ func computeFileHashes(files []string) map[string]string {
 
 // hashFile computes SHA256 of a file
 func hashFile(path string) (string, error) {
-	f, err := os.Open(path)
+	f, err := os.Open(path) //nolint:gosec // G304: path is from internal file list, not user input
 	if err != nil {
 		return "", err
 	}
@@ -611,7 +614,7 @@ func GetProjectFiles() ([]string, error) {
 		}
 	}
 
-	var files []string
+	files := make([]string, 0, len(fileSet))
 	for f := range fileSet {
 		files = append(files, f)
 	}

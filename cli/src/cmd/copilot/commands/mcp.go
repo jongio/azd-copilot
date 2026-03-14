@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewMCPCommand creates the 'mcp' subcommand for MCP server management.
 func NewMCPCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "mcp",
@@ -62,7 +63,7 @@ func newMCPConfigureCommand() *cobra.Command {
 }
 
 // serveMCP starts the MCP server for azd-copilot extension
-func serveMCP(ctx context.Context) error {
+func serveMCP(_ context.Context) error {
 	builder := azdext.NewMCPServerBuilder("azd-copilot", Version).
 		WithRateLimit(10, 1.0).
 		WithResourceCapabilities(true, false)

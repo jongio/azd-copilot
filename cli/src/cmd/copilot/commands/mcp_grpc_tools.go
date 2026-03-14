@@ -30,6 +30,7 @@ func newAzdClient(ctx context.Context) (context.Context, *azdext.AzdClient, erro
 	return azdext.WithAccessToken(ctx), client, nil
 }
 
+//nolint:dupl // structurally similar to registerAccountTools but different API calls and types
 func registerEnvironmentTools(builder *azdext.MCPServerBuilder) {
 	// Tool: list_environments
 	builder.AddTool("list_environments",
@@ -218,6 +219,7 @@ func registerDeploymentTools(builder *azdext.MCPServerBuilder) {
 	)
 }
 
+//nolint:dupl // structurally similar to registerEnvironmentTools but different API calls and types
 func registerAccountTools(builder *azdext.MCPServerBuilder) {
 	// Tool: list_subscriptions
 	builder.AddTool("list_subscriptions",

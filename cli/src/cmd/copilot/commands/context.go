@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewContextCommand creates the 'context' subcommand for displaying AZD project and environment context.
 func NewContextCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "context",
@@ -29,7 +30,7 @@ func NewContextCommand() *cobra.Command {
 
 			defer azdClient.Close()
 
-			hasEnv := false
+			var hasEnv bool
 
 			getConfigResponse, err := azdClient.UserConfig().Get(ctx, &azdext.GetUserConfigRequest{
 				Path: "",

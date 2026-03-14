@@ -43,11 +43,11 @@ func DefaultMetadata() *Metadata {
 func LoadMetadata() (*Metadata, error) {
 	data, err := os.ReadFile(MetadataFile)
 	if err != nil {
-		return DefaultMetadata(), nil // Return defaults if not found
+		return DefaultMetadata(), nil //nolint:nilerr // return defaults if metadata file not found
 	}
 	var m Metadata
 	if err := json.Unmarshal(data, &m); err != nil {
-		return DefaultMetadata(), nil
+		return DefaultMetadata(), nil //nolint:nilerr // return defaults if metadata cannot be parsed
 	}
 	return &m, nil
 }

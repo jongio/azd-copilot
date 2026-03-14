@@ -19,6 +19,7 @@ var (
 	buildApprove bool
 )
 
+// NewBuildCommand creates the 'build' subcommand for generating Azure applications from descriptions.
 func NewBuildCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "build [description]",

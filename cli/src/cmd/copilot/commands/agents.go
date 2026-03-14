@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewAgentsCommand creates the 'agents' subcommand for listing and managing Azure agents.
 func NewAgentsCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "agents",

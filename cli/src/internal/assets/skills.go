@@ -64,7 +64,7 @@ func InstallSkills() (string, int, error) {
 	for _, src := range allSkillSources() {
 		err = fs.WalkDir(src.fs, src.prefix, func(path string, d fs.DirEntry, walkErr error) error {
 			if walkErr != nil {
-				return nil
+				return nil //nolint:nilerr // continue walking on individual entry errors
 			}
 			if d.IsDir() {
 				return nil
@@ -72,7 +72,7 @@ func InstallSkills() (string, int, error) {
 
 			data, readErr := src.fs.ReadFile(path)
 			if readErr != nil {
-				return nil
+				return nil //nolint:nilerr // continue walking on individual file read errors
 			}
 
 			// Strip prefix for destination (both map to the same output dir)
@@ -81,12 +81,12 @@ func InstallSkills() (string, int, error) {
 
 			// Create parent directories
 			if err := fileutil.EnsureDir(filepath.Dir(destPath)); err != nil {
-				return nil
+				return nil //nolint:nilerr // continue walking on directory creation errors
 			}
 
 			// Write file atomically
 			if err := fileutil.AtomicWriteFile(destPath, data, 0644); err != nil {
-				return nil
+				return nil //nolint:nilerr // continue walking on file write errors
 			}
 
 			// Count top-level skill directories
