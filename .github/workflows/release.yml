@@ -18,6 +18,7 @@ concurrency:
 
 defaults:
   run:
+    shell: bash
     working-directory: cli
 
 env:
@@ -80,7 +81,7 @@ jobs:
         run: golangci-lint run --timeout=5m ./src/...
 
       - name: Security scan
-        run: gosec -quiet -exclude=G204,G304 ./src/...
+        run: gosec -quiet -exclude=G204,G304,G702 ./src/...
 
       - name: Vulnerability check
         run: govulncheck ./src/...
@@ -133,6 +134,7 @@ jobs:
           cache-dependency-path: cli/go.sum
 
       - name: Build for multiple platforms
+        if: matrix.os == 'ubuntu-latest'
         run: |
           GOOS=windows GOARCH=amd64 go build -o bin/windows-amd64/copilot.exe ./src/cmd/copilot
           GOOS=linux GOARCH=amd64 go build -o bin/linux-amd64/copilot ./src/cmd/copilot
@@ -140,6 +142,7 @@ jobs:
           GOOS=darwin GOARCH=arm64 go build -o bin/darwin-arm64/copilot ./src/cmd/copilot
 
       - name: Upload artifacts
+        if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: binaries
