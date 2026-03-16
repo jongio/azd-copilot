@@ -385,6 +385,29 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Update registry
+        run: |
+          cd ..
+          git pull
+          cd cli
+          
+          azd x publish \
+            --registry ../registry.json \
+            --version "${{ steps.version.outputs.next }}" \
+            --repo "${{ github.repository }}"
+          
+          cd ..
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add registry.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update registry for v${{ steps.version.outputs.next }}"
+            git push
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Install cosign
         uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
 
@@ -430,29 +453,6 @@ jobs:
           echo "✅ SBOM generated and uploaded (SPDX + CycloneDX)"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Update registry
-        run: |
-          cd ..
-          git pull
-          cd cli
-          
-          azd x publish \
-            --registry ../registry.json \
-            --version "${{ steps.version.outputs.next }}" \
-            --repo "${{ github.repository }}"
-          
-          cd ..
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add registry.json
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: update registry for v${{ steps.version.outputs.next }}"
-            git push
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Notify azd-extensions
         if: success()
