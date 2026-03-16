@@ -31,7 +31,7 @@ type consoleHandles struct {
 
 // attachConsole opens CONIN$/CONOUT$ and uses SetStdHandle to make them
 // the process's standard handles. Child processes spawned via exec.Cmd
-// will then inherit real console handles that Node.js recognises as a TTY
+// will then inherit real console handles that Node.js recognizes as a TTY
 // (isTTY = true, columns/rows populated).
 //
 // Simply passing the CONOUT$ *os.File as cmd.Stdout is NOT enough —
@@ -57,9 +57,9 @@ func attachConsole() (*consoleHandles, error) {
 	h.origErr, _, _ = procGetStdHandle.Call(stdErrorHandle)
 
 	// Redirect to console
-	_, _, _ = procSetStdHandle.Call(stdInputHandle, uintptr(conin.Fd()))
-	_, _, _ = procSetStdHandle.Call(stdOutputHandle, uintptr(conout.Fd()))
-	_, _, _ = procSetStdHandle.Call(stdErrorHandle, uintptr(conout.Fd()))
+	_, _, _ = procSetStdHandle.Call(stdInputHandle, conin.Fd())
+	_, _, _ = procSetStdHandle.Call(stdOutputHandle, conout.Fd())
+	_, _, _ = procSetStdHandle.Call(stdErrorHandle, conout.Fd())
 
 	return h, nil
 }

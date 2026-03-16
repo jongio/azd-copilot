@@ -103,19 +103,19 @@ func Launch(ctx context.Context, opts Options) error {
 	if copilotPath.IsNode {
 		// Run via node
 		nodeArgs := append([]string{copilotPath.Path}, args...)
-		cmd = exec.CommandContext(ctx, "node", nodeArgs...) // #nosec G702 -- copilotPath is resolved from internal lookup, not user input
+		cmd = exec.CommandContext(ctx, "node", nodeArgs...) //nolint:gosec // G204: copilotPath is resolved from internal lookup, not user input
 		if opts.Debug || os.Getenv("AZD_COPILOT_DEBUG") == "true" {
 			fmt.Printf("DEBUG: Running via node\n")
 		}
 	} else if runtime.GOOS == "windows" && (strings.HasSuffix(copilotPath.Path, ".bat") || strings.HasSuffix(copilotPath.Path, ".cmd")) {
 		// On Windows, .bat/.cmd files need to be run via cmd.exe
 		cmdArgs := append([]string{"/c", copilotPath.Path}, args...)
-		cmd = exec.CommandContext(ctx, "cmd.exe", cmdArgs...) // #nosec G702 -- copilotPath is resolved from internal lookup, not user input
+		cmd = exec.CommandContext(ctx, "cmd.exe", cmdArgs...) //nolint:gosec // G204: copilotPath is resolved from internal lookup, not user input
 		if opts.Debug || os.Getenv("AZD_COPILOT_DEBUG") == "true" {
 			fmt.Printf("DEBUG: Running via cmd.exe /c\n")
 		}
 	} else {
-		cmd = exec.CommandContext(ctx, copilotPath.Path, args...) // #nosec G702 -- copilotPath is resolved from internal lookup, not user input
+		cmd = exec.CommandContext(ctx, copilotPath.Path, args...) //nolint:gosec // G204: copilotPath is resolved from internal lookup, not user input
 	}
 
 	cmd.Stdin = os.Stdin
@@ -141,7 +141,7 @@ func Launch(ctx context.Context, opts Options) error {
 // On Windows it uses SetStdHandle to redirect the process's standard handles
 // to CONIN$/CONOUT$ before spawning the child, so Node.js detects a real TTY
 // (isTTY=true, columns/rows populated). Simply passing CONOUT$ file handles
-// as cmd.Stdout does NOT work — Node.js only recognises a TTY when the
+// as cmd.Stdout does NOT work — Node.js only recognizes a TTY when the
 // underlying Windows handle was the process's standard output at spawn time.
 func launchViaConsole(ctx context.Context, copilotPath *CopilotPath, args []string, opts Options) error {
 	if opts.Debug {
@@ -152,18 +152,18 @@ func launchViaConsole(ctx context.Context, copilotPath *CopilotPath, args []stri
 
 	if copilotPath.IsNode {
 		nodeArgs := append([]string{copilotPath.Path}, args...)
-		cmd = exec.CommandContext(ctx, "node", nodeArgs...) // #nosec G702 -- copilotPath is resolved from internal lookup, not user input
+		cmd = exec.CommandContext(ctx, "node", nodeArgs...) //nolint:gosec // G204: copilotPath is resolved from internal lookup, not user input
 	} else if runtime.GOOS == "windows" && (strings.HasSuffix(copilotPath.Path, ".bat") || strings.HasSuffix(copilotPath.Path, ".cmd")) {
 		cmdArgs := append([]string{"/c", copilotPath.Path}, args...)
-		cmd = exec.CommandContext(ctx, "cmd.exe", cmdArgs...) // #nosec G702 -- copilotPath is resolved from internal lookup, not user input
+		cmd = exec.CommandContext(ctx, "cmd.exe", cmdArgs...) //nolint:gosec // G204: copilotPath is resolved from internal lookup, not user input
 	} else {
-		cmd = exec.CommandContext(ctx, copilotPath.Path, args...) // #nosec G702 -- copilotPath is resolved from internal lookup, not user input
+		cmd = exec.CommandContext(ctx, copilotPath.Path, args...) //nolint:gosec // G204: copilotPath is resolved from internal lookup, not user input
 	}
 
 	if runtime.GOOS == "windows" {
 		// On Windows, use SetStdHandle to point our process's standard handles
 		// at the console (CONIN$/CONOUT$). The child process then inherits real
-		// console handles that Node.js recognises as a TTY.
+		// console handles that Node.js recognizes as a TTY.
 		consoleH, err := attachConsole()
 		if err != nil {
 			if opts.Debug {
@@ -228,7 +228,7 @@ func FindCopilotCLI() (*CopilotPath, error) {
 		npmGlobalPath := os.Getenv("npm_config_prefix")
 		if npmGlobalPath == "" {
 			// Query npm for its global prefix (handles custom configurations)
-			if out, err := exec.Command("npm", "config", "get", "prefix").Output(); err == nil {
+			if out, err := exec.CommandContext(context.Background(), "npm", "config", "get", "prefix").Output(); err == nil {
 				npmGlobalPath = strings.TrimSpace(string(out))
 			}
 		}
@@ -365,7 +365,7 @@ func IsCopilotInstalled() bool {
 }
 
 func buildArgs(opts Options) []string {
-	var args []string
+	args := make([]string, 0, 10)
 
 	// Agent (default to azure-manager)
 	agent := opts.Agent
@@ -539,7 +539,7 @@ func ConfigureMCPServer() error {
 	}
 
 	// Read existing config
-	existingConfig, err := os.ReadFile(configPath)
+	existingConfig, err := os.ReadFile(configPath) //nolint:gosec // G304: configPath is constructed from home directory
 
 	// Check which servers are missing
 	var missingServers []string
@@ -607,7 +607,7 @@ func ConfigureMCPServer() error {
 	var config map[string]interface{}
 	if err := json.Unmarshal(existingConfig, &config); err != nil {
 		fmt.Printf("   Note: Add these MCP servers to ~/.copilot/mcp-config.json: %s\n", strings.Join(missingServers, ", "))
-		return nil
+		return nil //nolint:nilerr // intentionally return nil when config cannot be parsed; user is notified via stdout
 	}
 
 	servers, ok := config["mcpServers"].(map[string]interface{})
@@ -650,7 +650,7 @@ func EnsureExtensionsInstalled() error {
 	for _, ext := range extensions {
 		// Check if extension is installed using a quick timeout
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		cmd := exec.CommandContext(ctx, "azd", "extension", "show", ext.id)
+		cmd := exec.CommandContext(ctx, "azd", "extension", "show", ext.id) //nolint:gosec // G204: command is hardcoded "azd"
 		cmd.Stdout = nil
 		cmd.Stderr = nil
 		err := cmd.Run()
@@ -660,7 +660,7 @@ func EnsureExtensionsInstalled() error {
 			// Extension not installed or check timed out, try to install
 			fmt.Printf("📦 Installing %s...\n", ext.name)
 			installCtx, installCancel := context.WithTimeout(context.Background(), 60*time.Second)
-			installCmd := exec.CommandContext(installCtx, "azd", "extension", "install", ext.id, "--source", ext.source, "--no-prompt")
+			installCmd := exec.CommandContext(installCtx, "azd", "extension", "install", ext.id, "--source", ext.source, "--no-prompt") //nolint:gosec // G204: command is hardcoded "azd"
 			installCmd.Stdout = nil
 			installCmd.Stderr = nil
 			// Silently skip errors - extension might already be installed or source not configured

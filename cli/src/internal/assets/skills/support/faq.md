@@ -200,7 +200,7 @@ rm -rf my-project
 
 ### Can I use AzureCopilot with GitHub Copilot?
 
-Yes! AzureCopilot is built on the GitHub Copilot SDK. Your generated code works seamlessly with GitHub Copilot for ongoing development and modifications.
+Yes! AzureCopilot is built on the GitHub Copilot SDK. Your generated code works with GitHub Copilot for ongoing development and modifications.
 
 ### Does AzureCopilot integrate with Azure DevOps?
 

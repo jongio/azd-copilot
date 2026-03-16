@@ -153,7 +153,7 @@ Query results include:
 
 - Always include time range filters to optimize query performance
 - Use `take` or `limit` for exploratory queries to avoid large result sets
-- Leverage `summarize` for aggregations instead of client-side processing
+- Use `summarize` for aggregations instead of client-side processing
 - Store frequently-used queries as functions in the database
 - Use materialized views for repeated aggregations
 - Monitor query performance and resource consumption

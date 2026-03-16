@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewSkillsCommand creates the 'skills' subcommand for listing and managing Azure skills.
 func NewSkillsCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "skills",

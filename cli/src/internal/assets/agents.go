@@ -71,7 +71,7 @@ func ListAgents() ([]AgentInfo, error) {
 		return nil, fmt.Errorf("failed to read embedded agents: %w", err)
 	}
 
-	var agents []AgentInfo
+	agents := make([]AgentInfo, 0, len(entries))
 	for _, entry := range entries {
 		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".md") {
 			continue

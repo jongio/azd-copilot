@@ -20,6 +20,7 @@ var (
 	keepLatest      int
 )
 
+// NewCheckpointsCommand creates the 'checkpoints' subcommand for managing build checkpoints.
 func NewCheckpointsCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "checkpoints",
@@ -251,7 +252,7 @@ func runCheckpointsList(cmd *cobra.Command, args []string) error {
 	}
 
 	// Apply filters
-	var filtered []checkpoint.Checkpoint
+	filtered := make([]checkpoint.Checkpoint, 0, len(checkpoints))
 	for _, cp := range checkpoints {
 		if checkpointPhase != "" && string(cp.Phase) != checkpointPhase {
 			continue

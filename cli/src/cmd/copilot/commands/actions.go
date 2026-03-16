@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewInitCommand creates the 'init' subcommand for AI-assisted project initialization.
 func NewInitCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "init",
@@ -48,6 +49,7 @@ Start by analyzing the current directory structure.`)
 	}
 }
 
+// NewReviewCommand creates the 'review' subcommand for AI-powered code review.
 func NewReviewCommand() *cobra.Command {
 	var path string
 	var focus string
@@ -94,6 +96,7 @@ Start by exploring the codebase structure, then dive into the code.`, focus)
 	return cmd
 }
 
+// NewFixCommand creates the 'fix' subcommand for AI-powered error fixing.
 func NewFixCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "fix",
@@ -123,6 +126,7 @@ Be thorough - fix one issue at a time and verify before moving on.`)
 	}
 }
 
+// NewOptimizeCommand creates the 'optimize' subcommand for cost and performance optimization.
 func NewOptimizeCommand() *cobra.Command {
 	var focus string
 
@@ -175,6 +179,7 @@ Focus areas:
 	return cmd
 }
 
+// NewDiagnoseCommand creates the 'diagnose' subcommand for troubleshooting Azure issues.
 func NewDiagnoseCommand() *cobra.Command {
 	var resource string
 	var logs bool
