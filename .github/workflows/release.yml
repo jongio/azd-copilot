@@ -148,7 +148,7 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    needs: [preflight, test, build]
+    needs: [preflight, test]
     timeout-minutes: 60
     permissions:
       contents: write
