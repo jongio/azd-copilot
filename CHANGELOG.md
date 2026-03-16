@@ -1,3 +1,17 @@
+## [0.2.3] - 2026-03-16
+
+- fix: correct cosign-installer SHA for v3 (35919ff)
+- fix: release workflow - add shell:bash, limit build to ubuntu, fix gosec (acb3159)
+- fix: remove non-existent 'build' job from release.yml needs (15efb2a)
+- ci: bump anchore/sbom-action from 0.20.0 to 0.23.1 (#27) (a675dc4)
+- ci: bump actions/download-artifact from 4.3.0 to 8.0.1 (#26) (3e2393e)
+- ci: bump actions/setup-node from 4.4.0 to 6.3.0 (#29) (5fcf7a3)
+- ci: bump actions/github-script from 7.1.0 to 8.0.0 (#28) (7c5d188)
+- ci: bump pnpm/action-setup (#25) (13c80af)
+- feat: dispatch-parity quality improvements (#24) (4508c76)
+- chore: update registry for v0.2.2 (f1d3f09)
+- chore: remove slop from embedded skill assets (3a48a51)
+
 ## [0.2.2] - 2026-03-12
 
 - chore: update azd-core to v0.5.6 (#22) (01af379)
