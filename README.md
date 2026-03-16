@@ -1,5 +1,15 @@
 # azd copilot
 
+[![CI](https://github.com/jongio/azd-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/jongio/azd-copilot/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/jongio/azd-copilot/actions/workflows/codeql.yml/badge.svg)](https://github.com/jongio/azd-copilot/actions/workflows/codeql.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/jongio/azd-copilot/cli)](https://goreportcard.com/report/github.com/jongio/azd-copilot/cli)
+[![Go Reference](https://pkg.go.dev/badge/github.com/jongio/azd-copilot/cli.svg)](https://pkg.go.dev/github.com/jongio/azd-copilot/cli)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![govulncheck](https://img.shields.io/badge/govulncheck-passing-brightgreen)](https://github.com/jongio/azd-copilot/actions/workflows/govulncheck.yml)
+[![golangci-lint](https://img.shields.io/badge/golangci--lint-enabled-blue)](https://github.com/jongio/azd-copilot/actions/workflows/ci.yml)
+[![Go Version](https://img.shields.io/badge/go-1.26.0-blue)](https://go.dev/)
+[![Platform Support](https://img.shields.io/badge/platform-linux%20%7C%20macOS%20%7C%20windows-lightgrey)](https://github.com/jongio/azd-copilot)
+
 **Describe what you want. Copilot builds it and deploys it to Azure.**
 
 [**🌐 Visit the Website →**](https://jongio.github.io/azd-copilot/) | [**📦 azd Extensions Hub →**](https://jongio.github.io/azd-extensions/)

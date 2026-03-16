@@ -6,11 +6,111 @@ run:
   build-tags:
     - integration
 
+formatters:
+  enable:
+    - gofmt         # Check for code formatting
+    - goimports     # Check for import formatting
+  settings:
+    gofmt:
+      simplify: true
+
 linters:
   enable:
-    - errcheck
-    - govet
-    - staticcheck
-    - unused
-    - ineffassign
-    - misspell
+    - errcheck      # Check for unchecked errors
+    - govet         # Vet examines Go source code
+    - ineffassign   # Detect ineffectual assignments
+    - staticcheck   # Go static analysis
+    - unused        # Check for unused code
+    - misspell      # Check for misspelled words
+    - revive        # Drop-in replacement for golint
+    - unparam       # Report unused function parameters
+    - unconvert     # Remove unnecessary type conversions
+    - goconst       # Find repeated strings that could be constants
+    - dupl          # Code clone detection
+    - nolintlint    # Ensure nolint directives are properly formatted
+    - gosec         # Security checker for Go code
+    - bodyclose     # Check for HTTP response body close
+    - gocritic      # Comprehensive Go source code linter
+    # Dispatch-level linters
+    - errname       # Check error type naming conventions
+    - exhaustive    # Check exhaustiveness of enum switch statements
+    - forcetypeassert # Find forced type assertions
+    - makezero      # Find slice declarations not initialized with zero length
+    - nilerr        # Find code returning nil error incorrectly
+    - noctx         # Find HTTP requests without context
+    - prealloc      # Find slice pre-allocation opportunities
+    - predeclared   # Find shadowed predeclared identifiers
+    - tparallel     # Detect inappropriate t.Parallel() usage
+    - wastedassign  # Find wasted assignments
+
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: false
+      exclude-functions:
+        - (os).RemoveAll
+        - (os).Remove
+        - fmt.Print
+        - fmt.Println
+        - fmt.Printf
+        - fmt.Fprint
+        - fmt.Fprintln
+        - fmt.Fprintf
+
+    govet:
+      disable:
+        - fieldalignment
+
+    revive:
+      rules:
+        - name: exported
+          arguments:
+            - "checkPrivateReceivers"
+            - "disableStutteringCheck"
+
+    misspell:
+      locale: US
+
+    dupl:
+      threshold: 100
+
+    goconst:
+      min-len: 3
+      min-occurrences: 3
+
+    exhaustive:
+      default-signifies-exhaustive: true
+
+    gocritic:
+      disabled-checks:
+        - ifElseChain
+        - appendAssign
+        - elseif
+
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - dupl
+          - errcheck
+          - goconst
+          - unparam
+          - forcetypeassert
+          - noctx
+          - exhaustive
+          - prealloc
+          - gosec
+          - revive
+      - path: magefile\.go
+        linters:
+          - unparam
+          - errcheck
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+output:
+  formats:
+    text:
+      path: stdout

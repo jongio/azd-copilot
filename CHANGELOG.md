@@ -1,3 +1,25 @@
+## [0.2.2] - 2026-03-12
+
+- chore: update azd-core to v0.5.6 (#22) (01af379)
+- ci: optimize GitHub Actions workflows (#21) (4beb032)
+- chore: update registry for v0.2.1 (91c2a2f)
+
+## [0.2.1] - 2026-03-03
+
+- fix: add packages:read permission to deploy-website job in release workflow (f31b965)
+- Sync extension.yaml version to 0.2.0 (fd60e35)
+- Bump version to 0.1.10 (c2ab008)
+- Security hardening and code quality improvements (#19) (b5725c1)
+- chore: update registry for v0.2.0 (2712b30)
+- feat: adopt azdext SDK helpers — full extension framework migration (#18) (8dd6ab3)
+- fix: use correct repo creation dates for LinkedIn publish date (770c094)
+- fix: add LinkedIn publish date via azd-web-core v2.3.0 (0904654)
+- fix: add LinkedIn author meta tag via azd-web-core v2.2.0 (704962d)
+- feat: add social media OG images and consistent titles (7758fc5)
+- feat(web): redesign website with shared azd-web-core design system (#17) (6268f1d)
+- Sync upstream skills and add deploy confirmation guardrails (a0c1714)
+- chore: update registry for v0.1.9 (6baa50a)
+
 ## [0.1.9] - 2026-02-23
 
 - Fix PR Build workflow: add working-directory: cli (#10) (768c09e)

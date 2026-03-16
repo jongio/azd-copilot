@@ -69,6 +69,35 @@ func All() error {
 	return Build()
 }
 
+// Preflight runs all quality checks before release.
+func Preflight() error {
+	fmt.Println("🚀 Running preflight checks...")
+	fmt.Println()
+
+	checks := []struct {
+		name string
+		fn   func() error
+	}{
+		{"Checking code format", Fmt},
+		{"Running linter", Lint},
+		{"Checking gofumpt formatting", preflightGofumpt},
+		{"Checking for dead code", preflightDeadcode},
+		{"Running tests", Test},
+		{"Building CLI binary", Build},
+	}
+
+	for i, check := range checks {
+		fmt.Printf("📋 Step %d/%d: %s...\n", i+1, len(checks), check.name)
+		if err := check.fn(); err != nil {
+			return fmt.Errorf("step %d/%d (%s) failed: %w", i+1, len(checks), check.name, err)
+		}
+		fmt.Println()
+	}
+
+	fmt.Println("✅ All preflight checks passed!")
+	return nil
+}
+
 // Build builds the CLI binary and installs it locally using azd x build.
 func Build() error {
 	_ = killExtensionProcesses()
@@ -123,6 +152,52 @@ func Test() error {
 func Clean() error {
 	fmt.Println("Cleaning build artifacts...")
 	return os.RemoveAll(binDir)
+}
+
+// preflightGofumpt checks that all Go files are formatted with gofumpt (stricter than gofmt).
+func preflightGofumpt() error {
+	if _, err := exec.LookPath("gofumpt"); err != nil {
+		fmt.Println("   ⚠️  gofumpt not installed — skipping strict format check")
+		fmt.Println("      Install with: go install mvdan.cc/gofumpt@latest")
+		return nil
+	}
+	output, err := sh.Output("gofumpt", "-l", ".")
+	if err != nil {
+		return fmt.Errorf("gofumpt check failed: %w", err)
+	}
+	if strings.TrimSpace(output) != "" {
+		fmt.Println("   Files not formatted with gofumpt:")
+		for _, f := range strings.Split(strings.TrimSpace(output), "\n") {
+			fmt.Printf("   • %s\n", f)
+		}
+		return fmt.Errorf("code is not gofumpt-formatted. Run 'gofumpt -w .' to fix")
+	}
+	fmt.Println("   ✅ Code is gofumpt-formatted")
+	return nil
+}
+
+// preflightDeadcode checks for unreachable functions using golang.org/x/tools deadcode analyzer.
+func preflightDeadcode() error {
+	if _, err := exec.LookPath("deadcode"); err != nil {
+		fmt.Println("   ⚠️  deadcode not installed — skipping dead code check")
+		fmt.Println("      Install with: go install golang.org/x/tools/cmd/deadcode@latest")
+		return nil
+	}
+	output, err := sh.Output("deadcode", "-test", "./...")
+	if err != nil {
+		fmt.Println("   ⚠️  Dead code found:")
+		fmt.Println(output)
+		// Non-fatal for now — report but don't fail
+		fmt.Println("   ⚠️  Dead code check completed with findings (non-fatal)")
+		return nil
+	}
+	if strings.TrimSpace(output) != "" {
+		fmt.Println("   ⚠️  Potential dead code found:")
+		fmt.Println(output)
+	} else {
+		fmt.Println("   ✅ No dead code detected")
+	}
+	return nil
 }
 
 // Watch monitors files and rebuilds on changes (requires azd x watch).

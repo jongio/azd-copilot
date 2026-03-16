@@ -33,6 +33,7 @@ func validateSessionID(id string) error {
 	return nil
 }
 
+// NewSessionsCommand creates a command to manage copilot sessions.
 func NewSessionsCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "sessions",
@@ -106,7 +107,7 @@ func listSessions(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to read sessions directory: %w", err)
 	}
 
-	var sessions []sessionInfo
+	sessions := make([]sessionInfo, 0, len(entries))
 	for _, entry := range entries {
 		if !entry.IsDir() {
 			continue
@@ -207,7 +208,7 @@ func showSession(sessionID string) error {
 
 	// Show plan if exists
 	planPath := filepath.Join(sessionPath, "plan.md")
-	if content, err := os.ReadFile(planPath); err == nil {
+	if content, err := os.ReadFile(planPath); err == nil { //nolint:gosec // G304: planPath is constructed from validated sessionID
 		cliout.Warning("Plan:")
 		fmt.Println(string(content))
 	}
@@ -260,7 +261,7 @@ func deleteSession(sessionID string, force bool) error {
 		var response string
 		_, _ = fmt.Scanln(&response)
 		if strings.ToLower(response) != "y" {
-			fmt.Println("Cancelled.")
+			fmt.Println("Canceled.")
 			return nil
 		}
 	}

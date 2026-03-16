@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewSpecCommand creates the 'spec' subcommand for viewing and managing the project spec.
 func NewSpecCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "spec",
