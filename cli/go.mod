@@ -1,7 +1,6 @@
 module github.com/jongio/azd-copilot/cli
 
-go 1.26.1
-
+go 1.26.4
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.21.0
 	github.com/azure/azure-dev/cli/azd v0.0.0-20260228002641-8f080b39d69b
