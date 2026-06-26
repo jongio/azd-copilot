@@ -1,8 +1,8 @@
 {
   "devDependencies": {
-    "@azure/identity": "^4.13.0",
-    "openai": "^6.18.0",
-    "sharp": "^0.34.5",
-    "tsx": "^4.21.0"
+    "@azure/identity": "^4.13.1",
+    "openai": "^6.45.0",
+    "sharp": "^0.35.2",
+    "tsx": "^4.22.4"
   }
 }

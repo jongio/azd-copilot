@@ -129,6 +129,7 @@ jobs:
           cache-dependency-path: cli/go.sum
 
       - name: Build for multiple platforms
+        shell: bash
         run: |
           GOOS=windows GOARCH=amd64 go build -o bin/windows-amd64/copilot.exe ./src/cmd/copilot
           GOOS=linux GOARCH=amd64 go build -o bin/linux-amd64/copilot ./src/cmd/copilot
