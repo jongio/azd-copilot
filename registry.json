@@ -14,7 +14,7 @@
             "mcp-server",
             "metadata"
           ],
-          "usage": "azd copilot \u003ccommand\u003e [options]",
+          "usage": "azd copilot <command> [options]",
           "examples": [
             {
               "name": "interactive",
@@ -123,7 +123,7 @@
             "mcp-server",
             "metadata"
           ],
-          "usage": "azd copilot \u003ccommand\u003e [options]",
+          "usage": "azd copilot <command> [options]",
           "examples": [
             {
               "name": "interactive",
@@ -232,7 +232,7 @@
             "mcp-server",
             "metadata"
           ],
-          "usage": "azd copilot \u003ccommand\u003e [options]",
+          "usage": "azd copilot <command> [options]",
           "examples": [
             {
               "name": "interactive",
@@ -341,7 +341,7 @@
             "mcp-server",
             "metadata"
           ],
-          "usage": "azd copilot \u003ccommand\u003e [options]",
+          "usage": "azd copilot <command> [options]",
           "examples": [
             {
               "name": "interactive",
@@ -450,7 +450,7 @@
             "mcp-server",
             "metadata"
           ],
-          "usage": "azd copilot \u003ccommand\u003e [options]",
+          "usage": "azd copilot <command> [options]",
           "examples": [
             {
               "name": "interactive",
@@ -559,7 +559,7 @@
             "mcp-server",
             "metadata"
           ],
-          "usage": "azd copilot \u003ccommand\u003e [options]",
+          "usage": "azd copilot <command> [options]",
           "examples": [
             {
               "name": "interactive",
@@ -668,7 +668,7 @@
             "mcp-server",
             "metadata"
           ],
-          "usage": "azd copilot \u003ccommand\u003e [options]",
+          "usage": "azd copilot <command> [options]",
           "examples": [
             {
               "name": "interactive",
@@ -777,7 +777,7 @@
             "mcp-server",
             "metadata"
           ],
-          "usage": "azd copilot \u003ccommand\u003e [options]",
+          "usage": "azd copilot <command> [options]",
           "examples": [
             {
               "name": "interactive",
@@ -886,7 +886,7 @@
             "mcp-server",
             "metadata"
           ],
-          "usage": "azd copilot \u003ccommand\u003e [options]",
+          "usage": "azd copilot <command> [options]",
           "examples": [
             {
               "name": "interactive",
@@ -995,7 +995,7 @@
             "mcp-server",
             "metadata"
           ],
-          "usage": "azd copilot \u003ccommand\u003e [options]",
+          "usage": "azd copilot <command> [options]",
           "examples": [
             {
               "name": "interactive",
@@ -1104,7 +1104,7 @@
             "mcp-server",
             "metadata"
           ],
-          "usage": "azd copilot \u003ccommand\u003e [options]",
+          "usage": "azd copilot <command> [options]",
           "examples": [
             {
               "name": "interactive",
@@ -1201,6 +1201,115 @@
               "entryPoint": "jongio-azd-copilot-windows-arm64.exe",
               "executable": "copilot.exe",
               "url": "https://github.com/jongio/azd-copilot/releases/download/azd-ext-jongio-azd-copilot_0.2.3/jongio-azd-copilot-windows-arm64.zip"
+            }
+          },
+          "entryPoint": "copilot"
+        },
+        {
+          "version": "0.2.4",
+          "capabilities": [
+            "custom-commands",
+            "lifecycle-events",
+            "mcp-server",
+            "metadata"
+          ],
+          "usage": "azd copilot <command> [options]",
+          "examples": [
+            {
+              "name": "interactive",
+              "description": "Start an interactive AI development session",
+              "usage": "azd copilot"
+            },
+            {
+              "name": "prompt",
+              "description": "Execute a single prompt non-interactively",
+              "usage": "azd copilot -p \"build me a REST API for managing products\""
+            },
+            {
+              "name": "resume",
+              "description": "Resume the previous session",
+              "usage": "azd copilot --resume"
+            },
+            {
+              "name": "agent",
+              "description": "Use a specific agent for specialized tasks",
+              "usage": "azd copilot --agent azure-security"
+            },
+            {
+              "name": "yolo",
+              "description": "Auto-approve all tool executions",
+              "usage": "azd copilot --yolo -p \"deploy to production\""
+            },
+            {
+              "name": "agents-list",
+              "description": "List all available agents",
+              "usage": "azd copilot agents"
+            },
+            {
+              "name": "skills-list",
+              "description": "List all available skills",
+              "usage": "azd copilot skills"
+            },
+            {
+              "name": "context",
+              "description": "Show current azd project context",
+              "usage": "azd copilot context"
+            }
+          ],
+          "artifacts": {
+            "darwin/amd64": {
+              "checksum": {
+                "algorithm": "sha256",
+                "value": "b60095830be923b74fcdf9fa0f3821c19922c71389647daadca53250655739bf"
+              },
+              "entryPoint": "jongio-azd-copilot-darwin-amd64",
+              "executable": "copilot.exe",
+              "url": "https://github.com/jongio/azd-copilot/releases/download/azd-ext-jongio-azd-copilot_0.2.4/jongio-azd-copilot-darwin-amd64.zip"
+            },
+            "darwin/arm64": {
+              "checksum": {
+                "algorithm": "sha256",
+                "value": "ce293f7e12d90167552aa5e630582eff1c232515c959e1b2ba84104ed7418eb9"
+              },
+              "entryPoint": "jongio-azd-copilot-darwin-arm64",
+              "executable": "copilot.exe",
+              "url": "https://github.com/jongio/azd-copilot/releases/download/azd-ext-jongio-azd-copilot_0.2.4/jongio-azd-copilot-darwin-arm64.zip"
+            },
+            "linux/amd64": {
+              "checksum": {
+                "algorithm": "sha256",
+                "value": "d65dd861511bc711289d27d4c92067a9d6edf9fc544b08530a44246092b6be1c"
+              },
+              "entryPoint": "jongio-azd-copilot-linux-amd64",
+              "executable": "copilot.exe",
+              "url": "https://github.com/jongio/azd-copilot/releases/download/azd-ext-jongio-azd-copilot_0.2.4/jongio-azd-copilot-linux-amd64.tar.gz"
+            },
+            "linux/arm64": {
+              "checksum": {
+                "algorithm": "sha256",
+                "value": "ad1e7ea79ce4313458154416b4b305d0007b936f6b5b5449d4ad0310cb3d2548"
+              },
+              "entryPoint": "jongio-azd-copilot-linux-arm64",
+              "executable": "copilot.exe",
+              "url": "https://github.com/jongio/azd-copilot/releases/download/azd-ext-jongio-azd-copilot_0.2.4/jongio-azd-copilot-linux-arm64.tar.gz"
+            },
+            "windows/amd64": {
+              "checksum": {
+                "algorithm": "sha256",
+                "value": "5133cad9c72572eff03bc226fd8d09173c6aec792a243cdd4e82843190cc84cc"
+              },
+              "entryPoint": "jongio-azd-copilot-windows-amd64.exe",
+              "executable": "copilot.exe",
+              "url": "https://github.com/jongio/azd-copilot/releases/download/azd-ext-jongio-azd-copilot_0.2.4/jongio-azd-copilot-windows-amd64.zip"
+            },
+            "windows/arm64": {
+              "checksum": {
+                "algorithm": "sha256",
+                "value": "1fe8202ac4bcee5bc6d8867468a726daa6d79b0a2c884c1b8059cc826750d90e"
+              },
+              "entryPoint": "jongio-azd-copilot-windows-arm64.exe",
+              "executable": "copilot.exe",
+              "url": "https://github.com/jongio/azd-copilot/releases/download/azd-ext-jongio-azd-copilot_0.2.4/jongio-azd-copilot-windows-arm64.zip"
             }
           },
           "entryPoint": "copilot"
