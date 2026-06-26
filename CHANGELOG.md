@@ -1,3 +1,16 @@
+## [0.2.4] - 2026-06-26
+
+- chore(deps): upgrade all dependencies to latest (#52) (5cf66dd)
+- fix(security): bump Go to 1.26.4 to resolve 8 stdlib govulncheck findings (GO-2026-5039/5037/4971/4947/4946/4870/4866/4865) (80e7b6f)
+- ci(deps): bump upload-artifact v7.0.1, cache, cosign-installer v4.1.2, sbom-action, pnpm/action-setup (b8bb4f4)
+- ci: bump actions/upload-artifact from 4.6.2 to 7.0.0 (76f1010)
+- ci: bump actions/cache from 4.2.3 to 5.0.4 (9497bce)
+- ci: bump actions/checkout from 4.3.1 to 6.0.2 (303a7db)
+- ci: bump actions/setup-go from 5.6.0 to 6.3.0 (d8b3374)
+- ci: bump sigstore/cosign-installer from 3.9.1 to 4.1.0 (bbcd43d)
+- fix: reorder release steps - registry before cosign/SBOM (f427d29)
+- chore: update registry for v0.2.3 (ce77f12)
+
 ## [0.2.3] - 2026-03-16
 
 - fix: correct cosign-installer SHA for v3 (35919ff)
