@@ -137,10 +137,10 @@ func TestDBListAllScenarios(t *testing.T) {
 	// Insert runs for two different scenarios
 	for _, name := range []string{"scenario-a", "scenario-b"} {
 		_, err := db.InsertRun(&Run{
-			Scenario:  name,
-			SessionID: name + "-sess",
-			Score:     0.9,
-			Skills:    map[string]bool{},
+			Scenario:    name,
+			SessionID:   name + "-sess",
+			Score:       0.9,
+			Skills:      map[string]bool{},
 			Regressions: map[string]RegResult{},
 		})
 		if err != nil {

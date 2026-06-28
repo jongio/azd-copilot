@@ -43,15 +43,19 @@ func RunVerification(ctx context.Context, s *Scenario, workDir string, endpoint 
 	fmt.Printf("🧪 Running %d verification steps against %s\n", len(s.Verification), endpoint)
 
 	// Generate Playwright test file
-	testDir, err := os.MkdirTemp("", "scenario-verify-*")
+	baseDir := workDir
+	if baseDir == "" {
+		baseDir = "."
+	}
+	testDir, err := os.MkdirTemp(baseDir, ".scenario-verify-*")
 	if err != nil {
 		return nil, fmt.Errorf("create verify dir: %w", err)
 	}
-	defer os.RemoveAll(testDir)
+	defer func() { _ = os.RemoveAll(testDir) }()
 
 	testCode := generatePlaywrightTest(s, endpoint)
 	testFile := filepath.Join(testDir, "verify.spec.js")
-	if err := os.WriteFile(testFile, []byte(testCode), 0644); err != nil {
+	if err := os.WriteFile(testFile, []byte(testCode), 0600); err != nil {
 		return nil, fmt.Errorf("write test file: %w", err)
 	}
 
@@ -65,7 +69,7 @@ export default defineConfig({
 });
 `
 	configFile := filepath.Join(testDir, "playwright.config.ts")
-	if err := os.WriteFile(configFile, []byte(configCode), 0644); err != nil {
+	if err := os.WriteFile(configFile, []byte(configCode), 0600); err != nil {
 		return nil, fmt.Errorf("write config: %w", err)
 	}
 
@@ -73,6 +77,7 @@ export default defineConfig({
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 	defer cancel()
 
+	// #nosec G204 -- The generated Playwright config and test file are created by this process.
 	cmd := exec.CommandContext(ctx, "npx", "playwright", "test", "--config", configFile, testFile)
 	cmd.Dir = testDir
 	output, err := cmd.CombinedOutput()
@@ -180,7 +185,7 @@ func parseVerificationResults(s *Scenario, output string, runErr error) *Verific
 		}
 
 		// Check if this specific test passed or failed in the output
-		passed := !strings.Contains(output, fmt.Sprintf("✘") ) && runErr == nil
+		passed := !strings.Contains(output, "✘") && runErr == nil
 		errMsg := ""
 
 		// Look for specific test failure
@@ -218,7 +223,9 @@ func parseVerificationResults(s *Scenario, output string, runErr error) *Verific
 // discoverEndpoint tries to find the deployed app URL from azd env output.
 func discoverEndpoint(workDir string) string {
 	// Try azd env get-values
-	cmd := exec.Command("azd", "env", "get-values")
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, "azd", "env", "get-values")
 	cmd.Dir = workDir
 	out, err := cmd.Output()
 	if err != nil {

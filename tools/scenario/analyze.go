@@ -133,22 +133,11 @@ func Analyze(sessionID string, s *Scenario, gitCommit string) (*Run, error) {
 	}
 
 	// Compute pass/fail
-	passed := true
-	if s.Scoring.MaxDurationMin > 0 && durationSec > s.Scoring.MaxDurationMin*60 {
-		passed = false
-	}
-	if s.Scoring.MaxTurns > 0 && turns > s.Scoring.MaxTurns {
-		passed = false
-	}
-	if s.Scoring.MaxAzdUpAttempts > 0 && azdUps > s.Scoring.MaxAzdUpAttempts {
-		passed = false
-	}
-	if s.Scoring.MaxBicepEdits > 0 && bicepEdits > s.Scoring.MaxBicepEdits {
-		passed = false
-	}
-	if s.Scoring.MustDelegate && !delegated {
-		passed = false
-	}
+	passed := (s.Scoring.MaxDurationMin <= 0 || durationSec <= s.Scoring.MaxDurationMin*60) &&
+		(s.Scoring.MaxTurns <= 0 || turns <= s.Scoring.MaxTurns) &&
+		(s.Scoring.MaxAzdUpAttempts <= 0 || azdUps <= s.Scoring.MaxAzdUpAttempts) &&
+		(s.Scoring.MaxBicepEdits <= 0 || bicepEdits <= s.Scoring.MaxBicepEdits) &&
+		(!s.Scoring.MustDelegate || delegated)
 	for _, invoked := range skillResults {
 		if !invoked {
 			passed = false
@@ -194,21 +183,20 @@ func computeScore(s *Scenario, durationSec, turns, azdUps, bicepEdits int,
 
 	// Continuous scoring: full points at/below limit, proportional reduction above.
 	// Uses limit/actual so even 10x over still gets some credit (10%).
-	scoreMetric := func(actual, limit, weight float64) float64 {
+	scoreMetric := func(actual, limit, weight float64) {
 		maxPoints += weight
 		if limit <= 0 {
 			total += weight
-			return weight
+			return
 		}
 		if actual <= limit {
 			total += weight
-			return weight
+			return
 		}
 		// Proportional: score = weight * (limit / actual)
 		// At 2x over → 50%, at 3x → 33%, at 10x → 10%
 		pts := weight * limit / actual
 		total += pts
-		return pts
 	}
 
 	scoreMetric(float64(durationSec), float64(s.Scoring.MaxDurationMin*60), 25)

@@ -100,6 +100,7 @@ func runSinglePrompt(ctx context.Context, azdBinary, workDir, promptText string,
 		args = append(args, "--resume")
 	}
 
+	// #nosec G204 -- The azd binary path is supplied by the local scenario runner configuration.
 	cmd := exec.CommandContext(promptCtx, azdBinary, args...)
 	cmd.Dir = workDir
 	cmd.Stderr = os.Stderr
@@ -212,17 +213,29 @@ func watchEventsForCompletion(stop <-chan struct{}, taskDoneCh chan<- struct{}) 
 		currentSize := info.Size()
 		if currentSize > lastSize {
 			// Read only the new bytes
+			// #nosec G304 -- eventsPath points to the latest local Copilot session log.
 			f, err := os.Open(eventsPath)
 			if err != nil {
 				time.Sleep(1 * time.Second)
 				continue
 			}
 			if lastSize > 0 {
-				f.Seek(lastSize, io.SeekStart)
+				if _, err := f.Seek(lastSize, io.SeekStart); err != nil {
+					_ = f.Close()
+					time.Sleep(1 * time.Second)
+					continue
+				}
 			}
 			newData := make([]byte, currentSize-lastSize)
-			n, _ := f.Read(newData)
-			f.Close()
+			n, err := f.Read(newData)
+			if closeErr := f.Close(); closeErr != nil {
+				time.Sleep(1 * time.Second)
+				continue
+			}
+			if err != nil && err != io.EOF {
+				time.Sleep(1 * time.Second)
+				continue
+			}
 			lastSize = currentSize
 
 			// Check each new line for task_complete

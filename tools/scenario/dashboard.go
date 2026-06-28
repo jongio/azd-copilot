@@ -3,17 +3,14 @@
 
 package scenario
 
-import (
-	"fmt"
-	"os"
-)
+import "os"
 
 // GenerateDashboard creates a self-contained HTML dashboard that loads
 // results.db via sql.js (WASM SQLite) directly in the browser.
 // The dashboard reads the DB live — no regeneration needed after new runs.
 func GenerateDashboard(db *DB, outPath string) error {
 	_ = db // DB is not read here — the HTML loads it client-side
-	return os.WriteFile(outPath, []byte(dashboardHTML), 0644)
+	return os.WriteFile(outPath, []byte(dashboardHTML), 0600)
 }
 
 const dashboardHTML = `<!DOCTYPE html>
@@ -346,17 +343,3 @@ loadDB();
 </script>
 </body>
 </html>`
-
-func formatDuration(sec int) string {
-	if sec < 60 {
-		return fmt.Sprintf("%ds", sec)
-	}
-	m := sec / 60
-	s := sec % 60
-	if m < 60 {
-		return fmt.Sprintf("%dm %ds", m, s)
-	}
-	h := m / 60
-	m = m % 60
-	return fmt.Sprintf("%dh %dm", h, m)
-}
