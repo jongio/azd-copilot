@@ -42,7 +42,7 @@ func RunLoop(ctx context.Context, cfg LoopConfig) ([]LoopResult, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open db: %w", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	var results []LoopResult
 
@@ -172,6 +172,7 @@ func runCopilotFix(ctx context.Context, cfg LoopConfig, prompt string) error {
 	defer cancel()
 
 	args := []string{"copilot", "--yolo", "-p", prompt}
+	// #nosec G204 -- The azd binary path is supplied by local scenario runner configuration.
 	cmd := exec.CommandContext(ctx, cfg.AzdBinary, args...)
 	cmd.Dir = cfg.RepoRoot
 	cmd.Stderr = os.Stderr
@@ -229,9 +230,11 @@ func runCopilotFix(ctx context.Context, cfg LoopConfig, prompt string) error {
 
 func rebuildExtension(repoRoot string) error {
 	cliDir := filepath.Join(repoRoot, "cli")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+	defer cancel()
 
 	// Build
-	cmd := exec.Command("go", "build", "./...")
+	cmd := exec.CommandContext(ctx, "go", "build", "./...")
 	cmd.Dir = cliDir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -240,7 +243,7 @@ func rebuildExtension(repoRoot string) error {
 	}
 
 	// Test
-	cmd = exec.Command("go", "test", "./...")
+	cmd = exec.CommandContext(ctx, "go", "test", "./...")
 	cmd.Dir = cliDir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -249,7 +252,7 @@ func rebuildExtension(repoRoot string) error {
 	}
 
 	// Install via mage
-	cmd = exec.Command("mage", "build")
+	cmd = exec.CommandContext(ctx, "mage", "build")
 	cmd.Dir = cliDir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -261,7 +264,9 @@ func rebuildExtension(repoRoot string) error {
 }
 
 func gitCommit(repoRoot string) string {
-	cmd := exec.Command("git", "rev-parse", "HEAD")
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, "git", "rev-parse", "HEAD")
 	cmd.Dir = repoRoot
 	out, err := cmd.Output()
 	if err != nil {

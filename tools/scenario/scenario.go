@@ -20,22 +20,22 @@ import (
 
 // Scenario defines a repeatable test scenario for azd-copilot.
 type Scenario struct {
-	Name         string         `yaml:"name"`
-	Description  string         `yaml:"description"`
-	Timeout      string         `yaml:"timeout,omitempty"` // e.g. "30m"
-	Prompts      []Prompt       `yaml:"prompts"`
-	Scoring      Scoring        `yaml:"scoring"`
-	Verification []VerifyStep   `yaml:"verification,omitempty"`
+	Name         string       `yaml:"name"`
+	Description  string       `yaml:"description"`
+	Timeout      string       `yaml:"timeout,omitempty"` // e.g. "30m"
+	Prompts      []Prompt     `yaml:"prompts"`
+	Scoring      Scoring      `yaml:"scoring"`
+	Verification []VerifyStep `yaml:"verification,omitempty"`
 }
 
 // VerifyStep is a single Playwright verification action.
 type VerifyStep struct {
 	Name       string `yaml:"name"`                  // human-readable step name
 	Action     string `yaml:"action"`                // navigate, click, type, wait, check
-	Selector   string `yaml:"selector,omitempty"`     // CSS selector for click/type/check
-	URL        string `yaml:"url,omitempty"`          // for navigate action (supports {{endpoint}})
-	Value      string `yaml:"value,omitempty"`        // text to type, or expected text for check
-	StatusCode int    `yaml:"status_code,omitempty"`  // expected HTTP status for navigate
+	Selector   string `yaml:"selector,omitempty"`    // CSS selector for click/type/check
+	URL        string `yaml:"url,omitempty"`         // for navigate action (supports {{endpoint}})
+	Value      string `yaml:"value,omitempty"`       // text to type, or expected text for check
+	StatusCode int    `yaml:"status_code,omitempty"` // expected HTTP status for navigate
 }
 
 // Prompt is a single user message injected into the copilot session.
@@ -71,6 +71,7 @@ type Regression struct {
 
 // LoadScenario reads a scenario YAML file.
 func LoadScenario(path string) (*Scenario, error) {
+	// #nosec G304 -- Scenario path is explicit user input for this local tool.
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("read scenario: %w", err)
@@ -88,7 +89,7 @@ func SaveScenario(s *Scenario, path string) error {
 	if err != nil {
 		return fmt.Errorf("marshal scenario: %w", err)
 	}
-	return os.WriteFile(path, data, 0644)
+	return os.WriteFile(path, data, 0600)
 }
 
 // --- Session Event Parsing ---
@@ -136,6 +137,7 @@ func LoadSessionEvents(sessionID string) (*SessionEvents, error) {
 	}
 
 	eventsPath := filepath.Join(home, ".copilot", "session-state", sessionID, "events.jsonl")
+	// #nosec G304 -- Session ID selects a local Copilot session log for analysis.
 	data, err := os.ReadFile(eventsPath)
 	if err != nil {
 		return nil, fmt.Errorf("read events.jsonl for session %s: %w", sessionID, err)

@@ -4,6 +4,7 @@
 package scenario
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"os"
@@ -69,9 +70,9 @@ type Run struct {
 	Deployed      bool
 	Score         float64
 	Passed        bool
-	Skills        map[string]bool            // skill name -> was invoked
-	Regressions   map[string]RegResult       // regression name -> result
-	Verification  map[string]VerifyResult    // step name -> result
+	Skills        map[string]bool         // skill name -> was invoked
+	Regressions   map[string]RegResult    // regression name -> result
+	Verification  map[string]VerifyResult // step name -> result
 }
 
 // RegResult is the result of checking one regression pattern.
@@ -92,9 +93,14 @@ type DB struct {
 	db *sql.DB
 }
 
+type idRun struct {
+	id  int64
+	run Run
+}
+
 // OpenDB opens (or creates) the scenario results database.
 func OpenDB(dbPath string) (*DB, error) {
-	if err := os.MkdirAll(filepath.Dir(dbPath), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(dbPath), 0700); err != nil {
 		return nil, fmt.Errorf("create db dir: %w", err)
 	}
 
@@ -103,8 +109,10 @@ func OpenDB(dbPath string) (*DB, error) {
 		return nil, fmt.Errorf("open db: %w", err)
 	}
 
-	if _, err := db.Exec(schema); err != nil {
-		db.Close()
+	if _, err := db.ExecContext(context.Background(), schema); err != nil {
+		if closeErr := db.Close(); closeErr != nil {
+			return nil, fmt.Errorf("init schema: %w; close db: %w", err, closeErr)
+		}
 		return nil, fmt.Errorf("init schema: %w", err)
 	}
 
@@ -118,7 +126,7 @@ func (d *DB) Close() error {
 
 // InsertRun saves a run result and returns the inserted row ID.
 func (d *DB) InsertRun(r *Run) (int64, error) {
-	res, err := d.db.Exec(`
+	res, err := d.db.ExecContext(context.Background(), `
 		INSERT INTO runs (scenario, session_id, git_commit, started_at, duration_sec,
 			total_turns, azd_up_attempts, bicep_edits, delegated, deployed, score, passed)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -137,7 +145,7 @@ func (d *DB) InsertRun(r *Run) (int64, error) {
 
 	// Insert skill records
 	for skill, invoked := range r.Skills {
-		if _, err := d.db.Exec(`INSERT INTO run_skills (run_id, skill, invoked) VALUES (?, ?, ?)`,
+		if _, err := d.db.ExecContext(context.Background(), `INSERT INTO run_skills (run_id, skill, invoked) VALUES (?, ?, ?)`,
 			runID, skill, invoked); err != nil {
 			return runID, fmt.Errorf("insert skill %s: %w", skill, err)
 		}
@@ -145,7 +153,7 @@ func (d *DB) InsertRun(r *Run) (int64, error) {
 
 	// Insert regression records
 	for name, reg := range r.Regressions {
-		if _, err := d.db.Exec(`INSERT INTO run_regressions (run_id, name, occurrences, max_allowed, passed) VALUES (?, ?, ?, ?, ?)`,
+		if _, err := d.db.ExecContext(context.Background(), `INSERT INTO run_regressions (run_id, name, occurrences, max_allowed, passed) VALUES (?, ?, ?, ?, ?)`,
 			runID, name, reg.Occurrences, reg.MaxAllowed, reg.Passed); err != nil {
 			return runID, fmt.Errorf("insert regression %s: %w", name, err)
 		}
@@ -153,7 +161,7 @@ func (d *DB) InsertRun(r *Run) (int64, error) {
 
 	// Insert verification records
 	for name, v := range r.Verification {
-		if _, err := d.db.Exec(`INSERT INTO run_verification (run_id, name, passed, error) VALUES (?, ?, ?, ?)`,
+		if _, err := d.db.ExecContext(context.Background(), `INSERT INTO run_verification (run_id, name, passed, error) VALUES (?, ?, ?, ?)`,
 			runID, name, v.Passed, v.Error); err != nil {
 			return runID, fmt.Errorf("insert verification %s: %w", name, err)
 		}
@@ -164,7 +172,7 @@ func (d *DB) InsertRun(r *Run) (int64, error) {
 
 // ListRuns returns recent runs for a scenario (newest first).
 func (d *DB) ListRuns(scenarioName string, limit int) ([]Run, error) {
-	rows, err := d.db.Query(`
+	rows, err := d.db.QueryContext(context.Background(), `
 		SELECT id, scenario, session_id, git_commit, started_at, duration_sec,
 			total_turns, azd_up_attempts, bicep_edits, delegated, deployed, score, passed
 		FROM runs
@@ -174,7 +182,7 @@ func (d *DB) ListRuns(scenarioName string, limit int) ([]Run, error) {
 	if err != nil {
 		return nil, fmt.Errorf("query runs: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var runs []Run
 	for rows.Next() {
@@ -196,7 +204,7 @@ func (d *DB) ListRuns(scenarioName string, limit int) ([]Run, error) {
 
 // ListRunsWithDetails returns runs with their skills and regressions populated.
 func (d *DB) ListRunsWithDetails(scenarioName string, limit int) ([]Run, error) {
-	rows, err := d.db.Query(`
+	rows, err := d.db.QueryContext(context.Background(), `
 		SELECT id, scenario, session_id, git_commit, started_at, duration_sec,
 			total_turns, azd_up_attempts, bicep_edits, delegated, deployed, score, passed
 		FROM runs
@@ -206,12 +214,112 @@ func (d *DB) ListRunsWithDetails(scenarioName string, limit int) ([]Run, error) 
 	if err != nil {
 		return nil, fmt.Errorf("query runs: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
-	type idRun struct {
-		id  int64
-		run Run
+	idRuns, err := scanIDRuns(rows)
+	if err != nil {
+		return nil, err
 	}
+
+	// Load skills and regressions for each run
+	for i := range idRuns {
+		if err := d.loadRunDetails(idRuns[i].id, &idRuns[i].run); err != nil {
+			return nil, err
+		}
+	}
+
+	runs := make([]Run, len(idRuns))
+	for i, ir := range idRuns {
+		runs[i] = ir.run
+	}
+	return runs, nil
+}
+
+func (d *DB) loadRunDetails(runID int64, r *Run) error {
+	// Load skills
+	sRows, err := d.db.QueryContext(context.Background(), `SELECT skill, invoked FROM run_skills WHERE run_id = ?`, runID)
+	if err != nil {
+		return fmt.Errorf("query skills: %w", err)
+	}
+	defer func() { _ = sRows.Close() }()
+	for sRows.Next() {
+		var skill string
+		var invoked bool
+		if err := sRows.Scan(&skill, &invoked); err != nil {
+			return fmt.Errorf("scan skill: %w", err)
+		}
+		r.Skills[skill] = invoked
+	}
+	if err := sRows.Err(); err != nil {
+		return fmt.Errorf("iterate skills: %w", err)
+	}
+
+	// Load regressions
+	rRows, err := d.db.QueryContext(context.Background(), `SELECT name, occurrences, max_allowed, passed FROM run_regressions WHERE run_id = ?`, runID)
+	if err != nil {
+		return fmt.Errorf("query regressions: %w", err)
+	}
+	defer func() { _ = rRows.Close() }()
+	for rRows.Next() {
+		var name string
+		var reg RegResult
+		if err := rRows.Scan(&name, &reg.Occurrences, &reg.MaxAllowed, &reg.Passed); err != nil {
+			return fmt.Errorf("scan regression: %w", err)
+		}
+		r.Regressions[name] = reg
+	}
+	if err := rRows.Err(); err != nil {
+		return fmt.Errorf("iterate regressions: %w", err)
+	}
+
+	// Load verification results
+	vRows, err := d.db.QueryContext(context.Background(), `SELECT name, passed, error FROM run_verification WHERE run_id = ?`, runID)
+	if err != nil {
+		// Table may not exist in older DBs — not fatal
+		return nil
+	}
+	defer func() { _ = vRows.Close() }()
+	if r.Verification == nil {
+		r.Verification = make(map[string]VerifyResult)
+	}
+	for vRows.Next() {
+		var name string
+		var v VerifyResult
+		var errStr sql.NullString
+		if err := vRows.Scan(&name, &v.Passed, &errStr); err != nil {
+			return fmt.Errorf("scan verification: %w", err)
+		}
+		if errStr.Valid {
+			v.Error = errStr.String
+		}
+		r.Verification[name] = v
+	}
+	if err := vRows.Err(); err != nil {
+		return fmt.Errorf("iterate verification: %w", err)
+	}
+
+	return nil
+}
+
+// ListScenarios returns distinct scenario names from the runs table.
+func (d *DB) ListScenarios() ([]string, error) {
+	rows, err := d.db.QueryContext(context.Background(), `SELECT DISTINCT scenario FROM runs ORDER BY scenario`)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = rows.Close() }()
+	var names []string
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			return nil, err
+		}
+		names = append(names, name)
+	}
+	return names, rows.Err()
+}
+
+func scanIDRuns(rows *sql.Rows) ([]idRun, error) {
 	var idRuns []idRun
 	for rows.Next() {
 		var ir idRun
@@ -232,92 +340,5 @@ func (d *DB) ListRunsWithDetails(scenarioName string, limit int) ([]Run, error) 
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
-
-	// Load skills and regressions for each run
-	for i := range idRuns {
-		if err := d.loadRunDetails(idRuns[i].id, &idRuns[i].run); err != nil {
-			return nil, err
-		}
-	}
-
-	runs := make([]Run, len(idRuns))
-	for i, ir := range idRuns {
-		runs[i] = ir.run
-	}
-	return runs, nil
-}
-
-func (d *DB) loadRunDetails(runID int64, r *Run) error {
-	// Load skills
-	sRows, err := d.db.Query(`SELECT skill, invoked FROM run_skills WHERE run_id = ?`, runID)
-	if err != nil {
-		return fmt.Errorf("query skills: %w", err)
-	}
-	defer sRows.Close()
-	for sRows.Next() {
-		var skill string
-		var invoked bool
-		if err := sRows.Scan(&skill, &invoked); err != nil {
-			return fmt.Errorf("scan skill: %w", err)
-		}
-		r.Skills[skill] = invoked
-	}
-
-	// Load regressions
-	rRows, err := d.db.Query(`SELECT name, occurrences, max_allowed, passed FROM run_regressions WHERE run_id = ?`, runID)
-	if err != nil {
-		return fmt.Errorf("query regressions: %w", err)
-	}
-	defer rRows.Close()
-	for rRows.Next() {
-		var name string
-		var reg RegResult
-		if err := rRows.Scan(&name, &reg.Occurrences, &reg.MaxAllowed, &reg.Passed); err != nil {
-			return fmt.Errorf("scan regression: %w", err)
-		}
-		r.Regressions[name] = reg
-	}
-
-	// Load verification results
-	vRows, err := d.db.Query(`SELECT name, passed, error FROM run_verification WHERE run_id = ?`, runID)
-	if err != nil {
-		// Table may not exist in older DBs — not fatal
-		return nil
-	}
-	defer vRows.Close()
-	if r.Verification == nil {
-		r.Verification = make(map[string]VerifyResult)
-	}
-	for vRows.Next() {
-		var name string
-		var v VerifyResult
-		var errStr sql.NullString
-		if err := vRows.Scan(&name, &v.Passed, &errStr); err != nil {
-			return fmt.Errorf("scan verification: %w", err)
-		}
-		if errStr.Valid {
-			v.Error = errStr.String
-		}
-		r.Verification[name] = v
-	}
-
-	return nil
-}
-
-// ListScenarios returns distinct scenario names from the runs table.
-func (d *DB) ListScenarios() ([]string, error) {
-	rows, err := d.db.Query(`SELECT DISTINCT scenario FROM runs ORDER BY scenario`)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var names []string
-	for rows.Next() {
-		var name string
-		if err := rows.Scan(&name); err != nil {
-			return nil, err
-		}
-		names = append(names, name)
-	}
-	return names, rows.Err()
+	return idRuns, nil
 }
