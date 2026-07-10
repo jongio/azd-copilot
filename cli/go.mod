@@ -4,7 +4,7 @@ go 1.26.5
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.22.0
-	github.com/azure/azure-dev/cli/azd v1.27.0
+	github.com/azure/azure-dev/cli/azd v1.27.1
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be
 	github.com/jongio/azd-core v0.5.7
 	github.com/magefile/mage v1.17.2
