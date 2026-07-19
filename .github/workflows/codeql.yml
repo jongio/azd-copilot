@@ -28,30 +28,30 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Set up Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: cli/go.mod
           cache-dependency-path: cli/go.sum
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@dd677812177e0c29f9c970a6c58d8607ae1bfefd # v4
+        uses: github/codeql-action/init@7188fc363630916deb702c7fdcf4e481b751f97a # v4
         with:
           languages: go
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@dd677812177e0c29f9c970a6c58d8607ae1bfefd # v4
+        uses: github/codeql-action/autobuild@7188fc363630916deb702c7fdcf4e481b751f97a # v4
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@dd677812177e0c29f9c970a6c58d8607ae1bfefd # v4
+        uses: github/codeql-action/analyze@7188fc363630916deb702c7fdcf4e481b751f97a # v4
         continue-on-error: true
         with:
           upload: false
 
       - name: Upload SARIF (if Code Scanning enabled)
-        uses: github/codeql-action/upload-sarif@dd677812177e0c29f9c970a6c58d8607ae1bfefd # v4
+        uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # v4
         continue-on-error: true
         with:
           sarif_file: ../results
