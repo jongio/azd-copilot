@@ -1,6 +1,6 @@
 module github.com/jongio/azd-copilot/tools/scenario
 
-go 1.26.0
+go 1.26.5
 
 require (
 	github.com/magefile/mage v1.17.2
@@ -12,7 +12,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/google/pprof v0.0.0-20260604005048-7023385849c0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/mattn/go-isatty v0.0.23 // indirect
+	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	golang.org/x/sys v0.47.0 // indirect
