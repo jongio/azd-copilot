@@ -175,7 +175,7 @@ Style: Clean digital illustration, professional portrait, friendly tech aestheti
       style: "vivid",
     });
 
-    const imageUrl = response.data[0]?.url;
+    const imageUrl = response.data?.[0]?.url;
     if (!imageUrl) {
       console.error(`  ❌ No image URL returned for ${agent.id}`);
       return null;
