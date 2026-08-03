@@ -58,11 +58,11 @@ Project Modes:
 				if spec.Exists() {
 					return runBuildFromSpec(cmd)
 				}
-				return fmt.Errorf("no spec found. Run 'azd copilot build \"description\"' first")
+				return newSpecNotFoundError()
 			}
 
 			if description == "" {
-				return fmt.Errorf("please provide a description of what you want to build")
+				return newMissingDescriptionError()
 			}
 			return runBuild(cmd, description)
 		},
@@ -83,7 +83,7 @@ func runBuild(cmd *cobra.Command, description string) error {
 		cliout.Error("GitHub Copilot CLI not found!")
 		cliout.Newline()
 		cliout.Hint("Install with: winget install GitHub.Copilot")
-		return fmt.Errorf("copilot CLI not installed")
+		return NewCopilotNotInstalledError()
 	}
 
 	// Detect project mode from description if not specified
@@ -141,7 +141,7 @@ func runBuildFromSpec(cmd *cobra.Command) error {
 		}
 		prompt = buildFromSpecPrompt(content)
 	} else {
-		return fmt.Errorf("no spec found. Run 'azd copilot build \"description\"' first")
+		return newSpecNotFoundError()
 	}
 
 	// Launch Copilot with the build prompt

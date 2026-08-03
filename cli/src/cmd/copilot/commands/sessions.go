@@ -25,10 +25,10 @@ var validSessionID = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 // Returns an error if the ID contains path traversal characters or is otherwise invalid.
 func validateSessionID(id string) error {
 	if id == "" {
-		return fmt.Errorf("session ID cannot be empty")
+		return newInvalidSessionIDError("")
 	}
 	if !validSessionID.MatchString(id) {
-		return fmt.Errorf("invalid session ID: %q (must contain only alphanumeric characters, hyphens, and underscores)", id)
+		return newInvalidSessionIDError(id)
 	}
 	return nil
 }
@@ -199,7 +199,7 @@ func showSession(sessionID string) error {
 
 	sessionPath := filepath.Join(home, ".copilot", "session-state", sessionID)
 	if _, err := os.Stat(sessionPath); os.IsNotExist(err) {
-		return fmt.Errorf("session not found: %s", sessionID)
+		return newSessionNotFoundError(sessionID)
 	}
 
 	cliout.Newline()
@@ -253,7 +253,7 @@ func deleteSession(sessionID string, force bool) error {
 
 	sessionPath := filepath.Join(home, ".copilot", "session-state", sessionID)
 	if _, err := os.Stat(sessionPath); os.IsNotExist(err) {
-		return fmt.Errorf("session not found: %s", sessionID)
+		return newSessionNotFoundError(sessionID)
 	}
 
 	if !force {

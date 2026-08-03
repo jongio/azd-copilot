@@ -40,12 +40,11 @@ func main() {
 	// Set version in copilot package
 	copilot.Version = commands.Version
 
-	rootCmd := newRootCmd()
-
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+	// azdext.Run owns the lifecycle: FORCE_COLOR handling, cobra SilenceErrors,
+	// context creation with tracing propagation, gRPC access token injection,
+	// reserved-flag validation, structured error reporting back to the azd host,
+	// error and suggestion display, and the exit status.
+	azdext.Run(newRootCmd())
 }
 
 func newRootCmd() *cobra.Command {
@@ -177,7 +176,7 @@ func runCopilotSession(cmd *cobra.Command) error {
 		fmt.Println("  • winget install GitHub.Copilot")
 		fmt.Println("  • npm install -g @github/copilot")
 		cliout.Newline()
-		return fmt.Errorf("copilot CLI not installed")
+		return commands.NewCopilotNotInstalledError()
 	}
 
 	// Configure MCP servers for Copilot CLI

@@ -236,7 +236,7 @@ func runQuickAction(cmd *cobra.Command, action string, prompt string) error {
 		cliout.Error("GitHub Copilot CLI not found!")
 		cliout.Newline()
 		cliout.Hint("Install with: winget install GitHub.Copilot")
-		return fmt.Errorf("copilot CLI not installed")
+		return NewCopilotNotInstalledError()
 	}
 
 	// Launch Copilot with the specific prompt
