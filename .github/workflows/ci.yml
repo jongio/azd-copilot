@@ -99,6 +99,10 @@ jobs:
             go test -short -v -race -coverprofile=../coverage/coverage.out ./src/...
           fi
 
+      - name: Enforce coverage ratchet
+        if: matrix.os == 'ubuntu-latest'
+        run: go run github.com/jongio/azd-core/covergate/cmd/covergate -profile ../coverage/coverage.out
+
       - name: Upload coverage to Codecov
         if: github.repository == 'jongio/azd-copilot'
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0

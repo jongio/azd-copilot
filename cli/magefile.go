@@ -13,12 +13,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jongio/azd-core/covergate"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 )
 
 const (
 	binDir        = "bin"
+	coverageDir   = "coverage"
 	extensionFile = "extension.yaml"
 	extensionID   = "jongio.azd.copilot"
 	goSrcPattern  = "./src/..."
@@ -83,6 +85,7 @@ func Preflight() error {
 		{"Checking gofumpt formatting", preflightGofumpt},
 		{"Checking for dead code", preflightDeadcode},
 		{"Running tests", Test},
+		{"Checking coverage against the baseline", Coverage},
 		{"Building CLI binary", Build},
 	}
 
@@ -130,6 +133,29 @@ func Build() error {
 	return nil
 }
 
+// VerifyNoLocalReplace fails if go.mod still points azd-core at a local path.
+// A local replace is fine during coordinated development, but shipping one
+// produces a module nobody else can build, so the release path must reject it.
+func VerifyNoLocalReplace() error {
+	data, err := os.ReadFile("go.mod")
+	if err != nil {
+		return fmt.Errorf("failed to read go.mod: %w", err)
+	}
+	for _, line := range strings.Split(string(data), "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "//") || !strings.Contains(line, "jongio/azd-core") {
+			continue
+		}
+		if !strings.HasPrefix(line, "replace ") && !strings.HasPrefix(line, "github.com/jongio/azd-core =>") {
+			continue
+		}
+		return fmt.Errorf(
+			"go.mod still replaces azd-core with a local path:\n  %s\n"+
+				"Remove the replace and pin a released azd-core version before shipping", line)
+	}
+	return nil
+}
+
 // Fmt formats all Go source files.
 func Fmt() error {
 	fmt.Println("Formatting Go code...")
@@ -148,9 +174,78 @@ func Test() error {
 	return sh.RunV("go", "test", "-v", goSrcPattern)
 }
 
+// TestCoverage runs the tests and writes a coverage profile and HTML report.
+func TestCoverage() error {
+	fmt.Println("Running tests with coverage...")
+
+	if err := os.MkdirAll(coverageDir, 0o750); err != nil {
+		return fmt.Errorf("failed to create coverage directory: %w", err)
+	}
+
+	profile := filepath.Join(coverageDir, "coverage.out")
+	htmlReport := filepath.Join(coverageDir, "coverage.html")
+
+	if err := sh.RunV("go", "test", "-short", "-coverprofile="+profile, goSrcPattern); err != nil {
+		return fmt.Errorf("tests failed: %w", err)
+	}
+
+	if err := sh.RunV("go", "tool", "cover", "-html="+profile, "-o", htmlReport); err != nil {
+		return fmt.Errorf("failed to generate coverage HTML: %w", err)
+	}
+
+	fmt.Printf("✅ Coverage report generated: %s\n", htmlReport)
+	return nil
+}
+
+// coverageConfig is the repository's coverage ratchet. Coverage may rise
+// freely but may not fall below the recorded baseline.
+//
+// COVERAGE_PROFILE overrides the profile path so CI can gate the profile it
+// already produced instead of running the suite a second time.
+func coverageConfig() covergate.Config {
+	profile := os.Getenv("COVERAGE_PROFILE")
+	if profile == "" {
+		profile = filepath.Join(coverageDir, "coverage.out")
+	}
+	return covergate.Config{
+		Profile:      profile,
+		BaselineFile: "coverage-baseline.json",
+		Check:        covergate.CheckOptions{Tolerance: 0.5},
+	}
+}
+
+// CoverageGate checks an existing coverage profile against the baseline without
+// running the tests. CI uses this after its own test step.
+func CoverageGate() error {
+	return covergate.Gate(coverageConfig())
+}
+
+// Coverage runs the tests and fails if coverage dropped below the baseline.
+func Coverage() error {
+	if err := TestCoverage(); err != nil {
+		return err
+	}
+	fmt.Println("==> Checking coverage against the baseline...")
+	return covergate.Gate(coverageConfig())
+}
+
+// CoverageRecord re-records the coverage baseline from the current profile.
+// Run this only when a coverage change is deliberate, and say why in the
+// commit message.
+func CoverageRecord() error {
+	if err := TestCoverage(); err != nil {
+		return err
+	}
+	fmt.Println("==> Recording a new coverage baseline...")
+	return covergate.Record(coverageConfig(), "recorded by mage coverageRecord")
+}
+
 // Clean removes build artifacts.
 func Clean() error {
 	fmt.Println("Cleaning build artifacts...")
+	if err := os.RemoveAll(coverageDir); err != nil {
+		return err
+	}
 	return os.RemoveAll(binDir)
 }
 

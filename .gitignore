@@ -88,3 +88,7 @@ services.json
 
 # Backup files
 *.backup.*
+
+# Coverage ratchet baselines are tracked on purpose: they are the regression gate.
+!**/coverage-baseline.json
+!coverage-baseline.json
