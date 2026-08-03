@@ -185,7 +185,7 @@ func TestCoverage() error {
 	profile := filepath.Join(coverageDir, "coverage.out")
 	htmlReport := filepath.Join(coverageDir, "coverage.html")
 
-	if err := sh.RunV("go", "test", "-short", "-coverprofile="+profile, goSrcPattern); err != nil {
+	if err := sh.RunV("go", "test", "-short", "-covermode=atomic", "-coverprofile="+profile, goSrcPattern); err != nil {
 		return fmt.Errorf("tests failed: %w", err)
 	}
 

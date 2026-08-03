@@ -10,5 +10,6 @@
     "github.com/jongio/azd-copilot/cli/src/internal/skills": 0,
     "github.com/jongio/azd-copilot/cli/src/internal/spec": 92.6
   },
+  "mode": "atomic",
   "note": "recorded by mage coverageRecord"
 }
