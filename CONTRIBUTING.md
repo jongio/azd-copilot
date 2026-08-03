@@ -8,15 +8,15 @@ Thank you for your interest in contributing to azd-copilot! This document provid
 
 Before contributing, ensure you have the following installed:
 
-- **Go**: 1.25 or later
-- **Node.js**: 20.0.0 or later
+- **Go**: 1.26.5 or later
+- **Node.js**: 22.12.0 or later
 - **pnpm**: 9.0.0 or later
 - **Azure Developer CLI (azd)**: Latest version
 
 You can verify your versions:
 ```bash
-go version          # Should be 1.25+
-node --version      # Should be v20.0.0+
+go version          # Should be 1.26.5+
+node --version      # Should be v22.12.0+
 pnpm --version      # Should be 9.0.0+
 azd version         # Should be latest
 ```
