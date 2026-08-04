@@ -11,6 +11,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -43,7 +44,34 @@ const (
 	TypeManual   CheckpointType = "manual"   // User-created
 )
 
-// Trigger indicates what caused the checkpoint to be created
+// knownPhases and knownTypes bound what can reach a checkpoint ID.
+var (
+	knownPhases = []Phase{PhaseSpec, PhaseDesign, PhaseDevelop, PhaseQuality, PhaseDeploy}
+	knownTypes  = []CheckpointType{TypePhase, TypeTask, TypeSnapshot, TypeRecovery, TypeManual}
+)
+
+// validateIDComponents rejects phase and type values that would escape the
+// checkpoint directory.
+//
+// The checkpoint ID is interpolated straight into a filename, so a phase of
+// "../../../x" writes JSON wherever it points. Both are free-form CLI flags,
+// and the MCP create_checkpoint tool takes a phase argument, which puts the
+// value within reach of an agent acting on untrusted input rather than only
+// the user typing it.
+//
+// Whitelisted rather than escaped: there are five of each, and a value outside
+// the set is a bug or an attack, never a phase someone forgot to register.
+// Empty is allowed because manual checkpoints legitimately carry no phase.
+func validateIDComponents(t CheckpointType, p Phase) error {
+	if t != "" && !slices.Contains(knownTypes, t) {
+		return fmt.Errorf("invalid checkpoint type %q: want one of %v", t, knownTypes)
+	}
+	if p != "" && !slices.Contains(knownPhases, p) {
+		return fmt.Errorf("invalid checkpoint phase %q: want one of %v", p, knownPhases)
+	}
+	return nil
+}
+
 type Trigger string
 
 // TriggerPhaseCompleted through TriggerManual represent what caused a checkpoint.
@@ -223,6 +251,11 @@ func Save(phase Phase, description string, files []string) (*Checkpoint, error) 
 
 // SaveWithOptions creates a checkpoint with full options
 func SaveWithOptions(opts SaveOptions) (*Checkpoint, error) {
+	// Before anything is written, including the index.
+	if err := validateIDComponents(opts.Type, opts.Phase); err != nil {
+		return nil, err
+	}
+
 	checkpointDir := GetCheckpointDir()
 
 	// Ensure directory exists
