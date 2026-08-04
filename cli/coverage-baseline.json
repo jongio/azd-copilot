@@ -1,8 +1,8 @@
 {
-  "total": 31.8,
+  "total": 32.2,
   "packages": {
     "github.com/jongio/azd-copilot/cli/src/cmd/copilot": 19.1,
-    "github.com/jongio/azd-copilot/cli/src/cmd/copilot/commands": 15.7,
+    "github.com/jongio/azd-copilot/cli/src/cmd/copilot/commands": 16.6,
     "github.com/jongio/azd-copilot/cli/src/internal/assets": 80.2,
     "github.com/jongio/azd-copilot/cli/src/internal/cache": 83.3,
     "github.com/jongio/azd-copilot/cli/src/internal/checkpoint": 34.9,

@@ -296,8 +296,8 @@ func registerWorkflowTools(builder *azdext.MCPServerBuilder) {
 						cmdArgs = append(cmdArgs, fmt.Sprint(v))
 					}
 				}
-				if len(cmdArgs) == 0 {
-					return azdext.MCPErrorResult("step %d has no command arguments", i), nil
+				if err := validateWorkflowStepArgs(i, cmdArgs); err != nil {
+					return azdext.MCPErrorResult("%s", err), nil
 				}
 				steps = append(steps, &azdext.WorkflowStep{
 					Command: &azdext.WorkflowCommand{Args: cmdArgs},
@@ -327,7 +327,9 @@ func registerWorkflowTools(builder *azdext.MCPServerBuilder) {
 			return mcp.NewToolResultText(fmt.Sprintf("Workflow '%s' completed successfully", workflowName)), nil
 		},
 		azdext.MCPToolOptions{
-			Description: "Execute an azd workflow with the given name and steps",
+			Description: "Execute a sequence of azd project lifecycle commands as a named workflow, " +
+				"for example provision then deploy. Steps run azd commands such as up, provision, " +
+				"deploy, package and down. Credential and global configuration commands are rejected.",
 			Destructive: true,
 		},
 		mcp.WithString("workflow_name", mcp.Required(), mcp.Description("Name of the workflow to run")),
