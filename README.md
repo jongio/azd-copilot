@@ -170,6 +170,18 @@ The extension auto-configures these MCP servers for Copilot CLI:
 | `context7` | Library documentation lookup |
 | `playwright` | Browser automation and E2E testing |
 
+### Azure AI model grounding
+
+The extension's own MCP server exposes three read-only tools so an agent can
+check Azure AI model availability and quota before it writes infrastructure,
+rather than deploying and reading a capacity failure afterwards:
+
+| Tool | Purpose |
+|------|---------|
+| `list_ai_models` | Models available to the subscription, with versions, deployment SKUs, capacity ranges and regions |
+| `find_ai_model_locations_with_quota` | Regions that still have quota for a named model, with remaining capacity |
+| `list_ai_quota_usage` | Current value, limit and remaining headroom for each AI quota in a region |
+
 ## Architecture
 
 ### How It Works

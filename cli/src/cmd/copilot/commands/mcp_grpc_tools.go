@@ -18,6 +18,7 @@ func registerGRPCTools(builder *azdext.MCPServerBuilder) {
 	registerAccountTools(builder)
 	registerWorkflowTools(builder)
 	registerComposeTools(builder)
+	registerAiModelTools(builder)
 }
 
 // newAzdClient creates a new azd gRPC client and returns it along with a context
