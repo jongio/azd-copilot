@@ -150,7 +150,7 @@ When run without subcommands, starts an interactive Copilot session with Azure c
 		commands.NewBuildCommand(),
 		commands.NewSpecCommand(),
 		commands.NewMCPCommand(),
-		commands.NewMetadataCommand("1.0", "jongio.azd.copilot", newRootCmd),
+		commands.NewMetadataCommand(newRootCmd),
 		// Quick actions
 		commands.NewInitCommand(),
 		commands.NewReviewCommand(),
