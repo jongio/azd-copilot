@@ -3,6 +3,7 @@ package commands
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -281,5 +282,28 @@ func TestExtensionIDMatchesManifest(t *testing.T) {
 
 	if !strings.Contains(string(content), metadataExtensionID) {
 		t.Errorf("extension.yaml does not contain the id %q used by the metadata command", metadataExtensionID)
+	}
+}
+
+// failingWriter always fails, so the metadata command's write error branch gets
+// exercised. Left uncovered it is unreachable in tests, which is how an
+// unchecked write survived there in the first place.
+type failingWriter struct{}
+
+func (failingWriter) Write([]byte) (int, error) {
+	return 0, errors.New("write failed")
+}
+
+func TestMetadataCommandReportsWriteFailure(t *testing.T) {
+	command := NewMetadataCommand(func() *cobra.Command { return &cobra.Command{Use: "copilot"} })
+	command.SetOut(failingWriter{})
+	command.SetErr(failingWriter{})
+
+	err := command.Execute()
+	if err == nil {
+		t.Fatal("Execute() = nil, want a write failure")
+	}
+	if !strings.Contains(err.Error(), "failed to write metadata") {
+		t.Errorf("error = %v, want it to mention the metadata write", err)
 	}
 }
