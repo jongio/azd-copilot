@@ -11,6 +11,11 @@ usage: azd copilot <command> [options]
 version: 0.2.4
 entryPoint: copilot
 
+# The azd host version this extension requires. Every gRPC service and azdext
+# API it uses ships with that release, so this must track the azure-dev module
+# version in go.mod. TestRequiredAzdVersionTracksTheSdk enforces that.
+requiredAzdVersion: ">= 1.29.0"
+
 capabilities:
   - custom-commands
   - lifecycle-events
